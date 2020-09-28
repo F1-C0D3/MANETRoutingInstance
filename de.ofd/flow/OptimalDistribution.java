@@ -21,7 +21,6 @@ import de.terministic.serein.core.Populations;
 import de.terministic.serein.core.StatsListener;
 import de.terministic.serein.core.selection.individual.RandomSelection;
 import de.terministic.serein.core.termination.TerminationConditionGenerations;
-import flow.PathCompositionFitness;
 import genetic.GraphGenome;
 import genetic.PathTranslator;
 import genetic.SinglePointCrossoverPathSeperator;
@@ -42,6 +41,9 @@ public class OptimalDistribution
 
 		ArrayList<Pair<Integer, Integer>> SourceTargetSet = new ArrayList<Pair<Integer, Integer>>();
 
+		/*
+		 * Creates random source and target
+		 */
 		SourceTargetSet.add(g.generateSourceTarget());
 
 		List<List<Integer>> pc = optimization(g, SourceTargetSet);
