@@ -21,6 +21,7 @@ import de.terministic.serein.core.Populations;
 import de.terministic.serein.core.StatsListener;
 import de.terministic.serein.core.selection.individual.RandomSelection;
 import de.terministic.serein.core.termination.TerminationConditionGenerations;
+import flow.PathCompositionFitness;
 import genetic.GraphGenome;
 import genetic.PathTranslator;
 import genetic.SinglePointCrossoverPathSeperator;
