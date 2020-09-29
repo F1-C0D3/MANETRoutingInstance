@@ -6,6 +6,8 @@ tmp/
 *.bak
 *.swp
 *~.nib
+*.gv
+*.pdf
 local.properties
 .settings/
 .loadpath
