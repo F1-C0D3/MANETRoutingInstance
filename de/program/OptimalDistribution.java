@@ -1,4 +1,4 @@
-package flow;
+package program;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -19,12 +19,12 @@ import de.terministic.serein.core.AlgorithmFactory;
 import de.terministic.serein.core.BasicIndividual;
 import de.terministic.serein.core.Populations;
 import de.terministic.serein.core.StatsListener;
+import de.terministic.serein.core.genome.mutation.SinglePointMutation;
+import de.terministic.serein.core.genome.recombination.SinglePointCrossover;
 import de.terministic.serein.core.selection.individual.RandomSelection;
 import de.terministic.serein.core.termination.TerminationConditionGenerations;
-import genetic.GraphGenome;
+import genetic.MANETGenome;
 import genetic.PathTranslator;
-import genetic.SinglePointCrossoverPathSeperator;
-import genetic.SinglePointMutationPathSeperator;
 
 public class OptimalDistribution
 {
@@ -32,40 +32,41 @@ public class OptimalDistribution
 	static int PlaygroundMaxY = 500;
 	static int NumberOfNodes = 30;
 	static int NodeReceptionRange = 100;
-	static int density = 6;
+	static int density = 8;
 
 	public static void main(String[] args) throws IOException, InterruptedException, ExecutionException
 	{
 		MANETGraph g = new MANETGraph(PlaygroundMaxX, PlaygroundMaxY, NumberOfNodes, NodeReceptionRange);
 		g.createMANET(density);
 
-		ArrayList<Pair<Integer, Integer>> SourceTargetSet = new ArrayList<Pair<Integer, Integer>>();
-
 		/*
 		 * Creates random source and target
 		 */
-		SourceTargetSet.add(g.generateSourceTarget());
 
-		List<List<Integer>> pc = optimization(g, SourceTargetSet);
+		Pair<Integer, Integer> st = g.generateSourceTarget();
+		System.out.println("source: " + st.getFirst() + ", Target: " + st.getSecond());
+		List<Integer> pc = optimization(g, st);
 		Printer manetPrinter = new Printer("ManetGraph");
-		manetPrinter.configureMANETVizualisaiton(SourceTargetSet, pc);
+		manetPrinter.configureMANETVizualisaiton(st, pc);
 		manetPrinter.print(g);
+
+		System.out.println("source: " + st.getFirst() + ", Target: " + st.getSecond());
 
 	}
 
-	public static List<List<Integer>> optimization(MANETGraph g, List<Pair<Integer, Integer>> sourceTargetSet)
+	public static List<Integer> optimization(MANETGraph g, Pair<Integer, Integer> sourceTarget)
 	{
 		Random random = new Random(1233);
-		int populationSize = 4;
-		Mutation<GraphGenome> mutation = new SinglePointMutationPathSeperator<GraphGenome>();
+		int populationSize = 10;
+		Mutation<MANETGenome> mutation = new SinglePointMutation<MANETGenome>();
 
-		Recombination<GraphGenome> recombination = new SinglePointCrossoverPathSeperator();
+		Recombination<MANETGenome> recombination = new SinglePointCrossover<MANETGenome>();
 		PathCompositionFitness fitness = new PathCompositionFitness();
-		TerminationCondition<PathComposition> termination = new TerminationConditionGenerations(100000);
+		TerminationCondition<PathComposition> termination = new TerminationConditionGenerations(2000);
 
 		// Initial individual
-		GraphGenome genome = new GraphGenome(g.getNodeIds(), g, sourceTargetSet);
-		BasicIndividual<PathComposition, GraphGenome> initialIndividual = new BasicIndividual<PathComposition, GraphGenome>(
+		MANETGenome genome = new MANETGenome(g.getNodeIds(), g, sourceTarget);
+		BasicIndividual<PathComposition, MANETGenome> initialIndividual = new BasicIndividual<PathComposition, MANETGenome>(
 				genome, new PathTranslator());
 		initialIndividual.setRecombination(recombination);
 		initialIndividual.setMutation(mutation);
@@ -91,15 +92,15 @@ public class OptimalDistribution
 		int startIndex = 0;
 		int indexOfPathSeperator = pc.indexOf(-2);
 
-		while (indexOfPathSeperator != -1)
-		{
-			indexOfPathSeperator += startIndex;
-			result.add(pc.subList(startIndex, indexOfPathSeperator + 1));
-			startIndex = indexOfPathSeperator + 1;
-			indexOfPathSeperator = pc.subList(startIndex, pc.size()).indexOf(-2);
-		}
+//		while (indexOfPathSeperator != -1)
+//		{
+//			indexOfPathSeperator += startIndex;
+//			result.add(pc.subList(startIndex, indexOfPathSeperator + 1));
+//			startIndex = indexOfPathSeperator + 1;
+//			indexOfPathSeperator = pc.subList(startIndex, pc.size()).indexOf(-2);
+//		}
 
-		return result;
+		return pc;
 	}
 
 	public static int getRandomWithExclusion(Random rnd, int start, int end, List<Integer> exclude)

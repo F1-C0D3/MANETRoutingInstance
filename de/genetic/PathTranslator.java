@@ -1,16 +1,15 @@
 package genetic;
 
 import de.terministic.serein.api.Translator;
-import flow.PathComposition;
+import program.PathComposition;
 
-public class PathTranslator implements Translator<PathComposition, GraphGenome>
+public class PathTranslator implements Translator<PathComposition, MANETGenome>
 {
 
 	@Override
-	public PathComposition translate(GraphGenome genome)
+	public PathComposition translate(MANETGenome genome)
 	{
-		PathComposition result = new PathComposition(genome.getGenes(), genome.G, genome.SourceTargetPairs,
-				genome.getPathSeperator());
+		PathComposition result = new PathComposition(genome.getGenes(), genome.G, genome.SourceTarget);
 		return result;
 	}
 

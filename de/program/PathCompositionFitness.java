@@ -1,4 +1,4 @@
-package flow;
+package program;
 
 import java.text.DecimalFormat;
 
@@ -8,7 +8,9 @@ import de.terministic.serein.core.fitness.AbstractFitnessFunction;
 public class PathCompositionFitness extends AbstractFitnessFunction<PathComposition>
 {
 
-	final double _wValidPath = 0.6;
+	final double _wValidPath = 0.7;
+	final double _wValidLinks = 0.1;
+	final double _wSourceTarget = 0.2;
 
 	@Override
 	public boolean isNaturalOrder()
@@ -20,16 +22,15 @@ public class PathCompositionFitness extends AbstractFitnessFunction<PathComposit
 	@Override
 	protected Double calculateFitness(Individual<PathComposition, ?> individual)
 	{
-		double res = 0;
 		PathComposition pc = individual.getPhenotype();
 		DecimalFormat df = new DecimalFormat("#.000");
-		if (!pc.hasValidPaths())
-		{
-			res = 30;
-		}
-
-		res += pc.pathLengths();
-		return res;
+		double validLinksRelations = pc.ContainingValidLinksRelation();
+		validLinksRelations = (validLinksRelations * _wValidLinks);
+		double sourceTargetInPath = pc.containsSourceTarget();
+		sourceTargetInPath = sourceTargetInPath * _wSourceTarget;
+		double isValidPath = pc.isValidPath();
+		isValidPath = (isValidPath * _wValidPath);
+		return validLinksRelations + sourceTargetInPath + isValidPath;
 	}
 
 }
