@@ -12,39 +12,26 @@ import org.jgrapht.alg.util.Pair;
 import de.manet.graph.MANETGraph;
 import de.terministic.serein.core.genome.ValueGenome;
 
-public class MANETGenome extends ValueGenome<Integer>
+public class GraphGenome extends ValueGenome<Integer>
 {
 
 	private double[] geneArray;
 	MANETGraph G;
-	Pair<Integer, Integer> SourceTarget;
+	List<Pair<Integer, Integer>> SourceTargetPairs;
 	private int PathSeperator = -2;
-	private List<Integer> geneInteger;
 
-	public MANETGenome(List<Integer> genes, MANETGraph g, Pair<Integer, Integer> sourceTarget)
+	public GraphGenome(List<Integer> genes, MANETGraph g, List<Pair<Integer, Integer>> sourceTargetPairs)
 	{
 		this(genes, g);
 		this.G = g;
-		this.SourceTarget = sourceTarget;
+		this.SourceTargetPairs = sourceTargetPairs;
 	}
 
-	public MANETGenome(List<Integer> genes, MANETGraph g)
+	public GraphGenome(List<Integer> genes, MANETGraph g)
 	{
 		super(genes);
 		this.G = g;
-		this.geneInteger = genes;
 	}
-
-//	@Override
-//	public List<Integer> getGenes()
-//	{
-//
-//		List<Integer> result = new ArrayList<Integer>();
-//
-//		List<Integer> genome = super.getGenes();
-//		result = genome.subList(1, (genome.size() - 1));
-//		return result;
-//	}
 
 	@Override
 	public String getGenomeId()
@@ -54,34 +41,24 @@ public class MANETGenome extends ValueGenome<Integer>
 	}
 
 	@Override
-	public MANETGenome createInstance(List<Integer> genes)
+	public GraphGenome createInstance(List<Integer> genes)
 	{
-//		List<Integer> manetGeneSourceDest = appendSourceTarget(genes);
-		return new MANETGenome(genes, G, SourceTarget);
+		return new GraphGenome(genes, G, SourceTargetPairs);
 	}
 
-//	public List<Integer> appendSourceTarget(List<Integer> genes)
-//	{
-//		genes.add(0, SourceTarget.getFirst());
-//		genes.add(SourceTarget.getSecond());
-//		return genes;
-//	}
-
 	@Override
-	public MANETGenome createRandomInstance(Random random)
+	public GraphGenome createRandomInstance(Random random)
 	{
 		List<Integer> result = new ArrayList<Integer>();
 
-		int genomeSize = this.size();
-//		result.add(SourceTarget.getFirst());
-
-		for (int numGenes = 0; numGenes < (genomeSize); numGenes++)
+		for (Pair<Integer, Integer> sd : SourceTargetPairs)
 		{
-			result.add(this.G.getRandomNodeId(random));
+			result = Stream
+					.concat(result.stream(), G.generateRandomPath(sd.getFirst(), sd.getSecond(), random).stream())
+					.collect(Collectors.toList());
+			result.add(PathSeperator);
 		}
-
-//		result.add(SourceTarget.getSecond());
-		return new MANETGenome(result, G, SourceTarget);
+		return new GraphGenome(result, G, SourceTargetPairs);
 	}
 
 	public int getPathSeperator()
@@ -93,7 +70,7 @@ public class MANETGenome extends ValueGenome<Integer>
 	public Integer getRandomValue(Random random)
 	{
 		List<Integer> nodeIds = G.getNodeIds();
-		int l = (nodeIds.size());
+		int l = (nodeIds.size() - 1);
 		return nodeIds.get(random.nextInt(l));
 	}
 
@@ -102,14 +79,32 @@ public class MANETGenome extends ValueGenome<Integer>
 		return Collections.frequency(getGenes(), PathSeperator);
 	}
 
-	public MANETGenome genomeConstruction(List<List<Integer>> lists)
+	public List<List<Integer>> extractGenome()
+	{
+		List<List<Integer>> result = new ArrayList<List<Integer>>();
+		int startIndex = 0;
+		int indexOfPathSeperator = getGenes().indexOf(PathSeperator);
+
+		while (indexOfPathSeperator != -1)
+		{
+			indexOfPathSeperator += startIndex;
+			result.add(getGenes().subList(startIndex, indexOfPathSeperator + 1));
+			startIndex = indexOfPathSeperator + 1;
+			indexOfPathSeperator = getGenes().subList(startIndex, getGenes().size()).indexOf(PathSeperator);
+		}
+
+		return result;
+
+	}
+
+	public GraphGenome genomeConstruction(List<List<Integer>> lists)
 	{
 		List<Integer> result = new ArrayList<Integer>();
 		for (List path : lists)
 		{
 			result = (List<Integer>) Stream.concat(result.stream(), path.stream()).collect(Collectors.toList());
 		}
-		return new MANETGenome(result, G);
+		return new GraphGenome(result, G, SourceTargetPairs);
 	}
 
 //	public boolean IsValidGene(Set<Pair<Integer, Integer>> sourceTarget, int geneIndex)

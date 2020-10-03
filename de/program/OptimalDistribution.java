@@ -2,7 +2,6 @@ package program;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.ExecutionException;
@@ -10,7 +9,7 @@ import java.util.concurrent.ExecutionException;
 import org.jgrapht.alg.util.Pair;
 
 import de.manet.graph.MANETGraph;
-import de.manet.print.Printer;
+import de.manet.print.DOTGraphPrinter;
 import de.terministic.serein.api.EvolutionEnvironment;
 import de.terministic.serein.api.Mutation;
 import de.terministic.serein.api.Population;
@@ -20,11 +19,11 @@ import de.terministic.serein.core.AlgorithmFactory;
 import de.terministic.serein.core.BasicIndividual;
 import de.terministic.serein.core.Populations;
 import de.terministic.serein.core.StatsListener;
-import de.terministic.serein.core.genome.mutation.SinglePointMutation;
-import de.terministic.serein.core.genome.recombination.SinglePointCrossover;
 import de.terministic.serein.core.selection.individual.TournamentSelection;
-import de.terministic.serein.core.termination.TerminationConditionFitness;
-import genetic.MANETGenome;
+import de.terministic.serein.core.termination.TerminationConditionGenerations;
+import genetic.GraphGenome;
+import genetic.MultiplePathSingleCrossover;
+import genetic.MultiplePathSingleMutation;
 import genetic.PathTranslator;
 
 public class OptimalDistribution
@@ -34,7 +33,7 @@ public class OptimalDistribution
 	static int NumberOfNodes = 60;
 	static int NodeReceUpperBoundNodeCoverage = 100;
 	static int UpperBoundVelocity = 20;
-	static int density = 10;
+	static int density = 8;
 
 	public static void main(String[] args) throws IOException, InterruptedException, ExecutionException
 	{
@@ -44,36 +43,43 @@ public class OptimalDistribution
 		/*
 		 * Creates random source and target
 		 */
-
-		Pair<Integer, Integer> st = g.generateSourceTarget();
-		System.out.println("source: " + st.getFirst() + ", Target: " + st.getSecond());
-		Printer manetPrinter = new Printer();
-		manetPrinter.configureMANETVizualisaiton(st);
+		List<Pair<Integer, Integer>> sourceTarget = new ArrayList<Pair<Integer, Integer>>();
+		Pair<Integer, Integer> st1 = g.generateSourceTarget();
+		Pair<Integer, Integer> st2 = g.generateSourceTarget();
+		Pair<Integer, Integer> st3 = g.generateSourceTarget();
+		Pair<Integer, Integer> st4 = g.generateSourceTarget();
+		sourceTarget.add(st1);
+		sourceTarget.add(st2);
+		sourceTarget.add(st3);
+		sourceTarget.add(st4);
+		DOTGraphPrinter manetPrinter = new DOTGraphPrinter(sourceTarget);
+		manetPrinter.printPlainGraph();
 		manetPrinter.print(g, "ManetGraph_plain");
-		List<List<Integer>> pc = optimization(g, st);
+		List<List<Integer>> pc = optimization(g, sourceTarget);
 		System.out.println(pc);
-		manetPrinter.configureMANETVizualisaiton(st,
-				pc.stream().min(Comparator.comparingInt(List::size)).orElse(new ArrayList<Integer>()));
+		manetPrinter.printPathsInGraph(pc);
 		manetPrinter.print(g, "ManetGraph_path");
-		System.out.println("source: " + st.getFirst() + ", Target: " + st.getSecond());
+//		System.out.println("source: " + st.getFirst() + ", Target: " + st.getSecond());
 
 	}
 
-	public static List<List<Integer>> optimization(MANETGraph g, Pair<Integer, Integer> sourceTarget)
+	public static List<List<Integer>> optimization(MANETGraph g, List<Pair<Integer, Integer>> sourceTarget)
 	{
 		Random random = new Random(1233);
-		int populationSize = 700;
-		Mutation<MANETGenome> mutation = new SinglePointMutation<MANETGenome>();
 
-		Recombination<MANETGenome> recombination = new SinglePointCrossover<MANETGenome>();
-		PathCompositionFitness fitness = new PathCompositionFitness();
-		TerminationCondition<PathComposition> termination = new TerminationConditionFitness(fitness, 0.12);
+		int populationSize = 50;
+
+		Mutation<GraphGenome> mutation = new MultiplePathSingleMutation<GraphGenome>(g, sourceTarget);
+
+		Recombination<GraphGenome> recombination = new MultiplePathSingleCrossover();
+		FlowDistributionFitness fitness = new FlowDistributionFitness();
+		TerminationCondition<PathComposition> termination = new TerminationConditionGenerations<PathComposition>(1000);
 
 		// Initial individual
-		MANETGenome genome = new MANETGenome(g.getNodeIds(), g, sourceTarget);
-		BasicIndividual<PathComposition, MANETGenome> initialIndividual = new BasicIndividual<PathComposition, MANETGenome>(
+		GraphGenome genome = new GraphGenome(g.getNodeIds(), g, sourceTarget);
+		BasicIndividual<PathComposition, GraphGenome> initialIndividual = new BasicIndividual<PathComposition, GraphGenome>(
 				genome, new PathTranslator());
-		initialIndividual.<Double>setProperty("ProbabilityOfMutation", 0.25, true);
+		initialIndividual.<Double>setProperty("ProbabilityOfMutation", 0.2, true);
 		initialIndividual.setRecombination(recombination);
 		initialIndividual.setMutation(mutation);
 		initialIndividual.setMateSelection(new TournamentSelection<>(fitness, 3));
@@ -95,15 +101,9 @@ public class OptimalDistribution
 		// result
 		PathComposition pc = algo.getFittest().getPhenotype();
 
-//		while (indexOfPathSeperator != -1)
-//		{
-//			indexOfPathSeperator += startIndex;
-//			result.add(pc.subList(startIndex, indexOfPathSeperator + 1));
-//			startIndex = indexOfPathSeperator + 1;
-//			indexOfPathSeperator = pc.subList(startIndex, pc.size()).indexOf(-2);
-//		}
+		List<List<Integer>> paths = pc.extractPaths();
 
-		return pc.suitablePath;
+		return paths;
 	}
 
 	public static int getRandomWithExclusion(Random rnd, int start, int end, List<Integer> exclude)
