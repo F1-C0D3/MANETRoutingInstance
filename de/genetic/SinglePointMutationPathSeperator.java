@@ -24,17 +24,17 @@ public class SinglePointMutationPathSeperator<G extends ValueGenome<?>> implemen
 	public G mutate(G genome, Random random)
 	{
 
-		GraphGenome graphGenome = (GraphGenome) genome;
-		int index = random.nextInt(graphGenome.size() - 1);
+		GraphGenome graphGenes = (GraphGenome) genome;
+		int index = random.nextInt(graphGenes.size() - 1);
 
-		List<Integer> graphGenes = graphGenome.getGenes();
+		List<Integer> geneList = graphGenes.getGenes();
 
-		if (graphGenome.getGenes().get(index) == graphGenome.getPathSeperator())
+		if (graphGenes.getGenes().get(index) == graphGenes.getPathSeperator())
 		{
 			index--;
 		}
-		graphGenes.set(index, graphGenome.getRandomValue(random));
-		return (G) graphGenome.createInstance(graphGenes);
+		geneList.set(index, graphGenes.getRandomValue(random));
+		return (G) graphGenes.createInstance(geneList);
 
 	}
 

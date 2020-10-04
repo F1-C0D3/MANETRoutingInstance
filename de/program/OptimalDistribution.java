@@ -22,9 +22,9 @@ import de.terministic.serein.core.StatsListener;
 import de.terministic.serein.core.selection.individual.TournamentSelection;
 import de.terministic.serein.core.termination.TerminationConditionGenerations;
 import genetic.GraphGenome;
-import genetic.MultiplePathSingleCrossover;
 import genetic.MultiplePathSingleMutation;
 import genetic.PathTranslator;
+import genetic.UniformCrossoverPathSeperator;
 
 public class OptimalDistribution
 {
@@ -67,13 +67,13 @@ public class OptimalDistribution
 	{
 		Random random = new Random(1233);
 
-		int populationSize = 50;
+		int populationSize = 10000;
 
 		Mutation<GraphGenome> mutation = new MultiplePathSingleMutation<GraphGenome>(g, sourceTarget);
 
-		Recombination<GraphGenome> recombination = new MultiplePathSingleCrossover();
+		Recombination<GraphGenome> recombination = new UniformCrossoverPathSeperator();
 		FlowDistributionFitness fitness = new FlowDistributionFitness();
-		TerminationCondition<PathComposition> termination = new TerminationConditionGenerations<PathComposition>(1000);
+		TerminationCondition<PathComposition> termination = new TerminationConditionGenerations<PathComposition>(10);
 
 		// Initial individual
 		GraphGenome genome = new GraphGenome(g.getNodeIds(), g, sourceTarget);

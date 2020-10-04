@@ -14,34 +14,26 @@ public class UniformCrossoverPathSeperator implements Recombination<GraphGenome>
 	public GraphGenome recombine(List<GraphGenome> genomes, Random random) throws RecombinationException
 	{
 
-		GraphGenome graphGenome1 = (GraphGenome) genomes.get(0);
-		GraphGenome graphGenome2 = (GraphGenome) genomes.get(1);
-		int elements = graphGenome1.getPathSize();
+		int genomeInjectorIndex = random.nextInt(2);
+		GraphGenome injector = genomes.get(genomeInjectorIndex);
+		GraphGenome injected = genomes.get(Math.abs(genomeInjectorIndex - 1));
+		int elements = injector.getPathSize();
+		int crossoverIndex = random.nextInt(elements);
 
-		List<List<Integer>> pathGeneList1 = graphGenome1.extractGenome();
-		List<List<Integer>> pathGenesList2 = graphGenome2.extractGenome();
-
-		List<Integer> resulteGenes = new ArrayList<Integer>();
-
+		List<List<Integer>> injectorPaths = injector.extractGenome();
+		List<List<Integer>> injectedPaths = injected.extractGenome();
+		List<List<Integer>> pathList = new ArrayList<List<Integer>>();
 		for (int i = 0; i < elements; i++)
 		{
-			List<Integer> genes1 = pathGeneList1.get(i);
-			List<Integer> genes2 = pathGenesList2.get(i);
-			int maxRangeSize = genes1.size() > genes2.size() ? genes2.size() : genes1.size();
-			int crossoverIndex = random.nextInt(maxRangeSize);
-
-			if (graphGenome1.getPathSeperator() == graphGenome1.getGenes().get(crossoverIndex))
+			if (i % 2 == 0)
 			{
-				crossoverIndex--;
+				pathList.add(injectorPaths.get(i));
+			} else
+			{
+				pathList.add(injectedPaths.get(i));
 			}
-
-			List result = genes1.subList(0, crossoverIndex);
-			result.addAll(genes2.subList(crossoverIndex, genes2.size()));
-			resulteGenes.addAll(resulteGenes.size(), result);
-			result.clear();
 		}
-
-		return graphGenome1.createInstance(resulteGenes);
+		return injected.genomeConstruction(pathList);
 	}
 
 	@Override

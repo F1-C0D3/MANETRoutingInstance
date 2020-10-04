@@ -14,12 +14,12 @@ public class SinglePointCrossoverPathSeperator implements Recombination<GraphGen
 	public GraphGenome recombine(List<GraphGenome> genomes, Random random) throws RecombinationException
 	{
 
-		GraphGenome graphGenome1 = (GraphGenome) genomes.get(0);
-		GraphGenome graphGenome2 = (GraphGenome) genomes.get(1);
-		int elements = graphGenome1.getPathSize();
+		GraphGenome graphGenes1 = (GraphGenome) genomes.get(0);
+		GraphGenome graphGenes2 = (GraphGenome) genomes.get(1);
+		int elements = graphGenes1.getPathSize();
 
-		List<List<Integer>> pathGeneList1 = graphGenome1.extractGenome();
-		List<List<Integer>> pathGenesList2 = graphGenome2.extractGenome();
+		List<List<Integer>> pathGeneList1 = graphGenes1.extractGenome();
+		List<List<Integer>> pathGenesList2 = graphGenes2.extractGenome();
 
 		List<Integer> resulteGenes = new ArrayList<Integer>();
 
@@ -30,7 +30,7 @@ public class SinglePointCrossoverPathSeperator implements Recombination<GraphGen
 			int maxRangeSize = genes1.size() > genes2.size() ? genes2.size() : genes1.size();
 			int crossoverIndex = random.nextInt(maxRangeSize);
 
-			if (graphGenome1.getPathSeperator() == graphGenome1.getGenes().get(crossoverIndex))
+			if (graphGenes1.getPathSeperator() == graphGenes1.getGenes().get(crossoverIndex))
 			{
 				crossoverIndex--;
 			}
@@ -41,7 +41,7 @@ public class SinglePointCrossoverPathSeperator implements Recombination<GraphGen
 			result.clear();
 		}
 
-		return graphGenome1.createInstance(resulteGenes);
+		return graphGenes1.createInstance(resulteGenes);
 	}
 
 	@Override
