@@ -69,7 +69,7 @@ public class GraphGenome extends ValueGenome<Integer>
 	@Override
 	public Integer getRandomValue(Random random)
 	{
-		List<Integer> nodeIds = G.getNodeIds();
+		List<Integer> nodeIds = G.getAllNodeIds();
 		int l = (nodeIds.size() - 1);
 		return nodeIds.get(random.nextInt(l));
 	}
