@@ -2,12 +2,15 @@ package program;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
 import org.jgrapht.alg.util.Pair;
 
+import de.manet.graph.Flow;
 import de.manet.graph.MANETGraph;
 import de.manet.print.DOTGraphPrinter;
 import de.terministic.serein.api.EvolutionEnvironment;
@@ -33,29 +36,34 @@ public class OptimalDistribution
 	static int NumberOfNodes = 60;
 	static int NodeReceUpperBoundNodeCoverage = 100;
 	static int UpperBoundVelocity = 20;
-	static int density = 8;
+	static int density = 10;
 
 	public static void main(String[] args) throws IOException, InterruptedException, ExecutionException
 	{
-		MANETGraph g = new MANETGraph(PlaygroundMaxX, PlaygroundMaxY, NumberOfNodes);
+		MANETGraph g = new MANETGraph(PlaygroundMaxX, PlaygroundMaxY, NumberOfNodes, 0.1);
 		g.createMANET(density, NodeReceUpperBoundNodeCoverage, UpperBoundVelocity);
 
 		/*
 		 * Creates random source and target
 		 */
-		List<Pair<Integer, Integer>> sourceTarget = new ArrayList<Pair<Integer, Integer>>();
-		Pair<Integer, Integer> st1 = g.generateSourceTarget();
-		Pair<Integer, Integer> st2 = g.generateSourceTarget();
-		Pair<Integer, Integer> st3 = g.generateSourceTarget();
-		Pair<Integer, Integer> st4 = g.generateSourceTarget();
-		sourceTarget.add(st1);
-		sourceTarget.add(st2);
-		sourceTarget.add(st3);
-		sourceTarget.add(st4);
-		DOTGraphPrinter manetPrinter = new DOTGraphPrinter(sourceTarget);
+		int numFlow = 6;
+		List<Flow> flows = new ArrayList<Flow>();
+		List<Pair<Integer, Integer>> sourceTargets = new ArrayList<Pair<Integer, Integer>>();
+		Set<Integer> stSet = new HashSet<Integer>();
+		for (int i = 0; i < numFlow; i++)
+		{
+			Pair<Integer, Integer> st = g.generateSourceTarget(stSet);
+			stSet.add(st.getFirst());
+			stSet.add(st.getSecond());
+			Flow flow = new Flow(st.getFirst(), st.getSecond(), 0.8);
+			sourceTargets.add(st);
+			flows.add(flow);
+		}
+
+		DOTGraphPrinter manetPrinter = new DOTGraphPrinter(flows);
 		manetPrinter.printPlainGraph();
 		manetPrinter.print(g, "ManetGraph_plain");
-		List<List<Integer>> pc = optimization(g, sourceTarget);
+		List<List<Integer>> pc = optimization(g, sourceTargets);
 		System.out.println(pc);
 		manetPrinter.printPathsInGraph(pc);
 		manetPrinter.print(g, "ManetGraph_path");
@@ -63,20 +71,22 @@ public class OptimalDistribution
 
 	}
 
-	public static List<List<Integer>> optimization(MANETGraph g, List<Pair<Integer, Integer>> sourceTarget)
+	public static List<List<Integer>> optimization(MANETGraph g, List<Pair<Integer, Integer>> sourceTargets)
 	{
 		Random random = new Random(1233);
 
-		int populationSize = 10000;
+		int populationSize = 200;
 
-		Mutation<GraphGenome> mutation = new MultiplePathSingleMutation<GraphGenome>(g, sourceTarget);
+		Mutation<GraphGenome> mutation = new MultiplePathSingleMutation<GraphGenome>();
 
 		Recombination<GraphGenome> recombination = new UniformCrossoverPathSeperator();
 		FlowDistributionFitness fitness = new FlowDistributionFitness();
-		TerminationCondition<PathComposition> termination = new TerminationConditionGenerations<PathComposition>(10);
+		TerminationCondition<PathComposition> termination = new TerminationConditionGenerations<PathComposition>(100);
 
 		// Initial individual
-		GraphGenome genome = new GraphGenome(g.getNodeIds(), g, sourceTarget);
+		List<List<Integer>> elements = new ArrayList<List<Integer>>();
+		elements.add(g.getAllNodeIds());
+		GraphGenome genome = new GraphGenome(elements, g, sourceTargets);
 		BasicIndividual<PathComposition, GraphGenome> initialIndividual = new BasicIndividual<PathComposition, GraphGenome>(
 				genome, new PathTranslator());
 		initialIndividual.<Double>setProperty("ProbabilityOfMutation", 0.2, true);
@@ -101,9 +111,7 @@ public class OptimalDistribution
 		// result
 		PathComposition pc = algo.getFittest().getPhenotype();
 
-		List<List<Integer>> paths = pc.extractPaths();
-
-		return paths;
+		return pc;
 	}
 
 	public static int getRandomWithExclusion(Random rnd, int start, int end, List<Integer> exclude)

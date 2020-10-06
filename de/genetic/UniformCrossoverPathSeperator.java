@@ -17,11 +17,11 @@ public class UniformCrossoverPathSeperator implements Recombination<GraphGenome>
 		int genomeInjectorIndex = random.nextInt(2);
 		GraphGenome injector = genomes.get(genomeInjectorIndex);
 		GraphGenome injected = genomes.get(Math.abs(genomeInjectorIndex - 1));
-		int elements = injector.getPathSize();
+		int elements = injector.size();
 		int crossoverIndex = random.nextInt(elements);
 
-		List<List<Integer>> injectorPaths = injector.extractGenome();
-		List<List<Integer>> injectedPaths = injected.extractGenome();
+		List<List<Integer>> injectorPaths = injector.getGenes();
+		List<List<Integer>> injectedPaths = injected.getGenes();
 		List<List<Integer>> pathList = new ArrayList<List<Integer>>();
 		for (int i = 0; i < elements; i++)
 		{
@@ -33,7 +33,7 @@ public class UniformCrossoverPathSeperator implements Recombination<GraphGenome>
 				pathList.add(injectedPaths.get(i));
 			}
 		}
-		return injected.genomeConstruction(pathList);
+		return injected.createInstance(pathList);
 	}
 
 	@Override

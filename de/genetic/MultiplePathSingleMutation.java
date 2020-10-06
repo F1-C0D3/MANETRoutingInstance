@@ -1,23 +1,15 @@
 package genetic;
 
-import java.util.List;
 import java.util.Random;
 
-import org.jgrapht.alg.util.Pair;
-
-import de.manet.graph.MANETGraph;
 import de.terministic.serein.api.Mutation;
 import de.terministic.serein.core.genome.ValueGenome;
 
 public class MultiplePathSingleMutation<G extends ValueGenome<?>> implements Mutation<G>
 {
-	private MANETGraph G;
-	private List<Pair<Integer, Integer>> SourceTarget;
 
-	public MultiplePathSingleMutation(MANETGraph g, List<Pair<Integer, Integer>> sourceTarget)
+	public MultiplePathSingleMutation()
 	{
-		this.SourceTarget = sourceTarget;
-		this.G = g;
 	}
 
 	@Override

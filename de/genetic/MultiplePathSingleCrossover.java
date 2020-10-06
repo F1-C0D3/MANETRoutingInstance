@@ -20,8 +20,8 @@ public class MultiplePathSingleCrossover implements Recombination<GraphGenome>
 		int elements = injector.getPathSize();
 		int crossoverIndex = random.nextInt(elements);
 
-		List<List<Integer>> injectorPaths = injector.extractGenome();
-		List<List<Integer>> injectedPaths = injected.extractGenome();
+		List<List<Integer>> injectorPaths = injector.getGenes();
+		List<List<Integer>> injectedPaths = injected.getGenes();
 		List<List<Integer>> pathList = new ArrayList<List<Integer>>();
 		for (int i = 0; i < elements; i++)
 		{
@@ -33,7 +33,7 @@ public class MultiplePathSingleCrossover implements Recombination<GraphGenome>
 				pathList.add(injectedPaths.get(i));
 			}
 		}
-		return injected.genomeConstruction(pathList);
+		return injected.createInstance(pathList);
 
 	}
 
