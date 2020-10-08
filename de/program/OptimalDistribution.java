@@ -36,7 +36,7 @@ public class OptimalDistribution
 	static int NumberOfNodes = 60;
 	static int NodeReceUpperBoundNodeCoverage = 100;
 	static int UpperBoundVelocity = 20;
-	static int density = 10;
+	static int density = 22;
 
 	public static void main(String[] args) throws IOException, InterruptedException, ExecutionException
 	{
@@ -46,7 +46,7 @@ public class OptimalDistribution
 		/*
 		 * Creates random source and target
 		 */
-		int numFlow = 6;
+		int numFlow = 2;
 		List<Flow> flows = new ArrayList<Flow>();
 		List<Pair<Integer, Integer>> sourceTargets = new ArrayList<Pair<Integer, Integer>>();
 		Set<Integer> stSet = new HashSet<Integer>();
@@ -63,7 +63,7 @@ public class OptimalDistribution
 		DOTGraphPrinter manetPrinter = new DOTGraphPrinter(flows);
 		manetPrinter.printPlainGraph();
 		manetPrinter.print(g, "ManetGraph_plain");
-		List<List<Integer>> pc = optimization(g, sourceTargets);
+		List<List<Integer>> pc = optimization(g, flows);
 		System.out.println(pc);
 		manetPrinter.printPathsInGraph(pc);
 		manetPrinter.print(g, "ManetGraph_path");
@@ -71,7 +71,7 @@ public class OptimalDistribution
 
 	}
 
-	public static List<List<Integer>> optimization(MANETGraph g, List<Pair<Integer, Integer>> sourceTargets)
+	public static List<List<Integer>> optimization(MANETGraph g, List<Flow> flows)
 	{
 		Random random = new Random(1233);
 
@@ -86,7 +86,7 @@ public class OptimalDistribution
 		// Initial individual
 		List<List<Integer>> elements = new ArrayList<List<Integer>>();
 		elements.add(g.getAllNodeIds());
-		GraphGenome genome = new GraphGenome(elements, g, sourceTargets);
+		GraphGenome genome = new GraphGenome(elements, g, flows);
 		BasicIndividual<PathComposition, GraphGenome> initialIndividual = new BasicIndividual<PathComposition, GraphGenome>(
 				genome, new PathTranslator());
 		initialIndividual.<Double>setProperty("ProbabilityOfMutation", 0.2, true);

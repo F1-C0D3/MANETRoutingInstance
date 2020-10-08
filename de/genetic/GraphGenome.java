@@ -5,8 +5,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 
-import org.jgrapht.alg.util.Pair;
-
+import de.manet.graph.Flow;
 import de.manet.graph.MANETGraph;
 import de.terministic.serein.core.genome.ValueGenome;
 
@@ -15,14 +14,14 @@ public class GraphGenome extends ValueGenome<List<Integer>>
 
 	private double[] geneArray;
 	MANETGraph G;
-	List<Pair<Integer, Integer>> SourceTargetPairs;
+	List<Flow> Flows;
 	private int PathSeperator = -2;
 
-	public GraphGenome(List<List<Integer>> genes, MANETGraph g, List<Pair<Integer, Integer>> sourceTargetPairs)
+	public GraphGenome(List<List<Integer>> genes, MANETGraph g, List<Flow> flows)
 	{
 		this(genes, g);
 		this.G = g;
-		this.SourceTargetPairs = sourceTargetPairs;
+		this.Flows = flows;
 	}
 
 	public GraphGenome(List<List<Integer>> genes, MANETGraph g)
@@ -41,7 +40,7 @@ public class GraphGenome extends ValueGenome<List<Integer>>
 	@Override
 	public GraphGenome createInstance(List<List<Integer>> genes)
 	{
-		return new GraphGenome(genes, G, SourceTargetPairs);
+		return new GraphGenome(genes, G, Flows);
 	}
 
 	@Override
@@ -49,12 +48,12 @@ public class GraphGenome extends ValueGenome<List<Integer>>
 	{
 		List<List<Integer>> result = new ArrayList<List<Integer>>();
 
-		for (Pair<Integer, Integer> sd : SourceTargetPairs)
+		for (Flow flow : Flows)
 		{
-			List<Integer> path = G.generateRandomPath(sd.getFirst(), sd.getSecond(), random);
+			List<Integer> path = G.generateRandomPath(flow.getSourceId(), flow.getTargetId(), random);
 			result.add(path);
 		}
-		return new GraphGenome(result, G, SourceTargetPairs);
+		return new GraphGenome(result, G, Flows);
 	}
 
 	public int getPathSeperator()

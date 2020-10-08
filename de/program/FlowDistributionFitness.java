@@ -23,6 +23,7 @@ public class FlowDistributionFitness extends AbstractFitnessFunction<PathComposi
 	protected Double calculateFitness(Individual<PathComposition, ?> individual)
 	{
 		PathComposition pc = individual.getPhenotype();
+//		pc.computeResidualTransmissionRate();
 		return (double) pc.pathLengths();
 	}
 
