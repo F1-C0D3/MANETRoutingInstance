@@ -7,7 +7,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import de.manet.graph.Flow;
-import de.manet.graph.Link;
 import de.manet.graph.MANETGraph;
 import de.manet.graph.Node;
 import de.manet.util.Helper;
@@ -42,10 +41,10 @@ public class PathComposition extends ArrayList<List<Integer>>
 
 	public double computeResidualTransmissionRate()
 	{
-		double linkUtilizations = G.get_EntireUtilizationCapacity();
-
+		MANETGraph copy = G.returnMANETGraphCopy();
 		for (List<Integer> path : this)
 		{
+
 			/*
 			 * Gather flow parameters
 			 */
@@ -53,35 +52,47 @@ public class PathComposition extends ArrayList<List<Integer>>
 			int targetId = path.get(path.size() - 1);
 			String flowId = Helper.getFlowId(sourceId, targetId);
 			Flow flow = Flows.stream().filter(f -> f.getId().equals(flowId)).findFirst().get();
+			double flowTransmissionRate = flow.getTransmissionRate();
 
-			/*
-			 * Load affected networksegment
-			 */
-			Set<Integer> oneHopNeighborNetworkSegment = new HashSet<Integer>();
-			Set<Set<Integer>> oneHopNeighborsSets = path.stream().map(p -> G.getOutgoingNeighbors(p))
+			for (int nodeId : path)
+			{
+				System.out.println(path);
+				int interferenceFactor = Helper.getInterferenceFactor(nodeId, path);
+				double linkUtilization = flowTransmissionRate * (interferenceFactor + 1);
+				Node node = copy.vertexSet().stream().filter(v -> v.getId() == nodeId).findFirst().get();
+				node.setIsPathPartisipant(true);
+				copy.outgoingEdgesOf(node).forEach(l -> l.increaseUtilizationBy(linkUtilization));
+			}
+
+		}
+
+		for (Node node : copy.vertexSet())
+		{
+			int numPathParticipants = 0;
+			Set<Node> twoHopNeighbors = new HashSet<Node>();
+			Set<Node> oneHopNeighbors = copy.outgoingEdgesOf(node).stream().map(l -> copy.getEdgeTarget(l))
 					.collect(Collectors.toSet());
 
-			for (Set<Integer> neighborIds : oneHopNeighborsSets)
+			twoHopNeighbors.addAll(oneHopNeighbors);
+			for (Node n : oneHopNeighbors)
 			{
-				oneHopNeighborNetworkSegment.addAll(neighborIds);
+				twoHopNeighbors.addAll(
+						copy.outgoingEdgesOf(n).stream().map(l -> copy.getEdgeTarget(l)).collect(Collectors.toSet()));
 			}
-
-			Set<Link> segmentLinks = null;
-			for (Integer segmentNode : oneHopNeighborNetworkSegment)
+			for (Node potentialPathParticipant : twoHopNeighbors)
 			{
-				Node n = G.vertexSet().stream().filter(v -> v.getId() == segmentNode).findFirst().get();
-				segmentLinks.addAll(G.outgoingEdgesOf(n));
-				segmentLinks.addAll(G.incomingEdgesOf(n));
-			}
-
-			/*
-			 * Adapt/decrease transmission capacityter
-			 */
-			for (Link segmentLink : segmentLinks)
-			{
-				segmentLink.setTransmissionCapacity(segmentLink.getTransmissionCapacity() - flow.getTransmissionRate());
+				if (potentialPathParticipant.getIsPathPartisipant())
+				{
+					double linkUtilization = copy.outgoingEdgesOf(potentialPathParticipant).stream().findAny().get()
+							.getUtilization();
+					copy.outgoingEdgesOf(node).forEach(l -> l.increaseUtilizationBy(linkUtilization));
+				} else
+				{
+					System.out.println(potentialPathParticipant);
+				}
 			}
 		}
+
 		return 0.0;
 	}
 }
