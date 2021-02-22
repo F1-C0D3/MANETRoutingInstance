@@ -16,6 +16,7 @@ import de.manetmodel.network.unit.Unit;
 import de.manetmodel.util.Tuple;
 
 public class GeneticManetGraph extends Manet<Node<EdgeDistance>, Link<EdgeDistance>, EdgeDistance> {
+	private Flow<Node<EdgeDistance>, Link<EdgeDistance>, EdgeDistance> flows;
 
 	public GeneticManetGraph(Supplier<Node<EdgeDistance>> vertexSupplier, Supplier<Link<EdgeDistance>> edgeSupplier,
 			IRadioModel radioModel) {
@@ -29,6 +30,7 @@ public class GeneticManetGraph extends Manet<Node<EdgeDistance>, Link<EdgeDistan
 		while (flowIterator.hasNext()) {
 			Tuple<Link<EdgeDistance>, Node<EdgeDistance>> linkAndNode = flowIterator.next();
 			Link<EdgeDistance> l = linkAndNode.getFirst();
+			l.setIsActive(true);
 			increaseUtilizationBy(l, flow.getDataRate());
 		}
 	}
@@ -47,12 +49,14 @@ public class GeneticManetGraph extends Manet<Node<EdgeDistance>, Link<EdgeDistan
 		DataRate overUtilization = new DataRate(0L);
 
 		for (Link<EdgeDistance> l : this.getEdges()) {
-			DataRate tRate = l.getTransmissionRate();
-			DataRate utilization = l.getUtilization();
-			double oU = tRate.get() - utilization.get();
-			System.out.println(getVerticesOf(l).getFirst() + "--" + getVerticesOf(l).getSecond() + ", oU: "
-					+ new DataRate(oU, Unit.Type.bit).toString());
-			overUtilization.set(oU < 0 ? overUtilization.get() + (long) Math.abs(oU) : overUtilization.get());
+			if (l.getIsActive()) {
+				DataRate tRate = l.getTransmissionRate();
+				DataRate utilization = l.getUtilization();
+				double oU = tRate.get() - utilization.get();
+				System.out.println(getVerticesOf(l).getFirst() + "--" + getVerticesOf(l).getSecond() + ", oU: "
+						+ new DataRate(oU, Unit.Type.bit).toString());
+				overUtilization.set(oU < 0 ? overUtilization.get() + (long) Math.abs(oU) : overUtilization.get());
+			}
 		}
 
 		return overUtilization;
@@ -64,6 +68,7 @@ public class GeneticManetGraph extends Manet<Node<EdgeDistance>, Link<EdgeDistan
 	public void removeFlow(Flow<Node<EdgeDistance>, Link<EdgeDistance>, EdgeDistance> flow) {
 		for (Link<EdgeDistance> l : this.getEdges()) {
 			l.setUtilization(new DataRate(0L));
+			l.setIsActive(false);
 		}
 		utilization = new DataRate(0L);
 	}

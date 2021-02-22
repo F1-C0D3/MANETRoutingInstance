@@ -26,7 +26,7 @@ public class FlowDistributionFitness<W> extends AbstractFitnessFunction<PathComp
 	protected Double calculateFitness(Individual<PathComposition, ?> individual) {
 
 		PathComposition pc = individual.getPhenotype();
-
+		pc.deployFlows();
 //		/* Compute entire manet capacity */
 		DataRate manetCapacity = pc.getManetCapacity();
 //		/* Data rate over utilized */
@@ -41,6 +41,7 @@ public class FlowDistributionFitness<W> extends AbstractFitnessFunction<PathComp
 //		System.out.println(1 - (1d / receptionQuality));
 //		double receptionQualityNormalized = receptionQuality * rpW;
 
+		pc.undeployFlows();
 		return utilizationNormalized + overUtilizationNormalized;
 	}
 

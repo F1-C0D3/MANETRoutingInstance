@@ -111,10 +111,11 @@ public class PathComposition {
 	}
 
 	public DataRate overUtilization() {
-		removeUtilization();
 		DataRate overUtilization = new DataRate(0L);
 
 		for (Link<EdgeDistance> l : manet.getEdges()) {
+//			System.out.println("v1: " + manet.getVerticesOf(l).getFirst().getID() + ",  v2: "
+//					+ manet.getVerticesOf(l).getSecond().getID() + ", u= " + l.getUtilization().toString());
 			DataRate tRate = l.getTransmissionRate();
 			DataRate utilization = l.getUtilization();
 			double oU = tRate.get() - utilization.get();
@@ -125,16 +126,18 @@ public class PathComposition {
 	}
 
 	public DataRate getNetworUtilization() {
-		removeUtilization();
-
-		for (Flow<Node<EdgeDistance>, Link<EdgeDistance>, EdgeDistance> flow : flows) {
-			manet.addFlow(flow);
-		}
 		return manet.getUtilization();
 	}
 
-	private void removeUtilization() {
+	public void undeployFlows() {
 		manet.removeFlow(null);
+
+	}
+
+	public void deployFlows() {
+		for (Flow<Node<EdgeDistance>, Link<EdgeDistance>, EdgeDistance> flow : flows) {
+			manet.addFlow(flow);
+		}
 
 	}
 }
