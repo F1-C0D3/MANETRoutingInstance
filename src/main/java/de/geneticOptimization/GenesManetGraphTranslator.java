@@ -1,9 +1,9 @@
-package de.GeneticOptimization;
+package de.geneticOptimization;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import de.geneticManet.GeneticManetGraph;
+import de.geneticMANET.GeneticManetGraph;
 import de.manetmodel.graph.EdgeDistance;
 import de.manetmodel.graph.Position2D;
 import de.manetmodel.graph.Vertex;

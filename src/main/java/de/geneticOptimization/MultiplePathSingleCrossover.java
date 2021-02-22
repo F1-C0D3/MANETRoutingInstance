@@ -1,4 +1,4 @@
-package de.GeneticOptimization;
+package de.geneticOptimization;
 
 import java.util.ArrayList;
 import java.util.List;

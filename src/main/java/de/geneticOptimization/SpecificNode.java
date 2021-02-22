@@ -1,4 +1,4 @@
-package de.GeneticOptimization;
+package de.geneticOptimization;
 
 import de.manetmodel.network.Node;
 

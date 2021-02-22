@@ -1,11 +1,11 @@
-package de.GeneticOptimization;
+package de.geneticOptimization;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
-import de.geneticManet.GeneticManetGraph;
+import de.geneticMANET.GeneticManetGraph;
 import de.manetmodel.graph.EdgeDistance;
 import de.manetmodel.network.Flow;
 import de.manetmodel.network.Link;

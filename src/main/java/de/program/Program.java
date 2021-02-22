@@ -7,10 +7,10 @@ import java.util.List;
 
 import javax.swing.WindowConstants;
 
-import de.GeneticOptimization.GeneticOptimization;
-import de.GeneticOptimization.PathComposition;
-import de.geneticManet.GeneticManetGraph;
-import de.geneticManet.GeneticManetGraphSupplier;
+import de.geneticMANET.GeneticManetGraph;
+import de.geneticMANET.GeneticManetGraphSupplier;
+import de.geneticOptimization.GeneticOptimization;
+import de.geneticOptimization.PathComposition;
 import de.manetmodel.app.gui.VisualGraphFrame;
 import de.manetmodel.app.gui.visualgraph.VisualGraph;
 import de.manetmodel.app.gui.visualgraph.VisualGraphMarkUp;

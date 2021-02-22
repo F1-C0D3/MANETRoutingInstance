@@ -1,4 +1,4 @@
-package de.geneticManet;
+package de.geneticMANET;
 import java.util.function.Supplier;
 
 import de.manetmodel.graph.EdgeDistance;

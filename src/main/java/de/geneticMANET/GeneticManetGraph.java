@@ -1,4 +1,4 @@
-package de.geneticManet;
+package de.geneticMANET;
 
 import java.util.HashSet;
 import java.util.Iterator;
