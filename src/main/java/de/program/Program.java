@@ -2,117 +2,113 @@ package de.program;
 
 import java.awt.Dimension;
 import java.awt.Toolkit;
-import java.util.ArrayList;
-import java.util.List;
 
 import javax.swing.WindowConstants;
 
-import de.geneticMANET.GeneticManetGraph;
-import de.geneticMANET.GeneticManetGraphSupplier;
 import de.geneticOptimization.GeneticOptimization;
 import de.geneticOptimization.PathComposition;
-import de.manetmodel.app.gui.VisualGraphFrame;
-import de.manetmodel.app.gui.visualgraph.VisualGraph;
-import de.manetmodel.app.gui.visualgraph.VisualGraphMarkUp;
-import de.manetmodel.graph.EdgeDistance;
-import de.manetmodel.graph.SampleTopologies.TrainingTopology;
+import de.jgraphlib.graph.generator.GraphProperties.DoubleRange;
+import de.jgraphlib.graph.generator.GraphProperties.IntRange;
+import de.jgraphlib.graph.generator.NetworkGraphGenerator;
+import de.jgraphlib.graph.generator.NetworkGraphProperties;
+import de.jgraphlib.gui.VisualGraph;
+import de.jgraphlib.gui.VisualGraphFrame;
+import de.jgraphlib.gui.VisualGraphMarkUp;
+import de.jgraphlib.util.RandomNumbers;
 import de.manetmodel.network.Flow;
 import de.manetmodel.network.Link;
-import de.manetmodel.network.Manet;
+import de.manetmodel.network.LinkQuality;
+import de.manetmodel.network.MANET;
 import de.manetmodel.network.Node;
 import de.manetmodel.network.radio.Propagation;
 import de.manetmodel.network.radio.ScalarRadioModel;
 import de.manetmodel.network.unit.DataRate;
 import de.manetmodel.network.unit.Unit;
+import de.network.GeneticMANET;
+import de.network.GeneticMANETSupplier;
+import de.results.MANETParameterRecorder;
+import de.results.MANETResultRunSupplier;
+import de.results.MANETRunResult;
+import de.results.ResultRecorder;
+import de.results.Scenario;
 
 public class Program implements Runnable {
 
-	Manet<Node<EdgeDistance>, Link<EdgeDistance>, EdgeDistance> manet;
-	private VisualGraphFrame<Node<EdgeDistance>, Link<EdgeDistance>> frame;
-	VisualGraph<Node<EdgeDistance>, Link<EdgeDistance>> visualGraph;
+	MANET<Node, Link<LinkQuality>, LinkQuality, Flow<Node, Link<LinkQuality>, LinkQuality>> manet;
+	private VisualGraphFrame<Node, Link<LinkQuality>> frame;
+	VisualGraph<Node, Link<LinkQuality>> visualGraph;
 
-	public Program(Manet<Node<EdgeDistance>, Link<EdgeDistance>, EdgeDistance> manet) {
+	public Program(MANET<Node, Link<LinkQuality>, LinkQuality, Flow<Node, Link<LinkQuality>, LinkQuality>> manet) {
 		this.manet = manet;
-		visualGraph = new VisualGraph<Node<EdgeDistance>, Link<EdgeDistance>>(this.manet, new VisualGraphMarkUp());
-		frame = new VisualGraphFrame<Node<EdgeDistance>, Link<EdgeDistance>>(visualGraph);
+		visualGraph = new VisualGraph<Node, Link<LinkQuality>>(this.manet, new VisualGraphMarkUp());
+		frame = new VisualGraphFrame<Node, Link<LinkQuality>>(visualGraph);
 	}
 
 	public static void main(String[] args) {
-		GeneticManetGraph manet = new GeneticManetGraph(new GeneticManetGraphSupplier.ManetNodeSupplier(),
-				new GeneticManetGraphSupplier.ManetLinkSupplier(),
-				new ScalarRadioModel(Propagation.pathLoss(100d, Propagation.waveLength(2412000000d)), 0.002d, 1e-11,
-						2000000d, 2412000000d));
 
-//		Manet<Node<EdgeDistance>, Link<EdgeDistance>, EdgeDistance> manet = new Manet<Node<EdgeDistance>, Link<EdgeDistance>, EdgeDistance>(
-//				new ManetSupplier.ManetNodeSupplier(), new ManetSupplier.ManetLinkSupplier(),
-//				new IdealRadioModel(100, new DataRate(11, Type.megabit)));
-//		GridGraphGenerator<Node<EdgeDistance>, Link<EdgeDistance>, EdgeDistance> generator = new GridGraphGenerator<Node<EdgeDistance>, Link<EdgeDistance>, EdgeDistance>(
-//				manet);
-//		GridGraphProperties properties = new GridGraphProperties(1000, 1000, 100, 100);
-//		generator.generate(properties);
+		MANETParameterRecorder<LinkQuality, MANETRunResult> runRecorder = new MANETParameterRecorder<LinkQuality, MANETRunResult>(
+				new MANETResultRunSupplier());
+		ResultRecorder<Node, Link<LinkQuality>, LinkQuality, Flow<Node, Link<LinkQuality>, LinkQuality>, MANETRunResult> recorder = new ResultRecorder<Node, Link<LinkQuality>, LinkQuality, Flow<Node, Link<LinkQuality>, LinkQuality>, MANETRunResult>(
+				GeneticMANET.class, runRecorder);
 
-		TrainingTopology tTopoogy = new TrainingTopology(manet);
-		tTopoogy.create();
-		Program program = new Program(manet);
-		program.run();
+		for (int i = 0; i < 1; i++) {
 
-		Node<EdgeDistance> source1 = manet.getVertex(18);
-		Node<EdgeDistance> target1 = manet.getVertex(9);
+			GeneticMANET manet = new GeneticMANET(new GeneticMANETSupplier.GeneticMANETNodeSupplier(),
+					new GeneticMANETSupplier.GeneticMANETLinkSupplier(),
+					new GeneticMANETSupplier.GeneticMANETFlowSupplier(),
+					new ScalarRadioModel(Propagation.pathLoss(100d, Propagation.waveLength(2412000000d)), 0.002d, 1e-11,
+							2000000d, 2412000000d));
 
-		Node<EdgeDistance> source2 = manet.getVertex(10);
-		Node<EdgeDistance> target2 = manet.getVertex(15);
+//			GridGraphGenerator<Node, Link<LinkQuality>, LinkQuality> generator = new GridGraphGenerator<Node, Link<LinkQuality>, LinkQuality>(
+//					manet, new RandomNumbers(i));
+//			GridGraphProperties properties = new GridGraphProperties(1000, 1000, 100, 100);
+//			generator.generate(properties);
+			NetworkGraphGenerator<Node, Link<LinkQuality>, LinkQuality> generator = new NetworkGraphGenerator<Node, Link<LinkQuality>, LinkQuality>(
+					manet, new RandomNumbers(i));
+			NetworkGraphProperties properties = new NetworkGraphProperties(/* width */ 1000, /* height */ 1000,
+					/* vertices */ new IntRange(100, 100), /* vertex distance */ new DoubleRange(55d, 100d),
+					/* edge distance */ 100);
+			generator.generate(properties);
+			Program program = new Program(manet);
+			program.run();
+
+			Node source1 = manet.getVertex(2);
+			Node target1 = manet.getVertex(51);
+			DataRate rate1 = new DataRate(1.2d, Unit.Type.megabit);
+
+			Node source2 = manet.getVertex(100);
+			Node target2 = manet.getVertex(83);
+			DataRate rate2 = new DataRate(1.8d, Unit.Type.megabit);
+
+			Node source3 = manet.getVertex(68);
+			Node target3 = manet.getVertex(10);
+			DataRate rate3 = new DataRate(1.2d, Unit.Type.megabit);
+
+			Node source4 = manet.getVertex(54);
+			Node target4 = manet.getVertex(27);
+			DataRate rate4 = new DataRate(1.4d, Unit.Type.megabit);
+
+			Flow<Node, Link<LinkQuality>, LinkQuality> flow2 = manet.addFlow(source1, target1, rate1);
+			Flow<Node, Link<LinkQuality>, LinkQuality> flow1 = manet.addFlow(source2, target2, rate2);
+
+			Flow<Node, Link<LinkQuality>, LinkQuality> flow3 = manet.addFlow(source3, target3, rate3);
+			Flow<Node, Link<LinkQuality>, LinkQuality> flow4 = manet.addFlow(source4, target4, rate4);
+
+			GeneticOptimization go = new GeneticOptimization(manet, 70000, 10);
+			PathComposition pc = go.execute();
+			runRecorder.setScenario(new Scenario(manet.getFlows().size(), manet.getVertices().size()));
+
+			for (Flow<Node, Link<LinkQuality>, LinkQuality> flow : pc.flows) {
+				manet.deployFlow(flow);
+				program.printPath(flow);
 //
-//		Node<EdgeDistance> source3 = manet.getVertex(10);
-//		Node<EdgeDistance> target3 = manet.getVertex(15);
-////
-//		Node<EdgeDistance> source4 = manet.getVertex(0);
-//		Node<EdgeDistance> target4 = manet.getVertex(76);
-//
-//		Node<EdgeDistance> source5 = manet.getVertex(10);
-//		Node<EdgeDistance> target5 = manet.getVertex(3);
-//
-//		Node<EdgeDistance> source6 = manet.getVertex(7);
-//		Node<EdgeDistance> target6 = manet.getVertex(22);
+			}
 
-		Flow<Node<EdgeDistance>, Link<EdgeDistance>, EdgeDistance> f1 = new Flow<Node<EdgeDistance>, Link<EdgeDistance>, EdgeDistance>(
-				source1, target1, new DataRate(1.0d, Unit.Type.megabit));
-
-		Flow<Node<EdgeDistance>, Link<EdgeDistance>, EdgeDistance> f2 = new Flow<Node<EdgeDistance>, Link<EdgeDistance>, EdgeDistance>(
-				source2, target2, new DataRate(4.90d, Unit.Type.megabit));
-//
-//		Flow<Node<EdgeDistance>, Link<EdgeDistance>, EdgeDistance> f3 = new Flow<Node<EdgeDistance>, Link<EdgeDistance>, EdgeDistance>(
-//				source3, target3, new DataRate(1d, Unit.Type.megabit));
-
-//		Flow<Node<EdgeDistance>, Link<EdgeDistance>, EdgeDistance> f4 = new Flow<Node<EdgeDistance>, Link<EdgeDistance>, EdgeDistance>(
-//				source4, target4, new DataRate(1d, Unit.Type.megabit));
-//
-//		Flow<Node<EdgeDistance>, Link<EdgeDistance>, EdgeDistance> fGP5 = new Flow<Node<EdgeDistance>, Link<EdgeDistance>, EdgeDistance>(
-//				source5, target5, new DataRate(2d, Unit.Type.megabit));
-//
-//		Flow<Node<EdgeDistance>, Link<EdgeDistance>, EdgeDistance> fGP6 = new Flow<Node<EdgeDistance>, Link<EdgeDistance>, EdgeDistance>(
-//				source6, target6, new DataRate(1.5d, Unit.Type.megabit));
-
-		List<Flow<Node<EdgeDistance>, Link<EdgeDistance>, EdgeDistance>> flowsGP = new ArrayList<Flow<Node<EdgeDistance>, Link<EdgeDistance>, EdgeDistance>>();
-
-		flowsGP.add(f1);
-		flowsGP.add(f2);
-//		flowsGP.add(f3);
-//		flowsGP.add(f4);
-//		flowsGP.add(fGP5);
-//		flowsGP.add(fGP6);
-		GeneticOptimization go = new GeneticOptimization(manet, flowsGP, 20000, 10);
-		PathComposition pc = go.execute();
-
-//		System.out.println((1.0 / manet.getCapacity().get()) * manet.getUtilization().get() + ", OverUtilization: "
-//				+ pc.overUtilization().get());
-//		ShortestPathOptimization spo = new ShortestPathOptimization(manet, flowsGP);
-//		List<Flow<Node<EdgeDistance>, Link<EdgeDistance>, EdgeDistance>> pc = spo.execute(flowsGP);
-
-		for (Flow<Node<EdgeDistance>, Link<EdgeDistance>, EdgeDistance> flow : pc.flows) {
-			program.printPath(flow);
-
+			recorder.recordRun(manet);
+			manet.eraseFlows();
 		}
-		System.out.println("overUtilization: " + manet.aggregateOverUtilizedLinks().toString());
+
+		recorder.finish();
 	}
 
 	@Override
@@ -127,7 +123,7 @@ public class Program implements Runnable {
 		frame.setVisible(true);
 	}
 
-	public void printPath(Flow<Node<EdgeDistance>, Link<EdgeDistance>, EdgeDistance> flow) {
+	public void printPath(Flow<Node, Link<LinkQuality>, LinkQuality> flow) {
 		visualGraph.addVisualPath(flow);
 		frame.getVisualGraphPanel().repaint();
 	}

@@ -3,34 +3,31 @@ package de.geneticOptimization;
 import java.util.ArrayList;
 import java.util.List;
 
-import de.geneticMANET.GeneticManetGraph;
-import de.manetmodel.graph.EdgeDistance;
-import de.manetmodel.graph.Position2D;
-import de.manetmodel.graph.Vertex;
+import de.jgraphlib.util.Tuple;
 import de.manetmodel.network.Flow;
 import de.manetmodel.network.Link;
+import de.manetmodel.network.LinkQuality;
 import de.manetmodel.network.Node;
-import de.manetmodel.util.Tuple;
+import de.network.GeneticMANET;
 import de.terministic.serein.api.Translator;
 
 public class GenesManetGraphTranslator implements Translator<PathComposition, GraphGenome> {
-	private GeneticManetGraph manet;
-	private List<Flow<Node<EdgeDistance>, Link<EdgeDistance>, EdgeDistance>> flowMetaData;
+	private GeneticMANET manet;
+	private List<Flow<Node, Link<LinkQuality>, LinkQuality>> flowMetaData;
 
-	public GenesManetGraphTranslator(GeneticManetGraph manet,
-			List<Flow<Node<EdgeDistance>, Link<EdgeDistance>, EdgeDistance>> flowMetaData) {
+	public GenesManetGraphTranslator(GeneticMANET manet) {
 		this.manet = manet;
-		this.flowMetaData = flowMetaData;
+		this.flowMetaData = manet.getFlows();
 	}
 
 	@Override
 	public PathComposition translate(GraphGenome genome) {
 
-		List<Flow<Node<EdgeDistance>, Link<EdgeDistance>, EdgeDistance>> flows = new ArrayList<Flow<Node<EdgeDistance>, Link<EdgeDistance>, EdgeDistance>>();
+		List<Flow<Node, Link<LinkQuality>, LinkQuality>> flows = new ArrayList<Flow<Node, Link<LinkQuality>, LinkQuality>>();
 		for (int i = 0; i < flowMetaData.size(); i++) {
 			/* load flow fa at index i */
-			Flow<Node<EdgeDistance>, Link<EdgeDistance>, EdgeDistance> meta = flowMetaData.get(i);
-			Flow f = new Flow<Node<EdgeDistance>, Link<EdgeDistance>, EdgeDistance>(meta.getSource(), meta.getTarget(),
+			Flow<Node, Link<LinkQuality>, LinkQuality> meta = flowMetaData.get(i);
+			Flow f = new Flow<Node, Link<LinkQuality>, LinkQuality>(meta.getSource(), meta.getTarget(),
 					meta.getDataRate());
 
 			/* load chromosomePart at index i */
@@ -67,7 +64,7 @@ public class GenesManetGraphTranslator implements Translator<PathComposition, Gr
 	public List<Tuple<Integer, Integer>> flowsPhenoToGeno() {
 		List<Tuple<Integer, Integer>> genoFlows = new ArrayList<Tuple<Integer, Integer>>();
 
-		for (Flow<Node<EdgeDistance>, Link<EdgeDistance>, EdgeDistance> flow : flowMetaData) {
+		for (Flow<Node, Link<LinkQuality>, LinkQuality> flow : flowMetaData) {
 			genoFlows.add(new Tuple<Integer, Integer>(flow.getSource().getID(), flow.getTarget().getID()));
 		}
 
@@ -76,9 +73,9 @@ public class GenesManetGraphTranslator implements Translator<PathComposition, Gr
 
 	public List<List<Integer>> manetVerticesPhenoToGeno() {
 		List<Integer> genesVertices = new ArrayList<Integer>();
-		List<Node<EdgeDistance>> manetVertices = manet.getVertices();
+		List<Node> manetVertices = manet.getVertices();
 
-		for (Vertex<Position2D> manetVertex : manetVertices) {
+		for (Node manetVertex : manetVertices) {
 			genesVertices.add(manetVertex.getID());
 		}
 

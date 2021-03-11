@@ -3,16 +3,11 @@ package de.geneticOptimization;
 import java.util.List;
 import java.util.Random;
 
-import de.geneticMANET.GeneticManetGraph;
-import de.manetmodel.graph.EdgeDistance;
-import de.manetmodel.network.Flow;
-import de.manetmodel.network.Link;
-import de.manetmodel.network.Node;
-import de.manetmodel.util.Tuple;
+import de.jgraphlib.util.Tuple;
+import de.network.GeneticMANET;
 import de.terministic.serein.api.EvolutionEnvironment;
 import de.terministic.serein.api.Mutation;
 import de.terministic.serein.api.Population;
-import de.terministic.serein.api.Recombination;
 import de.terministic.serein.api.TerminationCondition;
 import de.terministic.serein.core.AlgorithmFactory;
 import de.terministic.serein.core.BasicIndividual;
@@ -23,23 +18,19 @@ import de.terministic.serein.core.termination.TerminationConditionGenerations;
 
 public class GeneticOptimization implements Runnable {
 
-	private GeneticManetGraph manet;
+	private GeneticMANET manet;
 
-	private List<Flow<Node<EdgeDistance>, Link<EdgeDistance>, EdgeDistance>> flows;
 	private GenesManetGraphTranslator translator;
 
 	final int populationSize;
 	final int generations;
 
-	public GeneticOptimization(GeneticManetGraph manet,
-			List<Flow<Node<EdgeDistance>, Link<EdgeDistance>, EdgeDistance>> flows, int populationSize,
-			int generations) {
+	public GeneticOptimization(GeneticMANET manet, int populationSize, int generations) {
 
 		this.generations = generations;
 		this.populationSize = populationSize;
 		this.manet = manet;
-		this.flows = flows;
-		translator = new GenesManetGraphTranslator(manet, flows);
+		translator = new GenesManetGraphTranslator(manet);
 
 	}
 
@@ -51,8 +42,8 @@ public class GeneticOptimization implements Runnable {
 		List<List<Integer>> manetVerticesPhenoToGeno = translator.manetVerticesPhenoToGeno();
 		Mutation<GraphGenome> mutation = new MultiplePathSingleMutation<GraphGenome>();
 
-		Recombination<GraphGenome> recombination = new UniformCrossoverPathSeperator();
-		FlowDistributionFitness fitness = new FlowDistributionFitness();
+		UniformCrossoverPathSeperator recombination = new UniformCrossoverPathSeperator();
+		FlowDistributionFitness<PathComposition> fitness = new FlowDistributionFitness<PathComposition>();
 		TerminationCondition<PathComposition> termination = new TerminationConditionGenerations<PathComposition>(
 				generations);
 
@@ -60,7 +51,7 @@ public class GeneticOptimization implements Runnable {
 		GraphGenome genome = new GraphGenome(manetVerticesPhenoToGeno, manetGraphPhenotoGeno, flowsPhenoToGeno);
 		BasicIndividual<PathComposition, GraphGenome> initialIndividual = new BasicIndividual<PathComposition, GraphGenome>(
 				genome, translator);
-		initialIndividual.<Double>setProperty("ProbabilityOfMutation", 0.0, true);
+		initialIndividual.<Double>setProperty("ProbabilityOfMutation", 0.3, true);
 		initialIndividual.setRecombination(recombination);
 		initialIndividual.setMutation(mutation);
 		initialIndividual.setMateSelection(new TournamentSelection<>(fitness, 3));

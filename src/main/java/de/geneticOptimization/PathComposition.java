@@ -5,28 +5,27 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
-import de.geneticMANET.GeneticManetGraph;
-import de.manetmodel.graph.EdgeDistance;
+import de.jgraphlib.util.Tuple;
 import de.manetmodel.network.Flow;
 import de.manetmodel.network.Link;
+import de.manetmodel.network.LinkQuality;
 import de.manetmodel.network.Node;
 import de.manetmodel.network.unit.DataRate;
-import de.manetmodel.util.Tuple;
+import de.network.GeneticMANET;
 
 public class PathComposition {
 
-	GeneticManetGraph manet;
-	public List<Flow<Node<EdgeDistance>, Link<EdgeDistance>, EdgeDistance>> flows;
+	GeneticMANET manet;
+	public List<Flow<Node, Link<LinkQuality>, LinkQuality>> flows;
 
-	public PathComposition(GeneticManetGraph manet,
-			List<Flow<Node<EdgeDistance>, Link<EdgeDistance>, EdgeDistance>> flows) {
+	public PathComposition(GeneticMANET manet, List<Flow<Node, Link<LinkQuality>, LinkQuality>> flows) {
 		this.manet = manet;
 		this.flows = flows;
 	}
 
 	public double getLength() {
 		double size = 0;
-		for (Flow f : this.flows) {
+		for (Flow<Node, Link<LinkQuality>, LinkQuality> f : this.flows) {
 			size += f.size();
 		}
 		return size;
@@ -46,27 +45,28 @@ public class PathComposition {
 		int numLinks = 0;
 		List<Double> variance = new ArrayList<Double>();
 
-		for (Flow<Node<EdgeDistance>, Link<EdgeDistance>, EdgeDistance> flow : flows) {
+		for (Flow<Node, Link<LinkQuality>, LinkQuality> flow : flows) {
 			numLinks += flow.size() - 1;
 
-			Iterator<Tuple<Link<EdgeDistance>, Node<EdgeDistance>>> linkIterator = flow.iterator();
+			Iterator<Tuple<Link<LinkQuality>, Node>> linkIterator = flow.iterator();
 			linkIterator.next();
 			while (linkIterator.hasNext()) {
-				Tuple<Link<EdgeDistance>, Node<EdgeDistance>> linkAndNode = linkIterator.next();
-				receptionPowerMean += linkAndNode.getFirst().getReceptionPower();
+				Tuple<Link<LinkQuality>, Node> linkAndNode = linkIterator.next();
+				receptionPowerMean += linkAndNode.getFirst().getWeight().getReceptionPower();
 			}
 		}
 
 		receptionPowerMean = receptionPowerMean / numLinks;
 		for (
 
-		Flow<Node<EdgeDistance>, Link<EdgeDistance>, EdgeDistance> flow : flows) {
+		Flow<Node, Link<LinkQuality>, LinkQuality> flow : flows) {
 
-			Iterator<Tuple<Link<EdgeDistance>, Node<EdgeDistance>>> linkIterator = flow.iterator();
+			Iterator<Tuple<Link<LinkQuality>, Node>> linkIterator = flow.iterator();
 			linkIterator.next();
 			while (linkIterator.hasNext()) {
-				Tuple<Link<EdgeDistance>, Node<EdgeDistance>> linkAndNode = linkIterator.next();
-				variance.add(Math.pow((linkAndNode.getFirst().getReceptionPower() - receptionPowerMean), 2));
+				Tuple<Link<LinkQuality>, Node> linkAndNode = linkIterator.next();
+				variance.add(
+						Math.pow((linkAndNode.getFirst().getWeight().getReceptionPower() - receptionPowerMean), 2));
 			}
 		}
 
@@ -86,11 +86,11 @@ public class PathComposition {
 		double receptionPowerMean = 0d;
 		int numLinks = 0;
 
-		for (Flow<Node<EdgeDistance>, Link<EdgeDistance>, EdgeDistance> flow : flows) {
+		for (Flow<Node, Link<LinkQuality>, LinkQuality> flow : flows) {
 			numLinks += flow.size() - 1;
 
-			for (Tuple<Link<EdgeDistance>, Node<EdgeDistance>> linkAndNode : flow) {
-				receptionPowerMean += linkAndNode.getFirst().getReceptionPower();
+			for (Tuple<Link<LinkQuality>, Node> linkAndNode : flow) {
+				receptionPowerMean += linkAndNode.getFirst().getWeight().getReceptionPower();
 			}
 		}
 
@@ -101,10 +101,10 @@ public class PathComposition {
 	public String toString() {
 		StringBuffer buffer = new StringBuffer();
 
-		Iterator<Flow<Node<EdgeDistance>, Link<EdgeDistance>, EdgeDistance>> fIterator = flows.iterator();
+		Iterator<Flow<Node, Link<LinkQuality>, LinkQuality>> fIterator = flows.iterator();
 
 		while (fIterator.hasNext()) {
-			Flow<Node<EdgeDistance>, Link<EdgeDistance>, EdgeDistance> f = fIterator.next();
+			Flow<Node, Link<LinkQuality>, LinkQuality> f = fIterator.next();
 			buffer.append(f.toString());
 		}
 		return buffer.toString();
@@ -113,11 +113,11 @@ public class PathComposition {
 	public DataRate overUtilization() {
 		DataRate overUtilization = new DataRate(0L);
 
-		for (Link<EdgeDistance> l : manet.getEdges()) {
+		for (Link<LinkQuality> l : manet.getEdges()) {
 //			System.out.println("v1: " + manet.getVerticesOf(l).getFirst().getID() + ",  v2: "
 //					+ manet.getVerticesOf(l).getSecond().getID() + ", u= " + l.getUtilization().toString());
-			DataRate tRate = l.getTransmissionRate();
-			DataRate utilization = l.getUtilization();
+			DataRate tRate = l.getWeight().getTransmissionRate();
+			DataRate utilization = l.getWeight().getUtilization();
 			double oU = tRate.get() - utilization.get();
 			overUtilization.set(oU < 0 ? overUtilization.get() + (long) Math.abs(oU) : overUtilization.get());
 		}
@@ -130,13 +130,16 @@ public class PathComposition {
 	}
 
 	public void undeployFlows() {
-		manet.removeFlow(null);
+		for (Flow<Node, Link<LinkQuality>, LinkQuality> flow : flows) {
+
+			manet.undeployFlow(flow);
+		}
 
 	}
 
 	public void deployFlows() {
-		for (Flow<Node<EdgeDistance>, Link<EdgeDistance>, EdgeDistance> flow : flows) {
-			manet.addFlow(flow);
+		for (Flow<Node, Link<LinkQuality>, LinkQuality> flow : flows) {
+			manet.deployFlow(flow);
 		}
 
 	}
