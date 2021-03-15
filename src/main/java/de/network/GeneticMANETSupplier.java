@@ -36,7 +36,8 @@ public class GeneticMANETSupplier
 	public MANET<Node, Link<LinkQuality>, LinkQuality, Flow<Node, Link<LinkQuality>, LinkQuality>> get() {
 		// TODO Auto-generated method stub
 		return new MANET<Node, Link<LinkQuality>, LinkQuality, Flow<Node, Link<LinkQuality>, LinkQuality>>(
-				new GeneticMANETNodeSupplier(), new GeneticMANETLinkSupplier(), new GeneticMANETFlowSupplier(), null);
+				new GeneticMANETNodeSupplier(), new GeneticMANETLinkSupplier(), new GeneticMANETFlowSupplier(), null,
+				null);
 	}
 
 }

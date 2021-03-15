@@ -15,6 +15,7 @@ import de.jgraphlib.gui.VisualGraph;
 import de.jgraphlib.gui.VisualGraphFrame;
 import de.jgraphlib.gui.VisualGraphMarkUp;
 import de.jgraphlib.util.RandomNumbers;
+import de.manetmodel.mobility.PedestrianMobilityModel;
 import de.manetmodel.network.Flow;
 import de.manetmodel.network.Link;
 import de.manetmodel.network.LinkQuality;
@@ -50,14 +51,17 @@ public class Program implements Runnable {
 				new MANETResultRunSupplier());
 		ResultRecorder<Node, Link<LinkQuality>, LinkQuality, Flow<Node, Link<LinkQuality>, LinkQuality>, MANETRunResult> recorder = new ResultRecorder<Node, Link<LinkQuality>, LinkQuality, Flow<Node, Link<LinkQuality>, LinkQuality>, MANETRunResult>(
 				GeneticMANET.class, runRecorder);
+		ScalarRadioModel radioModel = new ScalarRadioModel(
+				Propagation.pathLoss(100d, Propagation.waveLength(2412000000d)), 0.002d, 1e-11, 2000000d, 2412000000d);
+
+		PedestrianMobilityModel mobilityModel = new PedestrianMobilityModel(new RandomNumbers(2),
+				new DoubleRange(4d, 40d), 4d, 10);
 
 		for (int i = 0; i < 1; i++) {
 
 			GeneticMANET manet = new GeneticMANET(new GeneticMANETSupplier.GeneticMANETNodeSupplier(),
 					new GeneticMANETSupplier.GeneticMANETLinkSupplier(),
-					new GeneticMANETSupplier.GeneticMANETFlowSupplier(),
-					new ScalarRadioModel(Propagation.pathLoss(100d, Propagation.waveLength(2412000000d)), 0.002d, 1e-11,
-							2000000d, 2412000000d));
+					new GeneticMANETSupplier.GeneticMANETFlowSupplier(), radioModel, mobilityModel);
 
 //			GridGraphGenerator<Node, Link<LinkQuality>, LinkQuality> generator = new GridGraphGenerator<Node, Link<LinkQuality>, LinkQuality>(
 //					manet, new RandomNumbers(i));

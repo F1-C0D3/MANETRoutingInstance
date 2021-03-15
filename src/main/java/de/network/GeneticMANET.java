@@ -2,6 +2,7 @@ package de.network;
 
 import java.util.function.Supplier;
 
+import de.manetmodel.mobility.MobilityModel;
 import de.manetmodel.network.Flow;
 import de.manetmodel.network.Link;
 import de.manetmodel.network.LinkQuality;
@@ -13,8 +14,9 @@ public class GeneticMANET
 		extends MANET<Node, Link<LinkQuality>, LinkQuality, Flow<Node, Link<LinkQuality>, LinkQuality>> {
 
 	public GeneticMANET(Supplier<Node> vertexSupplier, Supplier<Link<LinkQuality>> edgeSupplier,
-			Supplier<Flow<Node, Link<LinkQuality>, LinkQuality>> flowSupplier, IRadioModel radioModel) {
-		super(vertexSupplier, edgeSupplier, flowSupplier, radioModel);
+			Supplier<Flow<Node, Link<LinkQuality>, LinkQuality>> flowSupplier, IRadioModel radioModel,
+			MobilityModel mobilityModel) {
+		super(vertexSupplier, edgeSupplier, flowSupplier, radioModel, mobilityModel);
 	}
 
 	@Override
