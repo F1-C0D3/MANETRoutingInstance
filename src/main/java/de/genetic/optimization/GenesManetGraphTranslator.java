@@ -1,21 +1,22 @@
-package de.geneticOptimization;
+package de.genetic.optimization;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import de.genetic.network.GeneticMANET;
 import de.jgraphlib.util.Tuple;
 import de.manetmodel.network.Flow;
 import de.manetmodel.network.Link;
 import de.manetmodel.network.LinkQuality;
+import de.manetmodel.network.MANET;
 import de.manetmodel.network.Node;
-import de.network.GeneticMANET;
 import de.terministic.serein.api.Translator;
 
 public class GenesManetGraphTranslator implements Translator<PathComposition, GraphGenome> {
-	private GeneticMANET manet;
+	private MANET<Node, Link<LinkQuality>, LinkQuality, Flow<Node, Link<LinkQuality>, LinkQuality>> manet;
 	private List<Flow<Node, Link<LinkQuality>, LinkQuality>> flowMetaData;
 
-	public GenesManetGraphTranslator(GeneticMANET manet) {
+	public GenesManetGraphTranslator(MANET<Node, Link<LinkQuality>, LinkQuality, Flow<Node, Link<LinkQuality>, LinkQuality>> manet) {
 		this.manet = manet;
 		this.flowMetaData = manet.getFlows();
 	}
@@ -27,8 +28,8 @@ public class GenesManetGraphTranslator implements Translator<PathComposition, Gr
 		for (int i = 0; i < flowMetaData.size(); i++) {
 			/* load flow fa at index i */
 			Flow<Node, Link<LinkQuality>, LinkQuality> meta = flowMetaData.get(i);
-			Flow f = new Flow<Node, Link<LinkQuality>, LinkQuality>(meta.getSource(), meta.getTarget(),
-					meta.getDataRate());
+			Flow<Node, Link<LinkQuality>, LinkQuality> f = new Flow<Node, Link<LinkQuality>, LinkQuality>(
+					meta.getSource(), meta.getTarget(), meta.getDataRate());
 
 			/* load chromosomePart at index i */
 			List<Integer> chromosomePart = genome.getGenes().get(i);
@@ -37,7 +38,7 @@ public class GenesManetGraphTranslator implements Translator<PathComposition, Gr
 				Node sourceNode = manet.getVertex(chromosomePart.get(index));
 				Node targetNode = manet.getVertex(chromosomePart.get(index + 1));
 
-				f.add(new Tuple<Link, Node>(manet.getEdge(sourceNode, targetNode), targetNode));
+				f.add(new Tuple<Link<LinkQuality>, Node>(manet.getEdge(sourceNode, targetNode), targetNode));
 			}
 			flows.add(f);
 

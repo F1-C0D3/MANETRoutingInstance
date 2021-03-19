@@ -1,24 +1,25 @@
-package de.geneticOptimization;
+package de.genetic.optimization;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
+import de.genetic.network.GeneticMANET;
 import de.jgraphlib.util.Tuple;
 import de.manetmodel.network.Flow;
 import de.manetmodel.network.Link;
 import de.manetmodel.network.LinkQuality;
+import de.manetmodel.network.MANET;
 import de.manetmodel.network.Node;
 import de.manetmodel.network.unit.DataRate;
-import de.network.GeneticMANET;
 
 public class PathComposition {
 
-	GeneticMANET manet;
+	MANET<Node, Link<LinkQuality>, LinkQuality, Flow<Node, Link<LinkQuality>, LinkQuality>> manet;
 	public List<Flow<Node, Link<LinkQuality>, LinkQuality>> flows;
 
-	public PathComposition(GeneticMANET manet, List<Flow<Node, Link<LinkQuality>, LinkQuality>> flows) {
+	public PathComposition(MANET<Node, Link<LinkQuality>, LinkQuality, Flow<Node, Link<LinkQuality>, LinkQuality>> manet, List<Flow<Node, Link<LinkQuality>, LinkQuality>> flows) {
 		this.manet = manet;
 		this.flows = flows;
 	}

@@ -1,10 +1,17 @@
-package de.geneticOptimization;
+package de.genetic.optimization;
 
 import java.util.List;
 import java.util.Random;
 
+import de.deterministic.optimization.MultipleDijkstraLinkQuality;
+import de.genetic.network.GeneticMANET;
 import de.jgraphlib.util.Tuple;
-import de.network.GeneticMANET;
+import de.manetmodel.network.Flow;
+import de.manetmodel.network.Link;
+import de.manetmodel.network.LinkQuality;
+import de.manetmodel.network.MANET;
+import de.manetmodel.network.Node;
+import de.parallelism.Optimization;
 import de.terministic.serein.api.EvolutionEnvironment;
 import de.terministic.serein.api.Mutation;
 import de.terministic.serein.api.Population;
@@ -16,20 +23,20 @@ import de.terministic.serein.core.StatsListener;
 import de.terministic.serein.core.selection.individual.TournamentSelection;
 import de.terministic.serein.core.termination.TerminationConditionGenerations;
 
-public class GeneticOptimization implements Runnable {
-
-	private GeneticMANET manet;
+public class GeneticOptimization extends
+		Optimization<PathComposition, MANET<Node, Link<LinkQuality>, LinkQuality, Flow<Node, Link<LinkQuality>, LinkQuality>>> {
 
 	private GenesManetGraphTranslator translator;
 
 	final int populationSize;
 	final int generations;
 
-	public GeneticOptimization(GeneticMANET manet, int populationSize, int generations) {
-
+	public GeneticOptimization(
+			MANET<Node, Link<LinkQuality>, LinkQuality, Flow<Node, Link<LinkQuality>, LinkQuality>> manet,
+			int populationSize, int generations) {
+		super(manet);
 		this.generations = generations;
 		this.populationSize = populationSize;
-		this.manet = manet;
 		translator = new GenesManetGraphTranslator(manet);
 
 	}
@@ -51,7 +58,7 @@ public class GeneticOptimization implements Runnable {
 		GraphGenome genome = new GraphGenome(manetVerticesPhenoToGeno, manetGraphPhenotoGeno, flowsPhenoToGeno);
 		BasicIndividual<PathComposition, GraphGenome> initialIndividual = new BasicIndividual<PathComposition, GraphGenome>(
 				genome, translator);
-		initialIndividual.<Double>setProperty("ProbabilityOfMutation", 0.3, true);
+		initialIndividual.<Double>setProperty("ProbabilityOfMutation", 0.2, true);
 		initialIndividual.setRecombination(recombination);
 		initialIndividual.setMutation(mutation);
 		initialIndividual.setMateSelection(new TournamentSelection<>(fitness, 3));
@@ -83,32 +90,5 @@ public class GeneticOptimization implements Runnable {
 			random++;
 		}
 		return random;
-	}
-
-	@Override
-	public void run() {
-
-//	Path<Vertex, Edge> path = new Path<Vertex, Edge>(source);
-//	path.add(new Tuple<Edge, Vertex>(sourceToB, b));
-//	path.add(new Tuple<Edge, Vertex>(bToC, c));
-//	path.add(new Tuple<Edge, Vertex>(cToTarget, target));
-//
-//	WeightedUndirectedGraphPanel<Node, Link> panel = new WeightedUndirectedGraphPanel<Node, Link>(
-//		manet.getGraph().toVisualGraph());
-//	panel.getVisualGraph().addPath(path, Color.RED);
-
-//	Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-//	int width = (int) screenSize.getWidth() * 3 / 4;
-//	int height = (int) screenSize.getHeight() * 3 / 4;
-//	panel.setPreferredSize(new Dimension(width, height));
-//	panel.setFont(new Font("Consolas", Font.PLAIN, 16));
-//	panel.setLayout(null);
-//	JFrame frame = new JFrame("VisualGraphPanel");
-//	frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-//	frame.getContentPane().add(panel);
-//	frame.pack();
-//	frame.setLocationRelativeTo(null);
-//	frame.setVisible(true);
-
 	}
 }

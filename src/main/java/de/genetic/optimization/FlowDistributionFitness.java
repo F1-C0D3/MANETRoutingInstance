@@ -1,4 +1,4 @@
-package de.geneticOptimization;
+package de.genetic.optimization;
 
 import de.manetmodel.network.unit.DataRate;
 import de.terministic.serein.api.Individual;

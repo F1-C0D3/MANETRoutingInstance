@@ -1,4 +1,4 @@
-package de.network;
+package de.genetic.network;
 
 import java.util.function.Supplier;
 

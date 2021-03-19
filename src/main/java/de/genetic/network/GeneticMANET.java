@@ -1,13 +1,16 @@
-package de.network;
+package de.genetic.network;
 
+import java.util.List;
 import java.util.function.Supplier;
 
-import de.manetmodel.mobility.MobilityModel;
+import de.jgraphlib.util.Tuple;
 import de.manetmodel.network.Flow;
 import de.manetmodel.network.Link;
 import de.manetmodel.network.LinkQuality;
 import de.manetmodel.network.MANET;
 import de.manetmodel.network.Node;
+import de.manetmodel.network.mobility.MobilityModel;
+import de.manetmodel.network.mobility.MovementPattern;
 import de.manetmodel.network.radio.IRadioModel;
 
 public class GeneticMANET
@@ -23,7 +26,14 @@ public class GeneticMANET
 	public Link<LinkQuality> addEdge(Node source, Node target) {
 		LinkQuality lq = new LinkQuality();
 		lq.setDistance((double) lq.getUtilization().get());
-		return super.addEdge(source, target, lq);
+
+		Link<LinkQuality> link = super.addEdge(source, target, lq);
+		Tuple<Node, Node> sourceAndSink = getVerticesOf(link);
+
+		link.getWeight().setSinkAndSourceMobility(new Tuple<List<MovementPattern>, List<MovementPattern>>(
+				sourceAndSink.getFirst().getPrevMobility(), sourceAndSink.getSecond().getPrevMobility()));
+
+		return link;
 	}
 
 }
