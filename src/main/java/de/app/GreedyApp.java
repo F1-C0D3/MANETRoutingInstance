@@ -1,6 +1,8 @@
 package de.app;
 
 import java.util.List;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 import de.deterministic.app.DeterministicRun;
@@ -31,7 +33,7 @@ public class GreedyApp extends App {
 		super(runs, numNodes, flowSourceTargetIds,appName);
 	}
 
-	public void start() {
+	public void start() throws InterruptedException, ExecutionException {
 		Program<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality, Flow<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality>, MANETResultParameter> program = new Program<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality, Flow<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality>, MANETResultParameter>(
 				new DeterministicMANETSupplier.DeterministicMANETNodeSupplier(),
 				new DeterministicMANETSupplier.DeterministicMANETLinkSupplier(),
@@ -69,8 +71,8 @@ public class GreedyApp extends App {
 				/* Evaluation of each run starts here */
 				GreedyCombinationOptimization<MANET<Node,Link<MultipleDijkstraLinkQuality>,MultipleDijkstraLinkQuality,Flow<Node,Link<MultipleDijkstraLinkQuality>,MultipleDijkstraLinkQuality>>> go = new GreedyCombinationOptimization<MANET<Node,Link<MultipleDijkstraLinkQuality>,MultipleDijkstraLinkQuality,Flow<Node,Link<MultipleDijkstraLinkQuality>,MultipleDijkstraLinkQuality>>>(manet);
 				DeterministicRun greedyHeuristicRun = new DeterministicRun(go, resultRecorder, runResultMapper);
-				executor.execute(greedyHeuristicRun);
-				for (Flow<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality> flow : manet.getFlows())
+				Future<List<Flow<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality>>> futureFlows =executor.submit(greedyHeuristicRun);
+				for (Flow<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality> flow : futureFlows.get())
 					visualization.printPath(flow);
 				runs--;
 			}

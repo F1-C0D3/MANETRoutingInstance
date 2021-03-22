@@ -2,6 +2,7 @@ package de.app;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -25,7 +26,7 @@ public class App {
 		this.appName = appName;
 	}
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws InterruptedException, ExecutionException {
 		int runs = 3;
 		int numNodes = 100;
 		String resultFileName = AllCombinationOptimization.class.getSimpleName();
@@ -46,6 +47,15 @@ public class App {
 		flowSourceTargetIds.add(new Triple<Integer, Integer, DataRate>(1, 1000000, new DataRate(-1)));
 		flowSourceTargetIds.add(new Triple<Integer, Integer, DataRate>(1, 1000000, new DataRate(-1)));
 		flowSourceTargetIds.add(new Triple<Integer, Integer, DataRate>(1, 1000000, new DataRate(-1)));
+		flowSourceTargetIds.add(new Triple<Integer, Integer, DataRate>(1, 1000000, new DataRate(-1)));
+		flowSourceTargetIds.add(new Triple<Integer, Integer, DataRate>(1, 1000000, new DataRate(-1)));
+		flowSourceTargetIds.add(new Triple<Integer, Integer, DataRate>(1, 1000000, new DataRate(-1)));
+//		flowSourceTargetIds.add(new Triple<Integer, Integer, DataRate>(1, 1000000, new DataRate(-1)));
+//		flowSourceTargetIds.add(new Triple<Integer, Integer, DataRate>(1, 1000000, new DataRate(-1)));
+//		flowSourceTargetIds.add(new Triple<Integer, Integer, DataRate>(1, 1000000, new DataRate(-1)));
+//		flowSourceTargetIds.add(new Triple<Integer, Integer, DataRate>(1, 1000000, new DataRate(-1)));
+//		flowSourceTargetIds.add(new Triple<Integer, Integer, DataRate>(1, 1000000, new DataRate(-1)));
+		
 		switch (oType) {
 		case genetic:
 			new GeneticApp(runs, numNodes, flowSourceTargetIds, resultFileName).start();

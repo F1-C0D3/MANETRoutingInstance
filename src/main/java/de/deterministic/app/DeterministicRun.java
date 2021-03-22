@@ -1,5 +1,6 @@
 package de.deterministic.app;
 
+import java.util.List;
 
 import de.deterministic.optimization.MultipleDijkstraLinkQuality;
 import de.manetmodel.network.Flow;
@@ -12,12 +13,14 @@ import de.results.MANETResultParameter;
 import de.results.MANETResultRecorder;
 import de.results.MANETRunResultMapper;
 import de.results.ResultParameter;
+import de.runprovider.ExecutionCallable;
 
 public class DeterministicRun extends
-		Run<Void, MANET<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality, Flow<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality>>, MANETResultRecorder<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality, Flow<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality>, ResultParameter>> {
+		ExecutionCallable<Flow<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality>, Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality> {
 	private Optimization<Void, MANET<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality, Flow<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality>>> op;
 	private MANETResultRecorder<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality, Flow<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality>, MANETResultParameter> resultRecorder;
-private MANETRunResultMapper<MultipleDijkstraLinkQuality, MANETResultParameter> runResultMapper;
+	private MANETRunResultMapper<MultipleDijkstraLinkQuality, MANETResultParameter> runResultMapper;
+
 	public DeterministicRun(
 			Optimization<Void, MANET<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality, Flow<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality>>> op,
 			MANETResultRecorder<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality, Flow<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality>, MANETResultParameter> resultRecorder,
@@ -28,10 +31,10 @@ private MANETRunResultMapper<MultipleDijkstraLinkQuality, MANETResultParameter> 
 	}
 
 	@Override
-	public void run() {
+	public List<Flow<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality>> call() {
 		this.op.execute();
 		this.resultRecorder.recordRun(op.getManet(), runResultMapper);
-
+		return op.getManet().getFlows();
 	}
 
 }

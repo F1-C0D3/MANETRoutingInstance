@@ -1,8 +1,11 @@
 package de.app;
 
 import java.util.List;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
+import de.deterministic.optimization.MultipleDijkstraLinkQuality;
 import de.genetic.app.GeneticRun;
 import de.genetic.network.GeneticMANETSupplier;
 import de.genetic.optimization.GeneticOptimization;
@@ -26,11 +29,12 @@ import de.runprovider.Program;
 
 public class GeneticApp extends App {
 
-	public GeneticApp(int runs, int numNodes, List<Triple<Integer, Integer, DataRate>> flowSourceTargetIds,String appName) {
-		super(runs, numNodes, flowSourceTargetIds,appName);
+	public GeneticApp(int runs, int numNodes, List<Triple<Integer, Integer, DataRate>> flowSourceTargetIds,
+			String appName) {
+		super(runs, numNodes, flowSourceTargetIds, appName);
 	}
 
-	public void start() {
+	public void start() throws InterruptedException, ExecutionException {
 		Program<Node, Link<LinkQuality>, LinkQuality, Flow<Node, Link<LinkQuality>, LinkQuality>, MANETResultParameter> program = new Program<Node, Link<LinkQuality>, LinkQuality, Flow<Node, Link<LinkQuality>, LinkQuality>, MANETResultParameter>(
 				new GeneticMANETSupplier.GeneticMANETNodeSupplier(),
 				new GeneticMANETSupplier.GeneticMANETLinkSupplier(),
@@ -49,15 +53,15 @@ public class GeneticApp extends App {
 			MANET<Node, Link<LinkQuality>, LinkQuality, Flow<Node, Link<LinkQuality>, LinkQuality>> manet = program
 					.createMANET(mobilityModel, radioModel);
 			NetworkGraphProperties networkProperties = program.generateNetwork(manet, runs, numNodes);
-			MANETRunResultMapper<LinkQuality, MANETResultParameter> runResultMapper = program
-					.setResultMapper(networkProperties, mobilityModel, radioModel, resultRecorder, appName,
-							numNodes, flowSourceTargetIds.size());
+			MANETRunResultMapper<LinkQuality, MANETResultParameter> runResultMapper = program.setResultMapper(
+					networkProperties, mobilityModel, radioModel, resultRecorder, appName, numNodes,
+					flowSourceTargetIds.size());
 
 			if (manet.getVertices().size() == (numNodes + 1)) {
 				/* Visialization */
-				visualization = new Visualization<Node, Link<LinkQuality>, LinkQuality, Flow<Node, Link<LinkQuality>, LinkQuality>>(
-						manet);
-				visualization.run();
+//				visualization = new Visualization<Node, Link<LinkQuality>, LinkQuality, Flow<Node, Link<LinkQuality>, LinkQuality>>(
+//						manet);
+//				visualization.run();
 				if (flowSourceTargetIds.get(0).getThird().get() == -1)
 					flowSourceTargetIds = program.generateFlowSourceTargetPairs(manet.getVertices().size(),
 							flowSourceTargetIds.size(), new DataRateRange(flowSourceTargetIds.get(0).getFirst(),
@@ -66,11 +70,12 @@ public class GeneticApp extends App {
 				program.addFlows(manet, flowSourceTargetIds, runs);
 
 				/* Evaluation of each run starts here */
-				GeneticOptimization go = new GeneticOptimization(manet, 2000, 10);
+				GeneticOptimization go = new GeneticOptimization(manet, 20000, 10);
 				GeneticRun geneticRun = new GeneticRun(go, resultRecorder, runResultMapper);
-				executor.execute(geneticRun);
-				for (Flow<Node, Link<LinkQuality>, LinkQuality> flow : manet.getFlows())
-					visualization.printPath(flow);
+				Future<List<Flow<Node, Link<LinkQuality>, LinkQuality>>> futureFlows = executor.submit(geneticRun);
+				
+//				for (Flow<Node, Link<LinkQuality>, LinkQuality> flow : futureFlows.get())
+//					visualization.printPath(flow);
 				runs--;
 			}
 
