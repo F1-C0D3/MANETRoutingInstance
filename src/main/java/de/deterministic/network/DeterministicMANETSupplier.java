@@ -25,6 +25,13 @@ public class DeterministicMANETSupplier implements
 		}
 	}
 
+	public static class DeterministicMANETLinkQualitySupplier implements Supplier<MultipleDijkstraLinkQuality> {
+		@Override
+		public MultipleDijkstraLinkQuality get() {
+			return new MultipleDijkstraLinkQuality();
+		}
+	}
+
 	public static class DeterministicMANETFlowSupplier
 			implements Supplier<Flow<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality>> {
 		@Override

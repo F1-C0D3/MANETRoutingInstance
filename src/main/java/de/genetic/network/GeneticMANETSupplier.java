@@ -24,6 +24,13 @@ public class GeneticMANETSupplier
 			return new Node();
 		}
 	}
+	
+	public static class GeneticMANETLinkQualitySupplier implements Supplier<LinkQuality> {
+		@Override
+		public LinkQuality get() {
+			return new LinkQuality();
+		}
+	}
 
 	public static class GeneticMANETFlowSupplier implements Supplier<Flow<Node, Link<LinkQuality>, LinkQuality>> {
 		@Override
