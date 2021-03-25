@@ -89,5 +89,4 @@ public class AllCombinationOptimization<M extends MANET<Node, Link<MultipleDijks
 		}
 
 	}
-
 }

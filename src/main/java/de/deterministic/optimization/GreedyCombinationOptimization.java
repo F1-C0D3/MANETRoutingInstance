@@ -28,7 +28,7 @@ public class GreedyCombinationOptimization<M extends MANET<Node, Link<MultipleDi
 		this.random = new Random();
 	}
 
-	Function<Tuple<MultipleDijkstraLinkQuality, DataRate>, Double> metric = (tuple) -> {
+	private Function<Tuple<MultipleDijkstraLinkQuality, DataRate>, Double> metric = (tuple) -> {
 		MultipleDijkstraLinkQuality linkQuality = tuple.getFirst();
 		DataRate rate = tuple.getSecond();
 		Flow<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality> reversePath = linkQuality
@@ -50,12 +50,7 @@ public class GreedyCombinationOptimization<M extends MANET<Node, Link<MultipleDi
 		List<Integer> flowIds = manet.getFlowIds();
 		List<Integer> visitedIds = new ArrayList<Integer>(flowIds.size());
 
-		int currentId = random.nextInt(flowIds.size());
-		visitedIds.add(currentId);
-		Flow<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality> flow = sp
-				.compute(manet.getFlow(currentId), metric);
-		manet.deployFlow(flow);
-
+		int currentId = -1;
 		while (visitedIds.size() < flowIds.size()) {
 			double utilization = Double.POSITIVE_INFINITY;
 			double overUtilization = Double.POSITIVE_INFINITY;

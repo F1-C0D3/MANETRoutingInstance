@@ -23,29 +23,34 @@ import de.manetmodel.network.radio.IRadioModel;
 import de.manetmodel.network.unit.DataRate;
 import de.manetmodel.network.unit.DataUnit;
 import de.manetmodel.network.unit.DataRate.DataRateRange;
-import de.results.MANETResultParameter;
+import de.results.RunResultParameter;
+import de.results.RunResultParameterSupplier;
+import de.results.AverageResultParameter;
+import de.results.AverageResultParameterSupplier;
+import de.results.MANETAverageResultMapper;
 import de.results.MANETResultRecorder;
-import de.results.MANETResultRunSupplier;
 import de.results.MANETRunResultMapper;
 import de.runprovider.Program;
 
 public class AllCompApp extends App {
 
 	public AllCompApp(int runs, int numNodes, List<Triple<Integer, Integer, DataRate>> flowSourceTargetIds,
-			String appName) {
-		super(runs, numNodes, flowSourceTargetIds, appName);
+			DataRate meanTransmissionRate, String appName) {
+		super(runs, numNodes, flowSourceTargetIds, meanTransmissionRate, appName);
 	}
 
 	public void start() throws InterruptedException, ExecutionException {
-		Program<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality, Flow<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality>, MANETResultParameter> program = new Program<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality, Flow<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality>, MANETResultParameter>(
+		Program<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality, Flow<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality>> program = new Program<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality, Flow<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality>>(
 				new DeterministicMANETSupplier.DeterministicMANETNodeSupplier(),
 				new DeterministicMANETSupplier.DeterministicMANETLinkSupplier(),
 				new DeterministicMANETSupplier.DeterministicMANETLinkQualitySupplier(),
-				new DeterministicMANETSupplier.DeterministicMANETFlowSupplier(), new MANETResultRunSupplier());
+				new DeterministicMANETSupplier.DeterministicMANETFlowSupplier());
 
-		MANETResultRecorder<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality, Flow<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality>, MANETResultParameter> resultRecorder = program
-				.setResultRecorder(appName);
-
+		MANETResultRecorder<RunResultParameter> resultRecorder = program.setResultRecorder(appName);
+		MANETAverageResultMapper<AverageResultParameter> totalResultMapper = program.setTotalResultMapper(
+				new AverageResultParameterSupplier(), appName, numNodes, flowSourceTargetIds.size(),
+				meanTransmissionRate);
+		totalResultMapper.getMappingStrategy().setType(AverageResultParameter.class);
 		Visualization<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality, Flow<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality>> visualization = null;
 		while (runs > 0) {
 
@@ -55,15 +60,16 @@ public class AllCompApp extends App {
 			MANET<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality, Flow<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality>> manet = program
 					.createMANET(mobilityModel, radioModel);
 			NetworkGraphProperties networkProperties = program.generateNetwork(manet, runs, numNodes);
-			MANETRunResultMapper<MultipleDijkstraLinkQuality, MANETResultParameter> runResultMapper = program
-					.setResultMapper(networkProperties, mobilityModel, radioModel, resultRecorder, appName, numNodes,
-							flowSourceTargetIds.size());
+			MANETRunResultMapper<RunResultParameter> runResultMapper = program.setIndividualRunResultMapper(
+					new RunResultParameterSupplier(), networkProperties, mobilityModel, radioModel, appName, numNodes,
+					flowSourceTargetIds.size(), meanTransmissionRate);
+			runResultMapper.getMappingStrategy().setType(RunResultParameter.class);
 
 			if (manet.getVertices().size() == (numNodes + 1)) {
 				/* Visialization */
-				visualization = new Visualization<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality, Flow<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality>>(
-						manet);
-				visualization.run();
+//				visualization = new Visualization<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality, Flow<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality>>(
+//						manet);
+//				visualization.run();
 				if (flowSourceTargetIds.get(0).getThird().get() == -1)
 					flowSourceTargetIds = program.generateFlowSourceTargetPairs(manet.getVertices().size(),
 							flowSourceTargetIds.size(), new DataRateRange(flowSourceTargetIds.get(0).getFirst(),
@@ -78,8 +84,11 @@ public class AllCompApp extends App {
 				Future<List<Flow<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality>>> futureFlows = executor
 						.submit(allCompRun);
 
-				for (Flow<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality> flow : futureFlows.get())
-					visualization.printPath(flow);
+				for (Flow<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality> flow : futureFlows
+						.get()) {
+
+				}
+//					visualization.printPath(flow);
 				runs--;
 			}
 
@@ -91,6 +100,7 @@ public class AllCompApp extends App {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		resultRecorder.finish();
+		System.out.println(new StringBuffer().append(" finished"));
+		resultRecorder.finish(totalResultMapper);
 	}
 }
