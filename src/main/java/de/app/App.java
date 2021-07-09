@@ -6,10 +6,10 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import de.deterministic.optimization.AllCombinationOptimization;
 import de.jgraphlib.util.Triple;
 import de.manetmodel.network.unit.DataRate;
 import de.manetmodel.network.unit.DataUnit;
+import ilog.concert.IloException;
 
 public class App {
 	protected int runs;
@@ -29,22 +29,36 @@ public class App {
 		this.appName = appName;
 	}
 
-	public static void main(String[] args) throws InterruptedException, ExecutionException {
+	public static void main(String[] args) throws InterruptedException, ExecutionException, IloException {
 		int runs = 1;
 		int numNodes = 100;
-		OptimizationType oType = OptimizationType.greedy;
+		OptimizationType oType = OptimizationType.cplex;
 
 		List<Triple<Integer, Integer, DataRate>> flowSourceTargetIds = new ArrayList<Triple<Integer, Integer, DataRate>>();
 
 		flowSourceTargetIds
-				.add(new Triple<Integer, Integer, DataRate>(100, 83, new DataRate(1.8d, DataUnit.Type.megabit)));
-		flowSourceTargetIds
-				.add(new Triple<Integer, Integer, DataRate>(2, 51, new DataRate(1.4d, DataUnit.Type.megabit)));
-		flowSourceTargetIds
-				.add(new Triple<Integer, Integer, DataRate>(68, 10, new DataRate(1.0d, DataUnit.Type.megabit)));
+				.add(new Triple<Integer, Integer, DataRate>(1, 2, new DataRate(1.3d, DataUnit.Type.megabit)));
+//		flowSourceTargetIds
+//				.add(new Triple<Integer, Integer, DataRate>(0, 2, new DataRate(0.7d, DataUnit.Type.megabit)));
+//		flowSourceTargetIds
+//				.add(new Triple<Integer, Integer, DataRate>(0, 3, new DataRate(0.3d, DataUnit.Type.megabit)));
+//		flowSourceTargetIds
+//				.add(new Triple<Integer, Integer, DataRate>(68, 10, new DataRate(0.8d, DataUnit.Type.megabit)));
+//
+//		flowSourceTargetIds
+//				.add(new Triple<Integer, Integer, DataRate>(54, 27, new DataRate(0.6d, DataUnit.Type.megabit)));
+//
+//		flowSourceTargetIds
+//				.add(new Triple<Integer, Integer, DataRate>(4, 99, new DataRate(1.4d, DataUnit.Type.megabit)));
+//
+//		flowSourceTargetIds
+//				.add(new Triple<Integer, Integer, DataRate>(15, 66, new DataRate(1.3d, DataUnit.Type.megabit)));
 
-		flowSourceTargetIds
-				.add(new Triple<Integer, Integer, DataRate>(54, 27, new DataRate(1.4d, DataUnit.Type.megabit)));
+//		flowSourceTargetIds
+//		.add(new Triple<Integer, Integer, DataRate>(20, 70, new DataRate(0.2d, DataUnit.Type.megabit)));
+//		
+//		flowSourceTargetIds
+//		.add(new Triple<Integer, Integer, DataRate>(30, 81, new DataRate(0.4d, DataUnit.Type.megabit)));
 
 //		List<Triple<Integer, Integer, DataRate>> flowSourceTargetIds = new ArrayList<Triple<Integer, Integer, DataRate>>();
 //		flowSourceTargetIds.add(new Triple<Integer, Integer, DataRate>(1, 100, new DataRate(-1)));
@@ -114,6 +128,9 @@ public class App {
 			break;
 		case allComb:
 			new AllCompApp(runs, numNodes, flowSourceTargetIds, meanTransmissionRate, AllCompApp.class.getSimpleName())
+					.start();
+		case cplex:
+			new CplexApp(runs, numNodes, flowSourceTargetIds, meanTransmissionRate, CplexApp.class.getSimpleName())
 					.start();
 			break;
 		default:

@@ -84,10 +84,9 @@ public class AllCompApp extends App {
 				Future<List<Flow<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality>>> futureFlows = executor
 						.submit(allCompRun);
 
-				for (Flow<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality> flow : futureFlows
-						.get()) {
-
-				}
+//				for (Flow<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality> flow : futureFlows
+//						.get()) {
+//				}
 //					visualization.printPath(flow);
 				runs--;
 			}

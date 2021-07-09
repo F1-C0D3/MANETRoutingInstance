@@ -7,10 +7,14 @@ import java.util.concurrent.TimeUnit;
 
 import de.deterministic.app.DeterministicRun;
 import de.deterministic.network.DeterministicMANETSupplier;
+import de.deterministic.optimization.CplexOptimization;
 import de.deterministic.optimization.GreedyCombinationOptimization;
 import de.deterministic.optimization.MultipleDijkstraLinkQuality;
 import de.genetic.optimization.GeneticOptimization;
+import de.jgraphlib.graph.generator.GridGraphGenerator;
+import de.jgraphlib.graph.generator.GridGraphProperties;
 import de.jgraphlib.graph.generator.NetworkGraphProperties;
+import de.jgraphlib.util.RandomNumbers;
 import de.jgraphlib.util.Triple;
 import de.manetmodel.network.Flow;
 import de.manetmodel.network.Link;
@@ -32,9 +36,9 @@ import de.results.MANETRunResultMapper;
 import de.results.ResultParameter;
 import de.runprovider.Program;
 
-public class GreedyApp extends App {
+public class CplexApp extends App {
 
-	public GreedyApp(int runs, int numNodes, List<Triple<Integer, Integer, DataRate>> flowSourceTargetIds,
+	public CplexApp(int runs, int numNodes, List<Triple<Integer, Integer, DataRate>> flowSourceTargetIds,
 			DataRate meanTransmissionRate, String appName) {
 		super(runs, numNodes, flowSourceTargetIds, meanTransmissionRate, appName);
 	}
@@ -60,17 +64,21 @@ public class GreedyApp extends App {
 
 			MANET<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality, Flow<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality>> manet = program
 					.createMANET(mobilityModel, radioModel);
-			NetworkGraphProperties networkProperties = program.generateNetwork(manet, runs, numNodes);
+			GridGraphGenerator<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality> generator = new GridGraphGenerator<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality>(
+					manet, RandomNumbers.getInstance(runs));
+			GridGraphProperties gridGraphProperties = new GridGraphProperties(100, 100, 100, 100);
+			generator.generate(gridGraphProperties);
+//			NetworkGraphProperties networkProperties = program.generateNetwork(manet, runs, numNodes);
 			MANETRunResultMapper<RunResultParameter> runResultMapper = program.setIndividualRunResultMapper(
-					new RunResultParameterSupplier(), networkProperties, mobilityModel, radioModel, appName, numNodes,
+					new RunResultParameterSupplier(), gridGraphProperties, mobilityModel, radioModel, appName, numNodes,
 					flowSourceTargetIds.size(), meanTransmissionRate);
 			runResultMapper.getMappingStrategy().setType(RunResultParameter.class);
 
-			if (manet.getVertices().size() == (numNodes + 1)) {
+//			if (manet.getVertices().size() == (numNodes + 1)) {
 				/* Visialization */
-				visualization = new Visualization<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality, Flow<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality>>(
-						manet);
-				visualization.run();
+//				visualization = new Visualization<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality, Flow<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality>>(
+//						manet);
+//				visualization.run();
 				if (flowSourceTargetIds.get(0).getThird().get() == -1)
 					flowSourceTargetIds = program.generateFlowSourceTargetPairs(manet.getVertices().size(),
 							flowSourceTargetIds.size(), new DataRateRange(flowSourceTargetIds.get(0).getFirst(),
@@ -79,16 +87,16 @@ public class GreedyApp extends App {
 				program.addFlows(manet, flowSourceTargetIds, runs);
 
 				/* Evaluation of each run starts here */
-				GreedyCombinationOptimization<MANET<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality, Flow<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality>>> go = new GreedyCombinationOptimization<MANET<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality, Flow<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality>>>(
+				CplexOptimization<MANET<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality, Flow<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality>>> co = new CplexOptimization<MANET<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality, Flow<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality>>>(
 						manet);
-				DeterministicRun greedyHeuristicRun = new DeterministicRun(go, resultRecorder, runResultMapper);
+				DeterministicRun greedyHeuristicRun = new DeterministicRun(co, resultRecorder, runResultMapper);
 				Future<List<Flow<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality>>> futureFlows = executor
 						.submit(greedyHeuristicRun);
-				for (Flow<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality> flow : futureFlows
-						.get())
+//				for (Flow<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality> flow : futureFlows
+//						.get())
 //					System.out.println("bla");
 				runs--;
-			}
+//			}
 
 		}
 		executor.shutdown();
@@ -99,6 +107,5 @@ public class GreedyApp extends App {
 			e.printStackTrace();
 		}
 		resultRecorder.finish(totalResultMapper);
-		System.out.println("finished");
 	}
 }

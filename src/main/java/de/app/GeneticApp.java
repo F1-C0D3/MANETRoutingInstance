@@ -50,6 +50,7 @@ public class GeneticApp extends App {
 		MANETAverageResultMapper<AverageResultParameter> totalResultMapper = program.setTotalResultMapper(
 				new AverageResultParameterSupplier(), appName, numNodes, flowSourceTargetIds.size(),
 				meanTransmissionRate);
+		totalResultMapper.getMappingStrategy().setType(AverageResultParameter.class);
 		Visualization<Node, Link<LinkQuality>, LinkQuality, Flow<Node, Link<LinkQuality>, LinkQuality>> visualization = null;
 		while (runs > 0) {
 
@@ -62,7 +63,8 @@ public class GeneticApp extends App {
 			MANETRunResultMapper<RunResultParameter> runResultMapper = program.setIndividualRunResultMapper(
 					new RunResultParameterSupplier(), networkProperties, mobilityModel, radioModel, appName, numNodes,
 					flowSourceTargetIds.size(), meanTransmissionRate);
-
+			runResultMapper.getMappingStrategy().setType(RunResultParameter.class);
+			
 			if (manet.getVertices().size() == (numNodes + 1)) {
 				/* Visialization */
 //				visualization = new Visualization<Node, Link<LinkQuality>, LinkQuality, Flow<Node, Link<LinkQuality>, LinkQuality>>(
@@ -76,7 +78,7 @@ public class GeneticApp extends App {
 				program.addFlows(manet, flowSourceTargetIds, runs);
 
 				/* Evaluation of each run starts here */
-				GeneticOptimization go = new GeneticOptimization(manet, 10000, 10);
+				GeneticOptimization go = new GeneticOptimization(manet, 20000, 12);
 				GeneticRun geneticRun = new GeneticRun(go, resultRecorder, runResultMapper);
 				Future<List<Flow<Node, Link<LinkQuality>, LinkQuality>>> futureFlows = executor.submit(geneticRun);
 

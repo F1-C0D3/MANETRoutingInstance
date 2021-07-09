@@ -1,5 +1,5 @@
 package de.app;
 
 public enum OptimizationType {
-	genetic, allComb, greedy;
+	genetic, allComb, greedy, cplex;
 }
