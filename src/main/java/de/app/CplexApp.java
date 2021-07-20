@@ -22,8 +22,10 @@ import de.manetmodel.network.MANET;
 import de.manetmodel.network.Node;
 import de.manetmodel.network.mobility.MobilityModel;
 import de.manetmodel.network.radio.IRadioModel;
+import de.manetmodel.network.radio.IdealRadioModel;
 import de.manetmodel.network.unit.DataRate;
 import de.manetmodel.network.unit.DataUnit;
+import de.manetmodel.network.unit.DataUnit.Type;
 import de.manetmodel.network.unit.DataRate.DataRateRange;
 import de.results.RunResultParameter;
 import de.results.RunResultParameterSupplier;
@@ -34,6 +36,7 @@ import de.results.MANETAverageResultMapper;
 import de.results.MANETResultRecorder;
 import de.results.MANETRunResultMapper;
 import de.results.ResultParameter;
+import de.results.RunResultMapper;
 import de.runprovider.Program;
 
 public class CplexApp extends App {
@@ -60,8 +63,8 @@ public class CplexApp extends App {
 		while (runs > 0) {
 
 			MobilityModel mobilityModel = program.setMobilityModel(runs);
-			IRadioModel radioModel = program.setRadioModel();
-
+//			IRadioModel radioModel = program.setRadioModel();
+			IRadioModel radioModel = new IdealRadioModel(100, new DataRate(3, Type.megabit));
 			MANET<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality, Flow<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality>> manet = program
 					.createMANET(mobilityModel, radioModel);
 			GridGraphGenerator<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality> generator = new GridGraphGenerator<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality>(
@@ -69,33 +72,33 @@ public class CplexApp extends App {
 			GridGraphProperties gridGraphProperties = new GridGraphProperties(100, 100, 100, 100);
 			generator.generate(gridGraphProperties);
 //			NetworkGraphProperties networkProperties = program.generateNetwork(manet, runs, numNodes);
-			MANETRunResultMapper<RunResultParameter> runResultMapper = program.setIndividualRunResultMapper(
+			RunResultMapper<RunResultParameter> runResultMapper = program.setIndividualRunResultMapper(
 					new RunResultParameterSupplier(), gridGraphProperties, mobilityModel, radioModel, appName, numNodes,
 					flowSourceTargetIds.size(), meanTransmissionRate);
 			runResultMapper.getMappingStrategy().setType(RunResultParameter.class);
 
 //			if (manet.getVertices().size() == (numNodes + 1)) {
-				/* Visialization */
-//				visualization = new Visualization<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality, Flow<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality>>(
-//						manet);
-//				visualization.run();
-				if (flowSourceTargetIds.get(0).getThird().get() == -1)
-					flowSourceTargetIds = program.generateFlowSourceTargetPairs(manet.getVertices().size(),
-							flowSourceTargetIds.size(), new DataRateRange(flowSourceTargetIds.get(0).getFirst(),
-									flowSourceTargetIds.get(0).getSecond(), DataUnit.Type.bit),
-							runs);
-				program.addFlows(manet, flowSourceTargetIds, runs);
+			/* Visialization */
+			visualization = new Visualization<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality, Flow<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality>>(
+					manet);
+			visualization.run();
+			if (flowSourceTargetIds.get(0).getThird().get() == -1)
+				flowSourceTargetIds = program.generateFlowSourceTargetPairs(manet.getVertices().size(),
+						flowSourceTargetIds.size(), new DataRateRange(flowSourceTargetIds.get(0).getFirst(),
+								flowSourceTargetIds.get(0).getSecond(), DataUnit.Type.bit),
+						runs);
+			program.addFlows(manet, flowSourceTargetIds, runs);
 
-				/* Evaluation of each run starts here */
-				CplexOptimization<MANET<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality, Flow<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality>>> co = new CplexOptimization<MANET<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality, Flow<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality>>>(
-						manet);
-				DeterministicRun greedyHeuristicRun = new DeterministicRun(co, resultRecorder, runResultMapper);
-				Future<List<Flow<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality>>> futureFlows = executor
-						.submit(greedyHeuristicRun);
+			/* Evaluation of each run starts here */
+			CplexOptimization<MANET<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality, Flow<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality>>> co = new CplexOptimization<MANET<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality, Flow<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality>>>(
+					manet);
+			DeterministicRun greedyHeuristicRun = new DeterministicRun(co, resultRecorder, runResultMapper);
+			Future<List<Flow<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality>>> futureFlows = executor
+					.submit(greedyHeuristicRun);
 //				for (Flow<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality> flow : futureFlows
 //						.get())
 //					System.out.println("bla");
-				runs--;
+			runs--;
 //			}
 
 		}

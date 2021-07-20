@@ -96,7 +96,7 @@ public class DijkstraShortestDataRateConstrainedPath {
 				return sp;
 			}
 
-			copy.add(0, new Tuple<Link<MultipleDijkstraLinkQuality>, Node>(manet.getEdge(t, pred), t));
+			copy.add(0, new Tuple<Link<MultipleDijkstraLinkQuality>, Node>(manet.getEdge(pred, t), t));
 			t = pred;
 		} while (t.getID() != sp.getSource().getID());
 

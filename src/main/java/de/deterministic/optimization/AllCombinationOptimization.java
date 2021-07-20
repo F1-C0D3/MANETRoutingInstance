@@ -74,7 +74,7 @@ public class AllCombinationOptimization<M extends MANET<Node, Link<MultipleDijks
 			}
 			index++;
 		}
-
+		System.out.println(manet.getFlow(0).toString());
 		deployFlow(flowCombinations.get(bestCombination));
 		return null;
 	}

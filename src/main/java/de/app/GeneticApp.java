@@ -29,6 +29,7 @@ import de.results.AverageResultParameterSupplier;
 import de.results.MANETAverageResultMapper;
 import de.results.MANETResultRecorder;
 import de.results.MANETRunResultMapper;
+import de.results.RunResultMapper;
 import de.runprovider.Program;
 
 public class GeneticApp extends App {
@@ -60,7 +61,7 @@ public class GeneticApp extends App {
 			MANET<Node, Link<LinkQuality>, LinkQuality, Flow<Node, Link<LinkQuality>, LinkQuality>> manet = program
 					.createMANET(mobilityModel, radioModel);
 			NetworkGraphProperties networkProperties = program.generateNetwork(manet, runs, numNodes);
-			MANETRunResultMapper<RunResultParameter> runResultMapper = program.setIndividualRunResultMapper(
+			RunResultMapper<RunResultParameter> runResultMapper = program.setIndividualRunResultMapper(
 					new RunResultParameterSupplier(), networkProperties, mobilityModel, radioModel, appName, numNodes,
 					flowSourceTargetIds.size(), meanTransmissionRate);
 			runResultMapper.getMappingStrategy().setType(RunResultParameter.class);

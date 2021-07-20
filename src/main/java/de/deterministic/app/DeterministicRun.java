@@ -14,18 +14,19 @@ import de.results.AverageResultParameter;
 import de.results.MANETResultRecorder;
 import de.results.MANETRunResultMapper;
 import de.results.ResultParameter;
+import de.results.RunResultMapper;
 import de.runprovider.ExecutionCallable;
 
 public class DeterministicRun extends
 		ExecutionCallable<Flow<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality>, Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality> {
 	private Optimization<Void, MANET<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality, Flow<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality>>> op;
 	private MANETResultRecorder<RunResultParameter> resultRecorder;
-	private MANETRunResultMapper<RunResultParameter> runResultMapper;
+	private RunResultMapper<RunResultParameter> runResultMapper;
 
 	public DeterministicRun(
 			Optimization<Void, MANET<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality, Flow<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality>>> op,
 			MANETResultRecorder<RunResultParameter> resultRecorder,
-			MANETRunResultMapper<RunResultParameter> runResultMapper) {
+			RunResultMapper<RunResultParameter> runResultMapper) {
 		this.op = op;
 		this.resultRecorder = resultRecorder;
 		this.runResultMapper = runResultMapper;

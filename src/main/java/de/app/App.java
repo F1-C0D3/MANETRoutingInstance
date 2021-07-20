@@ -36,29 +36,28 @@ public class App {
 
 		List<Triple<Integer, Integer, DataRate>> flowSourceTargetIds = new ArrayList<Triple<Integer, Integer, DataRate>>();
 
-		flowSourceTargetIds
-				.add(new Triple<Integer, Integer, DataRate>(1, 2, new DataRate(1.3d, DataUnit.Type.megabit)));
+		flowSourceTargetIds.add(new Triple<Integer, Integer, DataRate>(1, 2, new DataRate(1d, DataUnit.Type.megabit)));
+		flowSourceTargetIds.add(new Triple<Integer, Integer, DataRate>(0, 3, new DataRate(1d, DataUnit.Type.megabit)));
+//		flowSourceTargetIds.add(new Triple<Integer, Integer, DataRate>(1, 17, new DataRate(1d, DataUnit.Type.megabit)));
 //		flowSourceTargetIds
-//				.add(new Triple<Integer, Integer, DataRate>(0, 2, new DataRate(0.7d, DataUnit.Type.megabit)));
+//				.add(new Triple<Integer, Integer, DataRate>(0, 3, new DataRate(1d, DataUnit.Type.megabit)));
 //		flowSourceTargetIds
-//				.add(new Triple<Integer, Integer, DataRate>(0, 3, new DataRate(0.3d, DataUnit.Type.megabit)));
-//		flowSourceTargetIds
-//				.add(new Triple<Integer, Integer, DataRate>(68, 10, new DataRate(0.8d, DataUnit.Type.megabit)));
+//				.add(new Triple<Integer, Integer, DataRate>(68, 10, new DataRate(1d, DataUnit.Type.megabit)));
 //
 //		flowSourceTargetIds
-//				.add(new Triple<Integer, Integer, DataRate>(54, 27, new DataRate(0.6d, DataUnit.Type.megabit)));
+//				.add(new Triple<Integer, Integer, DataRate>(54, 27, new DataRate(1d, DataUnit.Type.megabit)));
 //
 //		flowSourceTargetIds
-//				.add(new Triple<Integer, Integer, DataRate>(4, 99, new DataRate(1.4d, DataUnit.Type.megabit)));
+//				.add(new Triple<Integer, Integer, DataRate>(4, 99, new DataRate(1d, DataUnit.Type.megabit)));
 //
 //		flowSourceTargetIds
-//				.add(new Triple<Integer, Integer, DataRate>(15, 66, new DataRate(1.3d, DataUnit.Type.megabit)));
-
+//				.add(new Triple<Integer, Integer, DataRate>(15, 66, new DataRate(1d, DataUnit.Type.megabit)));
+//
 //		flowSourceTargetIds
-//		.add(new Triple<Integer, Integer, DataRate>(20, 70, new DataRate(0.2d, DataUnit.Type.megabit)));
-//		
+//				.add(new Triple<Integer, Integer, DataRate>(20, 70, new DataRate(1d, DataUnit.Type.megabit)));
+//
 //		flowSourceTargetIds
-//		.add(new Triple<Integer, Integer, DataRate>(30, 81, new DataRate(0.4d, DataUnit.Type.megabit)));
+//				.add(new Triple<Integer, Integer, DataRate>(30, 81, new DataRate(1d, DataUnit.Type.megabit)));
 
 //		List<Triple<Integer, Integer, DataRate>> flowSourceTargetIds = new ArrayList<Triple<Integer, Integer, DataRate>>();
 //		flowSourceTargetIds.add(new Triple<Integer, Integer, DataRate>(1, 100, new DataRate(-1)));
@@ -129,6 +128,7 @@ public class App {
 		case allComb:
 			new AllCompApp(runs, numNodes, flowSourceTargetIds, meanTransmissionRate, AllCompApp.class.getSimpleName())
 					.start();
+			break;
 		case cplex:
 			new CplexApp(runs, numNodes, flowSourceTargetIds, meanTransmissionRate, CplexApp.class.getSimpleName())
 					.start();

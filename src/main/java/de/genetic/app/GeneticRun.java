@@ -16,18 +16,19 @@ import de.results.RunResultParameter;
 import de.results.MANETResultRecorder;
 import de.results.MANETRunResultMapper;
 import de.results.ResultParameter;
+import de.results.RunResultMapper;
 import de.runprovider.ExecutionCallable;
 
 public class GeneticRun
 		extends ExecutionCallable<Flow<Node, Link<LinkQuality>, LinkQuality>, Node, Link<LinkQuality>, LinkQuality> {
 	Optimization<PathComposition, MANET<Node, Link<LinkQuality>, LinkQuality, Flow<Node, Link<LinkQuality>, LinkQuality>>> op;
 	MANETResultRecorder<RunResultParameter> parameterRecorder;
-	MANETRunResultMapper<RunResultParameter> runResultMapper;
+	RunResultMapper<RunResultParameter> runResultMapper;
 
 	public GeneticRun(
 			Optimization<PathComposition, MANET<Node, Link<LinkQuality>, LinkQuality, Flow<Node, Link<LinkQuality>, LinkQuality>>> op,
 			MANETResultRecorder<RunResultParameter> geneticEvalRecorder,
-			MANETRunResultMapper<RunResultParameter> runResultMapper) {
+			RunResultMapper<RunResultParameter> runResultMapper) {
 		this.op = op;
 		this.parameterRecorder = geneticEvalRecorder;
 		this.runResultMapper = runResultMapper;

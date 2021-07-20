@@ -11,7 +11,10 @@ import de.deterministic.optimization.AllCombinationOptimization;
 import de.deterministic.optimization.GreedyCombinationOptimization;
 import de.deterministic.optimization.MultipleDijkstraLinkQuality;
 import de.genetic.optimization.GeneticOptimization;
+import de.jgraphlib.graph.generator.GridGraphGenerator;
+import de.jgraphlib.graph.generator.GridGraphProperties;
 import de.jgraphlib.graph.generator.NetworkGraphProperties;
+import de.jgraphlib.util.RandomNumbers;
 import de.jgraphlib.util.Triple;
 import de.manetmodel.network.Flow;
 import de.manetmodel.network.Link;
@@ -20,9 +23,11 @@ import de.manetmodel.network.MANET;
 import de.manetmodel.network.Node;
 import de.manetmodel.network.mobility.MobilityModel;
 import de.manetmodel.network.radio.IRadioModel;
+import de.manetmodel.network.radio.IdealRadioModel;
 import de.manetmodel.network.unit.DataRate;
 import de.manetmodel.network.unit.DataUnit;
 import de.manetmodel.network.unit.DataRate.DataRateRange;
+import de.manetmodel.network.unit.DataUnit.Type;
 import de.results.RunResultParameter;
 import de.results.RunResultParameterSupplier;
 import de.results.AverageResultParameter;
@@ -30,6 +35,7 @@ import de.results.AverageResultParameterSupplier;
 import de.results.MANETAverageResultMapper;
 import de.results.MANETResultRecorder;
 import de.results.MANETRunResultMapper;
+import de.results.RunResultMapper;
 import de.runprovider.Program;
 
 public class AllCompApp extends App {
@@ -55,21 +61,31 @@ public class AllCompApp extends App {
 		while (runs > 0) {
 
 			MobilityModel mobilityModel = program.setMobilityModel(runs);
-			IRadioModel radioModel = program.setRadioModel();
+//			IRadioModel radioModel = program.setRadioModel();
+			IRadioModel radioModel = new IdealRadioModel(100, new DataRate(10, Type.megabit));
 
 			MANET<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality, Flow<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality>> manet = program
 					.createMANET(mobilityModel, radioModel);
-			NetworkGraphProperties networkProperties = program.generateNetwork(manet, runs, numNodes);
-			MANETRunResultMapper<RunResultParameter> runResultMapper = program.setIndividualRunResultMapper(
-					new RunResultParameterSupplier(), networkProperties, mobilityModel, radioModel, appName, numNodes,
+//			NetworkGraphProperties networkProperties = program.generateNetwork(manet, runs, numNodes);
+//			MANETRunResultMapper<RunResultParameter> runResultMapper = program.setIndividualRunResultMapper(
+//					new RunResultParameterSupplier(), networkProperties, mobilityModel, radioModel, appName, numNodes,
+//					flowSourceTargetIds.size(), meanTransmissionRate);
+//			runResultMapper.getMappingStrategy().setType(RunResultParameter.class);
+			
+			GridGraphGenerator<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality> generator = new GridGraphGenerator<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality>(
+					manet, RandomNumbers.getInstance(runs));
+			GridGraphProperties gridGraphProperties = new GridGraphProperties(100, 100, 100, 100);
+			generator.generate(gridGraphProperties);
+//			NetworkGraphProperties networkProperties = program.generateNetwork(manet, runs, numNodes);
+			RunResultMapper<RunResultParameter> runResultMapper = program.setIndividualRunResultMapper(
+					new RunResultParameterSupplier(), gridGraphProperties, mobilityModel, radioModel, appName, numNodes,
 					flowSourceTargetIds.size(), meanTransmissionRate);
-			runResultMapper.getMappingStrategy().setType(RunResultParameter.class);
 
-			if (manet.getVertices().size() == (numNodes + 1)) {
+//			if (manet.getVertices().size() == (numNodes + 1)) {
 				/* Visialization */
-//				visualization = new Visualization<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality, Flow<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality>>(
-//						manet);
-//				visualization.run();
+				visualization = new Visualization<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality, Flow<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality>>(
+						manet);
+				visualization.run();
 				if (flowSourceTargetIds.get(0).getThird().get() == -1)
 					flowSourceTargetIds = program.generateFlowSourceTargetPairs(manet.getVertices().size(),
 							flowSourceTargetIds.size(), new DataRateRange(flowSourceTargetIds.get(0).getFirst(),
@@ -84,12 +100,14 @@ public class AllCompApp extends App {
 				Future<List<Flow<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality>>> futureFlows = executor
 						.submit(allCompRun);
 
+//				List<Flow<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality>> list = futureFlows.get();
 //				for (Flow<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality> flow : futureFlows
 //						.get()) {
+//					System.out.println(flow.toString());
 //				}
 //					visualization.printPath(flow);
 				runs--;
-			}
+//			}
 
 		}
 		executor.shutdown();

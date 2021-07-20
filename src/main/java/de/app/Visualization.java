@@ -7,7 +7,7 @@ import javax.swing.WindowConstants;
 
 import de.jgraphlib.gui.VisualGraph;
 import de.jgraphlib.gui.VisualGraphFrame;
-import de.jgraphlib.gui.VisualGraphMarkUp;
+import de.jgraphlib.gui.VisualGraphStyle;
 import de.manetmodel.network.Flow;
 import de.manetmodel.network.Link;
 import de.manetmodel.network.LinkQuality;
@@ -22,7 +22,7 @@ public class Visualization<N extends Node, L extends Link<W>, W extends LinkQual
 
 	public Visualization(MANET<N, L, W, F> manet) {
 		this.manet = manet;
-		visualGraph = new VisualGraph<N, L>(this.manet, new VisualGraphMarkUp());
+		visualGraph = new VisualGraph<N, L>(this.manet, new VisualGraphStyle(true));
 		frame = new VisualGraphFrame<N, L>(visualGraph);
 	}
 
