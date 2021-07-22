@@ -64,16 +64,16 @@ public class CplexApp extends App {
 
 			MobilityModel mobilityModel = program.setMobilityModel(runs);
 //			IRadioModel radioModel = program.setRadioModel();
-			IRadioModel radioModel = new IdealRadioModel(100, new DataRate(3, Type.megabit));
+			IRadioModel radioModel = new IdealRadioModel(100, new DataRate(40, Type.megabit));
 			MANET<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality, Flow<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality>> manet = program
 					.createMANET(mobilityModel, radioModel);
-			GridGraphGenerator<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality> generator = new GridGraphGenerator<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality>(
-					manet, RandomNumbers.getInstance(runs));
-			GridGraphProperties gridGraphProperties = new GridGraphProperties(100, 100, 100, 100);
-			generator.generate(gridGraphProperties);
-//			NetworkGraphProperties networkProperties = program.generateNetwork(manet, runs, numNodes);
+//			GridGraphGenerator<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality> generator = new GridGraphGenerator<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality>(
+//					manet, RandomNumbers.getInstance(runs));
+//			GridGraphProperties gridGraphProperties = new GridGraphProperties(1000, 1000, 100, 100);
+//			generator.generate(gridGraphProperties);
+			NetworkGraphProperties networkProperties = program.generateNetwork(manet, runs, numNodes);
 			RunResultMapper<RunResultParameter> runResultMapper = program.setIndividualRunResultMapper(
-					new RunResultParameterSupplier(), gridGraphProperties, mobilityModel, radioModel, appName, numNodes,
+					new RunResultParameterSupplier(), networkProperties, mobilityModel, radioModel, appName, numNodes,
 					flowSourceTargetIds.size(), meanTransmissionRate);
 			runResultMapper.getMappingStrategy().setType(RunResultParameter.class);
 

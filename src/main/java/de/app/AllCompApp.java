@@ -62,43 +62,34 @@ public class AllCompApp extends App {
 
 			MobilityModel mobilityModel = program.setMobilityModel(runs);
 //			IRadioModel radioModel = program.setRadioModel();
-			IRadioModel radioModel = new IdealRadioModel(100, new DataRate(10, Type.megabit));
+			IRadioModel radioModel = new IdealRadioModel(100, new DataRate(40, Type.megabit));
 
 			MANET<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality, Flow<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality>> manet = program
 					.createMANET(mobilityModel, radioModel);
-//			NetworkGraphProperties networkProperties = program.generateNetwork(manet, runs, numNodes);
-//			MANETRunResultMapper<RunResultParameter> runResultMapper = program.setIndividualRunResultMapper(
-//					new RunResultParameterSupplier(), networkProperties, mobilityModel, radioModel, appName, numNodes,
-//					flowSourceTargetIds.size(), meanTransmissionRate);
-//			runResultMapper.getMappingStrategy().setType(RunResultParameter.class);
-			
-			GridGraphGenerator<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality> generator = new GridGraphGenerator<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality>(
-					manet, RandomNumbers.getInstance(runs));
-			GridGraphProperties gridGraphProperties = new GridGraphProperties(100, 100, 100, 100);
-			generator.generate(gridGraphProperties);
-//			NetworkGraphProperties networkProperties = program.generateNetwork(manet, runs, numNodes);
+			NetworkGraphProperties networkProperties = program.generateNetwork(manet, runs, numNodes);
 			RunResultMapper<RunResultParameter> runResultMapper = program.setIndividualRunResultMapper(
-					new RunResultParameterSupplier(), gridGraphProperties, mobilityModel, radioModel, appName, numNodes,
+					new RunResultParameterSupplier(), networkProperties, mobilityModel, radioModel, appName, numNodes,
 					flowSourceTargetIds.size(), meanTransmissionRate);
+			runResultMapper.getMappingStrategy().setType(RunResultParameter.class);
 
 //			if (manet.getVertices().size() == (numNodes + 1)) {
-				/* Visialization */
-				visualization = new Visualization<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality, Flow<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality>>(
-						manet);
-				visualization.run();
-				if (flowSourceTargetIds.get(0).getThird().get() == -1)
-					flowSourceTargetIds = program.generateFlowSourceTargetPairs(manet.getVertices().size(),
-							flowSourceTargetIds.size(), new DataRateRange(flowSourceTargetIds.get(0).getFirst(),
-									flowSourceTargetIds.get(0).getSecond(), DataUnit.Type.bit),
-							runs);
-				program.addFlows(manet, flowSourceTargetIds, runs);
+			/* Visialization */
+			visualization = new Visualization<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality, Flow<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality>>(
+					manet);
+			visualization.run();
+			if (flowSourceTargetIds.get(0).getThird().get() == -1)
+				flowSourceTargetIds = program.generateFlowSourceTargetPairs(manet.getVertices().size(),
+						flowSourceTargetIds.size(), new DataRateRange(flowSourceTargetIds.get(0).getFirst(),
+								flowSourceTargetIds.get(0).getSecond(), DataUnit.Type.bit),
+						runs);
+			program.addFlows(manet, flowSourceTargetIds, runs);
 
-				/* Evaluation of each run starts here */
-				AllCombinationOptimization<MANET<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality, Flow<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality>>> aco = new AllCombinationOptimization<MANET<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality, Flow<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality>>>(
-						manet);
-				DeterministicRun allCompRun = new DeterministicRun(aco, resultRecorder, runResultMapper);
-				Future<List<Flow<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality>>> futureFlows = executor
-						.submit(allCompRun);
+			/* Evaluation of each run starts here */
+			AllCombinationOptimization<MANET<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality, Flow<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality>>> aco = new AllCombinationOptimization<MANET<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality, Flow<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality>>>(
+					manet);
+			DeterministicRun allCompRun = new DeterministicRun(aco, resultRecorder, runResultMapper);
+			Future<List<Flow<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality>>> futureFlows = executor
+					.submit(allCompRun);
 
 //				List<Flow<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality>> list = futureFlows.get();
 //				for (Flow<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality> flow : futureFlows
@@ -106,7 +97,7 @@ public class AllCompApp extends App {
 //					System.out.println(flow.toString());
 //				}
 //					visualization.printPath(flow);
-				runs--;
+			runs--;
 //			}
 
 		}

@@ -86,9 +86,9 @@ public class CplexOptimization<M extends MANET<Node, Link<MultipleDijkstraLinkQu
 									manet.getVerticesOf(link).getSecond().getID()));
 
 					x[f.getId()][link.getID()] = cplex.boolVar();
-					x[f.getId()][link.getID()].setName(
-							String.format("x^%d_(%d,%d)", f.getId(), manet.getVerticesOf(link).getFirst().getID(),
-									manet.getVerticesOf(link).getSecond().getID()));
+					x[f.getId()][link.getID()].setName(String.format("x^%d_[%d]_(%d,%d)", f.getId(), link.getID(),
+							manet.getVerticesOf(link).getFirst().getID(),
+							manet.getVerticesOf(link).getSecond().getID()));
 
 				}
 				r[f.getId()].setName(String.format("r^%d", f.getId()));
@@ -107,46 +107,25 @@ public class CplexOptimization<M extends MANET<Node, Link<MultipleDijkstraLinkQu
 					List<Link<MultipleDijkstraLinkQuality>> incomingEdgesOf = manet.getIncomingEdgesOf(node);
 					List<Link<MultipleDijkstraLinkQuality>> outgoingEdgesOf = manet.getOutgoingEdgesOf(node);
 
-					if (node.getID() == f.getSource().getID()) {
-
-						for (Link<MultipleDijkstraLinkQuality> link : outgoingEdgesOf) {
-							nodeEqualDemand.addTerm(-(int) f.getDataRate().get(), x[f.getId()][link.getID()]);
-							unsplittablePath.addTerm(+1, x[f.getId()][link.getID()]);
-						}
-
-						for (Link<MultipleDijkstraLinkQuality> link : incomingEdgesOf) {
-							nodeEqualDemand.addTerm(0, x[f.getId()][link.getID()]);
-//							unsplittablePath.addTerm(+1, y[f.getId()][link.getID()]);
-						}
-						cplex.addEq(-(int) f.getDataRate().get(), nodeEqualDemand);
-						cplex.addEq(1, unsplittablePath);
-					} else if (node.getID() == f.getTarget().getID()) {
-
-						for (Link<MultipleDijkstraLinkQuality> link : outgoingEdgesOf) {
-							nodeEqualDemand.addTerm(0, x[f.getId()][link.getID()]);
-//							unsplittablePath.addTerm(+1, y[f.getId()][link.getID()]);
-						}
-
-						for (Link<MultipleDijkstraLinkQuality> link : incomingEdgesOf) {
-							nodeEqualDemand.addTerm(+(int) f.getDataRate().get(), x[f.getId()][link.getID()]);
-							unsplittablePath.addTerm(+1, x[f.getId()][link.getID()]);
-						}
-
-						cplex.addEq(+(int) f.getDataRate().get(), nodeEqualDemand);
-						cplex.addEq(1, unsplittablePath);
-					} else {
-						for (Link<MultipleDijkstraLinkQuality> link : incomingEdgesOf) {
-							nodeEqualDemand.addTerm(+(int) f.getDataRate().get(), x[f.getId()][link.getID()]);
-							unsplittablePath.addTerm(+1, x[f.getId()][link.getID()]);
-						}
-
-						for (Link<MultipleDijkstraLinkQuality> link : outgoingEdgesOf) {
-							nodeEqualDemand.addTerm(-(int) f.getDataRate().get(), x[f.getId()][link.getID()]);
-							unsplittablePath.addTerm(+1, x[f.getId()][link.getID()]);
-						}
-						cplex.addGe(0, nodeEqualDemand);
-						cplex.addGe(2, unsplittablePath);
+					for (Link<MultipleDijkstraLinkQuality> link : incomingEdgesOf) {
+						nodeEqualDemand.addTerm(+(int) f.getDataRate().get(), x[f.getId()][link.getID()]);
+						unsplittablePath.addTerm(+1, x[f.getId()][link.getID()]);
 					}
+
+					for (Link<MultipleDijkstraLinkQuality> link : outgoingEdgesOf) {
+						nodeEqualDemand.addTerm(-(int) f.getDataRate().get(), x[f.getId()][link.getID()]);
+						unsplittablePath.addTerm(+1, x[f.getId()][link.getID()]);
+					}
+
+					if (node.getID() == f.getSource().getID()) {
+						cplex.addGe(-(int) f.getDataRate().get(), nodeEqualDemand);
+					} else if (node.getID() == f.getTarget().getID()) {
+						cplex.addGe(+(int) f.getDataRate().get(), nodeEqualDemand);
+					} else {
+						cplex.addGe(0, nodeEqualDemand);
+					}
+
+					cplex.addGe(2, unsplittablePath);
 				}
 
 			}
@@ -162,7 +141,6 @@ public class CplexOptimization<M extends MANET<Node, Link<MultipleDijkstraLinkQu
 					for (int uLinkId : link.getUtilizedLinkIds()) {
 						flowExpression.addTerm((int) f.getDataRate().get(), x[f.getId()][uLinkId]);
 					}
-
 					cplex.addGe((int) link.getWeight().getTransmissionRate().get(), flowExpression);
 
 				}
@@ -177,7 +155,7 @@ public class CplexOptimization<M extends MANET<Node, Link<MultipleDijkstraLinkQu
 				IloNumExpr[] maxr = new IloNumExpr[manet.getEdges().size()];
 				for (Link<MultipleDijkstraLinkQuality> link : manet.getEdges()) {
 
-					maxr[link.getID()] = cplex.prod(x[f.getId()][link.getID()], 1);
+					maxr[link.getID()] = cplex.prod(x[f.getId()][link.getID()], link.getWeight().getReceptionPower());
 				}
 				result[f.getId()] = cplex.max(maxr);
 			}
@@ -192,11 +170,11 @@ public class CplexOptimization<M extends MANET<Node, Link<MultipleDijkstraLinkQu
 			System.out.println("Solution status: " + cplex.getStatus());
 			System.out.println("Solution value  = " + cplex.getObjValue());
 			System.out.println("Solution vector:");
-			for (IloNumVar[] v : x) {
-				for (IloNumVar activeLink : v) {
-					System.out.println(String.format("%s, %15.6f", activeLink.getName(), cplex.getValue(activeLink)));
-				}
-			}
+//			for (IloNumVar[] v : x) {
+//				for (IloNumVar activeLink : v) {
+//					System.out.println(String.format("%s, %15.6f", activeLink.getName(), cplex.getValue(activeLink)));
+//				}
+//			}
 
 //			for (int i = 0; i < x.length; i++) {
 //				for (int k = 0; k < x[i].length; k++) {
@@ -204,6 +182,7 @@ public class CplexOptimization<M extends MANET<Node, Link<MultipleDijkstraLinkQu
 //							cplex.getValue(x[i][k]), y[i][k].getName(), cplex.getValue(y[i][k])));
 //				}
 //			}
+			//cplex.exportModel("FixNet.lp");
 
 			for (int i = 0; i < x.length; i++) {
 				Flow<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality> flow = manet.getFlow(i);
@@ -228,7 +207,9 @@ public class CplexOptimization<M extends MANET<Node, Link<MultipleDijkstraLinkQu
 				}
 				manet.deployFlow(flow);
 			}
-
+			for (Flow<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality> flow : manet.getFlows()) {
+				System.out.println(flow.toString());
+			}
 		} catch (
 
 		IloException e) {

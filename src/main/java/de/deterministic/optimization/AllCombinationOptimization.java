@@ -30,7 +30,7 @@ public class AllCombinationOptimization<M extends MANET<Node, Link<MultipleDijks
 				.getReversePath();
 
 		Tuple<Link<MultipleDijkstraLinkQuality>, Node> current = reversePath.getLast();
-		double cost = current.getFirst().getWeight().getNumUtilizedLinks() * rate.get();
+		double cost = current.getFirst().getWeight().getReceptionPower();
 		manet.deployFlow(reversePath);
 
 		if (manet.getOverUtilizedLinks().get() != 0) {
@@ -74,7 +74,7 @@ public class AllCombinationOptimization<M extends MANET<Node, Link<MultipleDijks
 			}
 			index++;
 		}
-		System.out.println(manet.getFlow(0).toString());
+
 		deployFlow(flowCombinations.get(bestCombination));
 		return null;
 	}

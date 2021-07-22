@@ -31,33 +31,30 @@ public class App {
 
 	public static void main(String[] args) throws InterruptedException, ExecutionException, IloException {
 		int runs = 1;
-		int numNodes = 100;
-		OptimizationType oType = OptimizationType.cplex;
+		int numNodes =100;
+		OptimizationType oType = OptimizationType.allComb;
 
 		List<Triple<Integer, Integer, DataRate>> flowSourceTargetIds = new ArrayList<Triple<Integer, Integer, DataRate>>();
 
-		flowSourceTargetIds.add(new Triple<Integer, Integer, DataRate>(1, 2, new DataRate(1d, DataUnit.Type.megabit)));
-		flowSourceTargetIds.add(new Triple<Integer, Integer, DataRate>(0, 3, new DataRate(1d, DataUnit.Type.megabit)));
-//		flowSourceTargetIds.add(new Triple<Integer, Integer, DataRate>(1, 17, new DataRate(1d, DataUnit.Type.megabit)));
-//		flowSourceTargetIds
-//				.add(new Triple<Integer, Integer, DataRate>(0, 3, new DataRate(1d, DataUnit.Type.megabit)));
-//		flowSourceTargetIds
-//				.add(new Triple<Integer, Integer, DataRate>(68, 10, new DataRate(1d, DataUnit.Type.megabit)));
+		flowSourceTargetIds.add(new Triple<Integer, Integer, DataRate>(1, 7, new DataRate(1d, DataUnit.Type.megabit)));
+		flowSourceTargetIds.add(new Triple<Integer, Integer, DataRate>(15, 17, new DataRate(1d, DataUnit.Type.megabit)));
+		flowSourceTargetIds
+				.add(new Triple<Integer, Integer, DataRate>(4, 12, new DataRate(1d, DataUnit.Type.megabit)));
+
+		flowSourceTargetIds
+				.add(new Triple<Integer, Integer, DataRate>(54, 27, new DataRate(1d, DataUnit.Type.megabit)));
+
+		flowSourceTargetIds
+				.add(new Triple<Integer, Integer, DataRate>(10, 99, new DataRate(1d, DataUnit.Type.megabit)));
 //
-//		flowSourceTargetIds
-//				.add(new Triple<Integer, Integer, DataRate>(54, 27, new DataRate(1d, DataUnit.Type.megabit)));
-//
-//		flowSourceTargetIds
-//				.add(new Triple<Integer, Integer, DataRate>(4, 99, new DataRate(1d, DataUnit.Type.megabit)));
-//
-//		flowSourceTargetIds
-//				.add(new Triple<Integer, Integer, DataRate>(15, 66, new DataRate(1d, DataUnit.Type.megabit)));
-//
-//		flowSourceTargetIds
-//				.add(new Triple<Integer, Integer, DataRate>(20, 70, new DataRate(1d, DataUnit.Type.megabit)));
-//
-//		flowSourceTargetIds
-//				.add(new Triple<Integer, Integer, DataRate>(30, 81, new DataRate(1d, DataUnit.Type.megabit)));
+		flowSourceTargetIds
+				.add(new Triple<Integer, Integer, DataRate>(35, 66, new DataRate(1d, DataUnit.Type.megabit)));
+
+		flowSourceTargetIds
+				.add(new Triple<Integer, Integer, DataRate>(20, 70, new DataRate(1d, DataUnit.Type.megabit)));
+
+		flowSourceTargetIds
+				.add(new Triple<Integer, Integer, DataRate>(30, 81, new DataRate(1d, DataUnit.Type.megabit)));
 
 //		List<Triple<Integer, Integer, DataRate>> flowSourceTargetIds = new ArrayList<Triple<Integer, Integer, DataRate>>();
 //		flowSourceTargetIds.add(new Triple<Integer, Integer, DataRate>(1, 100, new DataRate(-1)));
