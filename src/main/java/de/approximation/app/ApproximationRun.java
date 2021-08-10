@@ -1,4 +1,4 @@
-package de.deterministic.app;
+package de.approximation.app;
 
 import java.util.List;
 
@@ -14,13 +14,13 @@ import de.results.MANETResultRecorder;
 import de.results.RunResultMapper;
 import de.runprovider.ExecutionCallable;
 
-public class DeterministicRun
+public class ApproximationRun
 		extends ExecutionCallable<Flow<Node, Link<LinkQuality>, LinkQuality>, Node, Link<LinkQuality>, LinkQuality> {
 	private Optimization<Void, MANET<Node, Link<LinkQuality>, LinkQuality, Flow<Node, Link<LinkQuality>, LinkQuality>>> op;
 	private MANETResultRecorder<RunResultParameter> resultRecorder;
 	private RunResultMapper<RunResultParameter> runResultMapper;
 
-	public DeterministicRun(
+	public ApproximationRun(
 			Optimization<Void, MANET<Node, Link<LinkQuality>, LinkQuality, Flow<Node, Link<LinkQuality>, LinkQuality>>> op,
 			MANETResultRecorder<RunResultParameter> resultRecorder,
 			RunResultMapper<RunResultParameter> runResultMapper) {

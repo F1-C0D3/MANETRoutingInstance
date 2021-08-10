@@ -24,7 +24,7 @@ public class GeneticMANETSupplier
 			return new Node();
 		}
 	}
-	
+
 	public static class GeneticMANETLinkQualitySupplier implements Supplier<LinkQuality> {
 		@Override
 		public LinkQuality get() {
@@ -43,8 +43,8 @@ public class GeneticMANETSupplier
 	public MANET<Node, Link<LinkQuality>, LinkQuality, Flow<Node, Link<LinkQuality>, LinkQuality>> get() {
 		// TODO Auto-generated method stub
 		return new MANET<Node, Link<LinkQuality>, LinkQuality, Flow<Node, Link<LinkQuality>, LinkQuality>>(
-				new GeneticMANETNodeSupplier(), new GeneticMANETLinkSupplier(), new GeneticMANETFlowSupplier(), null,
-				null);
+				new GeneticMANETNodeSupplier(), new GeneticMANETLinkSupplier(), new GeneticMANETLinkQualitySupplier(),
+				new GeneticMANETFlowSupplier(), null, null);
 	}
 
 }

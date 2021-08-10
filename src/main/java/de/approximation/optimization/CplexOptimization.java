@@ -1,4 +1,4 @@
-package de.deterministic.optimization;
+package de.approximation.optimization;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -6,11 +6,11 @@ import java.util.Random;
 import java.util.Set;
 import java.util.function.Function;
 
-import de.deterministic.algorithm.DijkstraShortestDataRateConstrainedPath;
-import de.jgraphlib.graph.Path;
+import de.deterministic.algorithm.DijkstraShortesFlow;
 import de.jgraphlib.util.Tuple;
 import de.manetmodel.network.Flow;
 import de.manetmodel.network.Link;
+import de.manetmodel.network.LinkQuality;
 import de.manetmodel.network.MANET;
 import de.manetmodel.network.Node;
 import de.manetmodel.network.unit.DataRate;
@@ -22,35 +22,17 @@ import ilog.concert.IloNumExpr;
 import ilog.concert.IloNumVar;
 import ilog.cplex.IloCplex;
 
-public class CplexOptimization<M extends MANET<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality, Flow<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality>>>
+public class CplexOptimization<M extends MANET<Node, Link<LinkQuality>, LinkQuality, Flow<Node, Link<LinkQuality>, LinkQuality>>>
 		extends Optimization<Void, M> {
 
 	private Random random;
-	protected DijkstraShortestDataRateConstrainedPath sp;
+	protected DijkstraShortesFlow sp;
 
 	public CplexOptimization(M manet) {
 		super(manet);
-		this.sp = new DijkstraShortestDataRateConstrainedPath(manet);
+//		this.sp = new DijkstraShortestDataRateConstrainedPath(manet);
 		this.random = new Random();
 	}
-
-	private Function<Tuple<MultipleDijkstraLinkQuality, DataRate>, Double> metric = (tuple) -> {
-		MultipleDijkstraLinkQuality linkQuality = tuple.getFirst();
-		DataRate rate = tuple.getSecond();
-		Flow<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality> reversePath = linkQuality
-				.getReversePath();
-
-		Tuple<Link<MultipleDijkstraLinkQuality>, Node> current = reversePath.getLast();
-		double cost = current.getFirst().getWeight().getNumUtilizedLinks() * rate.get();
-		manet.deployFlow(reversePath);
-
-		if (manet.getOverUtilizedLinks().get() != 0) {
-			cost = manet.getCapacity().get() + 1L;
-		}
-		manet.undeployFlow(reversePath);
-		return cost;
-
-	};
 
 	public Void execute() {
 
@@ -66,55 +48,44 @@ public class CplexOptimization<M extends MANET<Node, Link<MultipleDijkstraLinkQu
 		try (IloCplex cplex = new IloCplex()) {
 
 			IloIntVar[][] x = new IloIntVar[manet.getFlows().size()][manet.getEdges().size()];
-			IloIntVar[][] y = new IloIntVar[manet.getFlows().size()][manet.getEdges().size()];
 			IloNumVar[] r = cplex.numVarArray(manet.getFlows().size(), 0d, 1d);
 
-			for (int i = 0; i < y.length; i++) {
-				for (int k = 0; k < y[i].length; k++) {
-					y[i][k] = cplex.intVar(0, 1);
-				}
-			}
 			/*
 			 * Decision varialbes initializatiopn:
 			 */
-			for (Flow<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality> f : manet.getFlows()) {
-				for (Link<MultipleDijkstraLinkQuality> link : manet.getEdges()) {
+			for (Flow<Node, Link<LinkQuality>, LinkQuality> f : manet.getFlows()) {
+				for (Link<LinkQuality> link : manet.getEdges()) {
 
-					y[f.getId()][link.getID()] = cplex.boolVar();
-					y[f.getId()][link.getID()].setName(
-							String.format("y^%d_(%d,%d)", f.getId(), manet.getVerticesOf(link).getFirst().getID(),
-									manet.getVerticesOf(link).getSecond().getID()));
-
-					x[f.getId()][link.getID()] = cplex.boolVar();
-					x[f.getId()][link.getID()].setName(String.format("x^%d_[%d]_(%d,%d)", f.getId(), link.getID(),
+					x[f.getID()][link.getID()] = cplex.boolVar();
+					x[f.getID()][link.getID()].setName(String.format("x^%d_[%d]_(%d,%d)", f.getID(), link.getID(),
 							manet.getVerticesOf(link).getFirst().getID(),
 							manet.getVerticesOf(link).getSecond().getID()));
 
 				}
-				r[f.getId()].setName(String.format("r^%d", f.getId()));
+				r[f.getID()].setName(String.format("r^%d", f.getID()));
 
 			}
 
 			/*
 			 * Guarantee
 			 */
-			for (Flow<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality> f : manet.getFlows()) {
+			for (Flow<Node, Link<LinkQuality>, LinkQuality> f : manet.getFlows()) {
 
 				for (Node node : manet.getVertices()) {
 
 					IloLinearNumExpr unsplittablePath = cplex.linearNumExpr();
 					IloLinearNumExpr nodeEqualDemand = cplex.linearNumExpr();
-					List<Link<MultipleDijkstraLinkQuality>> incomingEdgesOf = manet.getIncomingEdgesOf(node);
-					List<Link<MultipleDijkstraLinkQuality>> outgoingEdgesOf = manet.getOutgoingEdgesOf(node);
+					List<Link<LinkQuality>> incomingEdgesOf = manet.getIncomingEdgesOf(node);
+					List<Link<LinkQuality>> outgoingEdgesOf = manet.getOutgoingEdgesOf(node);
 
-					for (Link<MultipleDijkstraLinkQuality> link : incomingEdgesOf) {
-						nodeEqualDemand.addTerm(+(int) f.getDataRate().get(), x[f.getId()][link.getID()]);
-						unsplittablePath.addTerm(+1, x[f.getId()][link.getID()]);
+					for (Link<LinkQuality> link : incomingEdgesOf) {
+						nodeEqualDemand.addTerm(+(int) f.getDataRate().get(), x[f.getID()][link.getID()]);
+						unsplittablePath.addTerm(+1, x[f.getID()][link.getID()]);
 					}
 
-					for (Link<MultipleDijkstraLinkQuality> link : outgoingEdgesOf) {
-						nodeEqualDemand.addTerm(-(int) f.getDataRate().get(), x[f.getId()][link.getID()]);
-						unsplittablePath.addTerm(+1, x[f.getId()][link.getID()]);
+					for (Link<LinkQuality> link : outgoingEdgesOf) {
+						nodeEqualDemand.addTerm(-(int) f.getDataRate().get(), x[f.getID()][link.getID()]);
+						unsplittablePath.addTerm(+1, x[f.getID()][link.getID()]);
 					}
 
 					if (node.getID() == f.getSource().getID()) {
@@ -133,13 +104,13 @@ public class CplexOptimization<M extends MANET<Node, Link<MultipleDijkstraLinkQu
 			/*
 			 * Capacity Constraint
 			 */
-			for (Link<MultipleDijkstraLinkQuality> link : manet.getEdges()) {
+			for (Link<LinkQuality> link : manet.getEdges()) {
 				IloLinearNumExpr flowExpression = cplex.linearNumExpr();
 
-				for (Flow<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality> f : manet.getFlows()) {
+				for (Flow<Node, Link<LinkQuality>, LinkQuality> f : manet.getFlows()) {
 
-					for (int uLinkId : link.getUtilizedLinkIds()) {
-						flowExpression.addTerm((int) f.getDataRate().get(), x[f.getId()][uLinkId]);
+					for (Link<LinkQuality> ulink : manet.getUtilizedLinksOf(link)) {
+						flowExpression.addTerm((int) f.getDataRate().get(), x[f.getID()][ulink.getID()]);
 					}
 					cplex.addGe((int) link.getWeight().getTransmissionRate().get(), flowExpression);
 
@@ -150,14 +121,14 @@ public class CplexOptimization<M extends MANET<Node, Link<MultipleDijkstraLinkQu
 			 * Path quality constraint
 			 */
 			IloNumExpr[] result = new IloNumExpr[manet.getFlows().size()];
-			for (Flow<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality> f : manet.getFlows()) {
+			for (Flow<Node, Link<LinkQuality>, LinkQuality> f : manet.getFlows()) {
 
 				IloNumExpr[] maxr = new IloNumExpr[manet.getEdges().size()];
-				for (Link<MultipleDijkstraLinkQuality> link : manet.getEdges()) {
+				for (Link<LinkQuality> link : manet.getEdges()) {
 
-					maxr[link.getID()] = cplex.prod(x[f.getId()][link.getID()], link.getWeight().getReceptionPower());
+					maxr[link.getID()] = cplex.prod(x[f.getID()][link.getID()], link.getWeight().getReceptionPower());
 				}
-				result[f.getId()] = cplex.max(maxr);
+				result[f.getID()] = cplex.max(maxr);
 			}
 			/*
 			 * Optimization
@@ -182,21 +153,21 @@ public class CplexOptimization<M extends MANET<Node, Link<MultipleDijkstraLinkQu
 //							cplex.getValue(x[i][k]), y[i][k].getName(), cplex.getValue(y[i][k])));
 //				}
 //			}
-			//cplex.exportModel("FixNet.lp");
+			// cplex.exportModel("FixNet.lp");
 
 			for (int i = 0; i < x.length; i++) {
-				Flow<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality> flow = manet.getFlow(i);
+				Flow<Node, Link<LinkQuality>, LinkQuality> flow = manet.getFlow(i);
 				int index = 0;
 				Node node = flow.getSource();
 				while (node.getID() != flow.getTarget().getID()) {
 
-					List<Link<MultipleDijkstraLinkQuality>> oLinks = manet.getOutgoingEdgesOf(node);
+					List<Link<LinkQuality>> oLinks = manet.getOutgoingEdgesOf(node);
 
-					for (Link<MultipleDijkstraLinkQuality> link : oLinks) {
+					for (Link<LinkQuality> link : oLinks) {
 
 						if (cplex.getValue(x[i][link.getID()]) > 0) {
 							manet.getTargetOf(link);
-							flow.add(new Tuple<Link<MultipleDijkstraLinkQuality>, Node>(link, manet.getTargetOf(link)));
+							flow.add(new Tuple<Link<LinkQuality>, Node>(link, manet.getTargetOf(link)));
 							break;
 						}
 
@@ -207,7 +178,7 @@ public class CplexOptimization<M extends MANET<Node, Link<MultipleDijkstraLinkQu
 				}
 				manet.deployFlow(flow);
 			}
-			for (Flow<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality> flow : manet.getFlows()) {
+			for (Flow<Node, Link<LinkQuality>, LinkQuality> flow : manet.getFlows()) {
 				System.out.println(flow.toString());
 			}
 		} catch (

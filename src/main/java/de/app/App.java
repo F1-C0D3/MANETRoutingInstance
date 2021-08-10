@@ -5,134 +5,101 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
+import de.genetic.app.GeneticRun;
+import de.genetic.network.GeneticMANETSupplier;
+import de.genetic.optimization.GeneticOptimization;
+import de.jgraphlib.graph.generator.NetworkGraphProperties;
 import de.jgraphlib.util.Triple;
+import de.manetmodel.network.Flow;
+import de.manetmodel.network.Link;
+import de.manetmodel.network.LinkQuality;
+import de.manetmodel.network.MANET;
+import de.manetmodel.network.Node;
+import de.manetmodel.network.mobility.MobilityModel;
+import de.manetmodel.network.radio.IRadioModel;
 import de.manetmodel.network.unit.DataRate;
 import de.manetmodel.network.unit.DataUnit;
+import de.manetmodel.scenarios.Scenario;
+import de.results.AverageResultParameter;
+import de.results.AverageResultParameterSupplier;
+import de.results.MANETAverageResultMapper;
+import de.results.MANETResultRecorder;
+import de.results.RunResultMapper;
+import de.results.RunResultParameter;
+import de.results.RunResultParameterSupplier;
+import de.runprovider.ExecutionCallable;
+import de.runprovider.Program;
 import ilog.concert.IloException;
 
-public class App {
-	protected int runs;
-	protected int numNodes;
-	protected List<Triple<Integer, Integer, DataRate>> flowSourceTargetIds;
-	protected DataRate meanTransmissionRate;
-	protected String appName;
+public abstract class App {
+	private int runs;
+	private Scenario scenario;
 	ExecutorService executor;
 
-	public App(int runs, int numNodes, List<Triple<Integer, Integer, DataRate>> flowSourceTargetIds,
-			DataRate meanTransmissionRate, String appName) {
+	public App(int runs, Scenario scenario) {
 		this.runs = runs;
-		this.numNodes = numNodes;
-		this.flowSourceTargetIds = flowSourceTargetIds;
-		this.meanTransmissionRate = meanTransmissionRate;
+		this.scenario = scenario;
 		this.executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
-		this.appName = appName;
 	}
 
-	public static void main(String[] args) throws InterruptedException, ExecutionException, IloException {
-		int runs = 1;
-		int numNodes =100;
-		OptimizationType oType = OptimizationType.allComb;
+	public abstract ExecutionCallable<Flow<Node, Link<LinkQuality>, LinkQuality>, Node, Link<LinkQuality>, LinkQuality> configureRun(
+			MANET<Node, Link<LinkQuality>, LinkQuality, Flow<Node, Link<LinkQuality>, LinkQuality>> manet,
+			MANETResultRecorder<RunResultParameter> geneticEvalRecorder,
+			RunResultMapper<RunResultParameter> runResultMapper);
 
-		List<Triple<Integer, Integer, DataRate>> flowSourceTargetIds = new ArrayList<Triple<Integer, Integer, DataRate>>();
+	protected void execute() throws InterruptedException, ExecutionException, IloException {
+		Program<Node, Link<LinkQuality>, LinkQuality, Flow<Node, Link<LinkQuality>, LinkQuality>> program = new Program<Node, Link<LinkQuality>, LinkQuality, Flow<Node, Link<LinkQuality>, LinkQuality>>(
+				new GeneticMANETSupplier.GeneticMANETNodeSupplier(),
+				new GeneticMANETSupplier.GeneticMANETLinkSupplier(),
+				new GeneticMANETSupplier.GeneticMANETLinkQualitySupplier(),
+				new GeneticMANETSupplier.GeneticMANETFlowSupplier());
 
-		flowSourceTargetIds.add(new Triple<Integer, Integer, DataRate>(1, 7, new DataRate(1d, DataUnit.Type.megabit)));
-		flowSourceTargetIds.add(new Triple<Integer, Integer, DataRate>(15, 17, new DataRate(1d, DataUnit.Type.megabit)));
-		flowSourceTargetIds
-				.add(new Triple<Integer, Integer, DataRate>(4, 12, new DataRate(1d, DataUnit.Type.megabit)));
+		MANETResultRecorder<RunResultParameter> resultRecorder = program.setResultRecorder(scenario.getScenarioName());
+		MANETAverageResultMapper<AverageResultParameter> totalResultMapper = program
+				.setTotalResultMapper(new AverageResultParameterSupplier(), scenario);
+		totalResultMapper.getMappingStrategy().setType(AverageResultParameter.class);
 
-		flowSourceTargetIds
-				.add(new Triple<Integer, Integer, DataRate>(54, 27, new DataRate(1d, DataUnit.Type.megabit)));
+		while (runs > 0) {
 
-		flowSourceTargetIds
-				.add(new Triple<Integer, Integer, DataRate>(10, 99, new DataRate(1d, DataUnit.Type.megabit)));
-//
-		flowSourceTargetIds
-				.add(new Triple<Integer, Integer, DataRate>(35, 66, new DataRate(1d, DataUnit.Type.megabit)));
+			MobilityModel mobilityModel = program.setMobilityModel(runs);
+			IRadioModel radioModel = program.setRadioModel();
+			MANET<Node, Link<LinkQuality>, LinkQuality, Flow<Node, Link<LinkQuality>, LinkQuality>> manet = program
+					.createMANET(mobilityModel, radioModel);
 
-		flowSourceTargetIds
-				.add(new Triple<Integer, Integer, DataRate>(20, 70, new DataRate(1d, DataUnit.Type.megabit)));
+			Visualization<Node, Link<LinkQuality>, LinkQuality, Flow<Node, Link<LinkQuality>, LinkQuality>> visualization = null;
 
-		flowSourceTargetIds
-				.add(new Triple<Integer, Integer, DataRate>(30, 81, new DataRate(1d, DataUnit.Type.megabit)));
+			NetworkGraphProperties networkProperties = program.generateNetwork(manet, runs, scenario.getNumNodes());
+			scenario.generateFlows(manet, runs);
+			RunResultMapper<RunResultParameter> runResultMapper = program.setIndividualRunResultMapper(
+					new RunResultParameterSupplier(), networkProperties, mobilityModel, radioModel, scenario);
+			runResultMapper.getMappingStrategy().setType(RunResultParameter.class);
 
-//		List<Triple<Integer, Integer, DataRate>> flowSourceTargetIds = new ArrayList<Triple<Integer, Integer, DataRate>>();
-//		flowSourceTargetIds.add(new Triple<Integer, Integer, DataRate>(1, 100, new DataRate(-1)));
-//		flowSourceTargetIds.add(new Triple<Integer, Integer, DataRate>(1, 100, new DataRate(-1)));
-//		flowSourceTargetIds.add(new Triple<Integer, Integer, DataRate>(1, 100, new DataRate(-1)));
-//		flowSourceTargetIds.add(new Triple<Integer, Integer, DataRate>(1, 100, new DataRate(-1)));
-//		flowSourceTargetIds.add(new Triple<Integer, Integer, DataRate>(1, 100, new DataRate(-1)));
-//		flowSourceTargetIds.add(new Triple<Integer, Integer, DataRate>(1, 100, new DataRate(-1)));
-//		flowSourceTargetIds.add(new Triple<Integer, Integer, DataRate>(1, 100, new DataRate(-1)));
-//		flowSourceTargetIds.add(new Triple<Integer, Integer, DataRate>(1, 100, new DataRate(-1)));
-//		flowSourceTargetIds.add(new Triple<Integer, Integer, DataRate>(1, 100, new DataRate(-1)));
-//		flowSourceTargetIds.add(new Triple<Integer, Integer, DataRate>(1, 100, new DataRate(-1)));
-//		flowSourceTargetIds.add(new Triple<Integer, Integer, DataRate>(1, 100, new DataRate(-1)));
-//		flowSourceTargetIds.add(new Triple<Integer, Integer, DataRate>(1, 100, new DataRate(-1)));
-//		flowSourceTargetIds.add(new Triple<Integer, Integer, DataRate>(1, 100, new DataRate(-1)));
-//		flowSourceTargetIds.add(new Triple<Integer, Integer, DataRate>(1, 100, new DataRate(-1)));
-//		flowSourceTargetIds.add(new Triple<Integer, Integer, DataRate>(1, 100, new DataRate(-1)));
-//		flowSourceTargetIds.add(new Triple<Integer, Integer, DataRate>(1, 100, new DataRate(-1)));
-//		flowSourceTargetIds.add(new Triple<Integer, Integer, DataRate>(1, 100, new DataRate(-1)));
-//		flowSourceTargetIds.add(new Triple<Integer, Integer, DataRate>(1, 100, new DataRate(-1)));
-//		flowSourceTargetIds.add(new Triple<Integer, Integer, DataRate>(1, 100, new DataRate(-1)));
-//		flowSourceTargetIds.add(new Triple<Integer, Integer, DataRate>(1, 100, new DataRate(-1)));
-//		flowSourceTargetIds.add(new Triple<Integer, Integer, DataRate>(1, 100, new DataRate(-1)));
-//		flowSourceTargetIds.add(new Triple<Integer, Integer, DataRate>(1, 100, new DataRate(-1)));
-//		flowSourceTargetIds.add(new Triple<Integer, Integer, DataRate>(1, 100, new DataRate(-1)));
-//		flowSourceTargetIds.add(new Triple<Integer, Integer, DataRate>(1, 100, new DataRate(-1)));
-//		flowSourceTargetIds.add(new Triple<Integer, Integer, DataRate>(1, 100, new DataRate(-1)));
-//		flowSourceTargetIds.add(new Triple<Integer, Integer, DataRate>(1, 100, new DataRate(-1)));
-//		flowSourceTargetIds.add(new Triple<Integer, Integer, DataRate>(1, 100, new DataRate(-1)));
-//		flowSourceTargetIds.add(new Triple<Integer, Integer, DataRate>(1, 100, new DataRate(-1)));
-//		flowSourceTargetIds.add(new Triple<Integer, Integer, DataRate>(1, 100, new DataRate(-1)));
-//		flowSourceTargetIds.add(new Triple<Integer, Integer, DataRate>(1, 100, new DataRate(-1)));
-//		flowSourceTargetIds.add(new Triple<Integer, Integer, DataRate>(1, 100, new DataRate(-1)));
-//		flowSourceTargetIds.add(new Triple<Integer, Integer, DataRate>(1, 100, new DataRate(-1)));
-//		flowSourceTargetIds.add(new Triple<Integer, Integer, DataRate>(1, 100, new DataRate(-1)));
-//		flowSourceTargetIds.add(new Triple<Integer, Integer, DataRate>(1, 100, new DataRate(-1)));
-//		flowSourceTargetIds.add(new Triple<Integer, Integer, DataRate>(1, 100, new DataRate(-1)));
-//		flowSourceTargetIds.add(new Triple<Integer, Integer, DataRate>(1, 100, new DataRate(-1)));
-//		flowSourceTargetIds.add(new Triple<Integer, Integer, DataRate>(1, 100, new DataRate(-1)));
-//		flowSourceTargetIds.add(new Triple<Integer, Integer, DataRate>(1, 100, new DataRate(-1)));
-//		flowSourceTargetIds.add(new Triple<Integer, Integer, DataRate>(1, 100, new DataRate(-1)));
-//		flowSourceTargetIds.add(new Triple<Integer, Integer, DataRate>(1, 100, new DataRate(-1)));
-//		flowSourceTargetIds.add(new Triple<Integer, Integer, DataRate>(1, 100, new DataRate(-1)));
-//		flowSourceTargetIds.add(new Triple<Integer, Integer, DataRate>(1, 100, new DataRate(-1)));
-//		flowSourceTargetIds.add(new Triple<Integer, Integer, DataRate>(1, 100, new DataRate(-1)));
-//		flowSourceTargetIds.add(new Triple<Integer, Integer, DataRate>(1, 100, new DataRate(-1)));
-//		flowSourceTargetIds.add(new Triple<Integer, Integer, DataRate>(1, 100, new DataRate(-1)));
-//		flowSourceTargetIds.add(new Triple<Integer, Integer, DataRate>(1, 100, new DataRate(-1)));
-//		flowSourceTargetIds.add(new Triple<Integer, Integer, DataRate>(1, 100, new DataRate(-1)));
-//		flowSourceTargetIds.add(new Triple<Integer, Integer, DataRate>(1, 100, new DataRate(-1)));
-//		flowSourceTargetIds.add(new Triple<Integer, Integer, DataRate>(1, 100, new DataRate(-1)));
-//		flowSourceTargetIds.add(new Triple<Integer, Integer, DataRate>(1, 100, new DataRate(-1)));
-		DataRate meanTransmissionRate = new DataRate();
+			/* Visialization */
+//				visualization = new Visualization<Node, Link<LinkQuality>, LinkQuality, Flow<Node, Link<LinkQuality>, LinkQuality>>(
+//						manet);
+//				visualization.run();
 
-		for (Triple<Integer, Integer, DataRate> triple : flowSourceTargetIds) {
-			meanTransmissionRate.set(meanTransmissionRate.get() + triple.getThird().get());
+			/* Evaluation of each run starts here */
+			ExecutionCallable<Flow<Node, Link<LinkQuality>, LinkQuality>, Node, Link<LinkQuality>, LinkQuality> run = this
+					.configureRun(manet, resultRecorder, runResultMapper);
+			Future<List<Flow<Node, Link<LinkQuality>, LinkQuality>>> futureFlows = executor.submit(run);
+
+//				for (Flow<Node, Link<LinkQuality>, LinkQuality> flow : futureFlows.get())
+//					visualization.printPath(flow);
+			runs--;
+
 		}
-		meanTransmissionRate.set(meanTransmissionRate.get() / flowSourceTargetIds.size());
-		switch (oType) {
-		case genetic:
-			new GeneticApp(runs, numNodes, flowSourceTargetIds, meanTransmissionRate, GeneticApp.class.getSimpleName())
-					.start();
-			break;
-		case greedy:
-			new GreedyApp(runs, numNodes, flowSourceTargetIds, meanTransmissionRate, GreedyApp.class.getSimpleName())
-					.start();
-			break;
-		case allComb:
-			new AllCompApp(runs, numNodes, flowSourceTargetIds, meanTransmissionRate, AllCompApp.class.getSimpleName())
-					.start();
-			break;
-		case cplex:
-			new CplexApp(runs, numNodes, flowSourceTargetIds, meanTransmissionRate, CplexApp.class.getSimpleName())
-					.start();
-			break;
-		default:
-			break;
+		executor.shutdown();
+		try {
+			executor.awaitTermination(1L, TimeUnit.DAYS);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
+		resultRecorder.finish(totalResultMapper);
 	}
 
 }

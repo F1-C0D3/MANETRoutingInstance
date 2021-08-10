@@ -6,9 +6,8 @@ import java.util.ListIterator;
 import java.util.function.Function;
 
 import de.deterministic.network.DeterministicMANET;
-import de.deterministic.optimization.MultipleDijkstraLinkQuality;
-import de.jgraphlib.graph.Path;
 import de.jgraphlib.graph.algorithms.DijkstraShortestPath;
+import de.jgraphlib.graph.elements.Path;
 import de.jgraphlib.util.Tuple;
 import de.manetmodel.network.Flow;
 import de.manetmodel.network.Link;
@@ -17,17 +16,16 @@ import de.manetmodel.network.MANET;
 import de.manetmodel.network.Node;
 import de.manetmodel.network.unit.DataRate;
 
-public class DijkstraShortestDataRateConstrainedPath {
-	MANET<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality, Flow<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality>> manet;
+public class DijkstraShortesFlow {
+	MANET<Node, Link<LinkQuality>, LinkQuality, Flow<Node, Link<LinkQuality>, LinkQuality>> manet;
 
-	public DijkstraShortestDataRateConstrainedPath(
-			MANET<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality, Flow<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality>> manet) {
+	public DijkstraShortesFlow(
+			MANET<Node, Link<LinkQuality>, LinkQuality, Flow<Node, Link<LinkQuality>, LinkQuality>> manet) {
 		this.manet = manet;
 	}
 
-	public Flow<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality> compute(
-			Flow<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality> sp,
-			Function<Tuple<MultipleDijkstraLinkQuality, DataRate>, Double> metric) {
+	public Flow<Node, Link<LinkQuality>, LinkQuality> compute(Flow<Node, Link<LinkQuality>, LinkQuality> sp,
+			Function<Tuple<LinkQuality, Flow<Node, Link<LinkQuality>, LinkQuality>>, Double> metric) {
 
 		/* Initializaton */
 		Node current = sp.getSource();
@@ -53,22 +51,19 @@ public class DijkstraShortestDataRateConstrainedPath {
 			current = manet.getVertex(nId);
 
 			if (current.getID() == target.getID()) {
-				return (Flow<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality>) generateSP(predDist,
-						sp);
+				return (Flow<Node, Link<LinkQuality>, LinkQuality>) generateSP(predDist, sp);
 			}
 
 			for (Node neig : manet.getNextHopsOf(current)) {
 
-				Flow<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality> rsp = new Flow<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality>(
-						source, current, sp.getDataRate());
+				Flow<Node, Link<LinkQuality>, LinkQuality> rsp = new Flow<Node, Link<LinkQuality>, LinkQuality>(source,
+						current, sp.getDataRate());
 				rsp.clear();
-				rsp = (Flow<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality>) generateSP(predDist,
-						rsp);
-				Link<MultipleDijkstraLinkQuality> currentLink = manet.getEdge(current, neig);
-				rsp.add(new Tuple<Link<MultipleDijkstraLinkQuality>, Node>(currentLink, neig));
-				currentLink.getWeight().setReversePath(rsp);
-				double edgeDist = metric.apply(
-						new Tuple<MultipleDijkstraLinkQuality, DataRate>(currentLink.getWeight(), sp.getDataRate()));
+				rsp = (Flow<Node, Link<LinkQuality>, LinkQuality>) generateSP(predDist, rsp);
+				Link<LinkQuality> currentLink = manet.getEdge(current, neig);
+				rsp.add(new Tuple<Link<LinkQuality>, Node>(currentLink, neig));
+				double edgeDist = metric.apply(new Tuple<LinkQuality, Flow<Node, Link<LinkQuality>, LinkQuality>>(
+						currentLink.getWeight(), rsp));
 
 				double oldPahtDist = predDist.get(neig.getID()).getSecond();
 				double altPathDist = edgeDist + predDist.get(current.getID()).getSecond();
@@ -83,11 +78,10 @@ public class DijkstraShortestDataRateConstrainedPath {
 		return sp;
 	}
 
-	protected Path<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality> generateSP(
-			List<Tuple<Node, Double>> predDist,
-			Path<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality> sp) {
+	protected Path<Node, Link<LinkQuality>, LinkQuality> generateSP(List<Tuple<Node, Double>> predDist,
+			Path<Node, Link<LinkQuality>, LinkQuality> sp) {
 		Node t = sp.getTarget();
-		List<Tuple<Link<MultipleDijkstraLinkQuality>, Node>> copy = new ArrayList<Tuple<Link<MultipleDijkstraLinkQuality>, Node>>();
+		List<Tuple<Link<LinkQuality>, Node>> copy = new ArrayList<Tuple<Link<LinkQuality>, Node>>();
 
 		do {
 			Node pred = predDist.get(t.getID()).getFirst();
@@ -96,7 +90,7 @@ public class DijkstraShortestDataRateConstrainedPath {
 				return sp;
 			}
 
-			copy.add(0, new Tuple<Link<MultipleDijkstraLinkQuality>, Node>(manet.getEdge(pred, t), t));
+			copy.add(0, new Tuple<Link<LinkQuality>, Node>(manet.getEdge(pred, t), t));
 			t = pred;
 		} while (t.getID() != sp.getSource().getID());
 
@@ -121,9 +115,8 @@ public class DijkstraShortestDataRateConstrainedPath {
 		return id;
 	}
 
-	Flow<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality> generateReverseSP(
-			Tuple<Node, Double> preDist,
-			Flow<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality> flow) {
+	Flow<Node, Link<LinkQuality>, LinkQuality> generateReverseSP(Tuple<Node, Double> preDist,
+			Flow<Node, Link<LinkQuality>, LinkQuality> flow) {
 
 		return null;
 

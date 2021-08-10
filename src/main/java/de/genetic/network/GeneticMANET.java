@@ -17,9 +17,10 @@ public class GeneticMANET
 		extends MANET<Node, Link<LinkQuality>, LinkQuality, Flow<Node, Link<LinkQuality>, LinkQuality>> {
 
 	public GeneticMANET(Supplier<Node> vertexSupplier, Supplier<Link<LinkQuality>> edgeSupplier,
+			Supplier<LinkQuality> edgreWeightSupplier,
 			Supplier<Flow<Node, Link<LinkQuality>, LinkQuality>> flowSupplier, IRadioModel radioModel,
 			MobilityModel mobilityModel) {
-		super(vertexSupplier, edgeSupplier, flowSupplier, radioModel, mobilityModel);
+		super(vertexSupplier, edgeSupplier, edgreWeightSupplier, flowSupplier, radioModel, mobilityModel);
 	}
 
 	@Override

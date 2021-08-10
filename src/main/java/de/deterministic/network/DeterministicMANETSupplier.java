@@ -2,19 +2,19 @@ package de.deterministic.network;
 
 import java.util.function.Supplier;
 
-import de.deterministic.optimization.MultipleDijkstraLinkQuality;
 import de.manetmodel.network.Flow;
 import de.manetmodel.network.Link;
+import de.manetmodel.network.LinkQuality;
 import de.manetmodel.network.MANET;
 import de.manetmodel.network.Node;
 
-public class DeterministicMANETSupplier implements
-		Supplier<MANET<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality, Flow<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality>>> {
+public class DeterministicMANETSupplier
+		implements Supplier<MANET<Node, Link<LinkQuality>, LinkQuality, Flow<Node, Link<LinkQuality>, LinkQuality>>> {
 
-	public static class DeterministicMANETLinkSupplier implements Supplier<Link<MultipleDijkstraLinkQuality>> {
+	public static class DeterministicMANETLinkSupplier implements Supplier<Link<LinkQuality>> {
 		@Override
-		public Link<MultipleDijkstraLinkQuality> get() {
-			return new Link<MultipleDijkstraLinkQuality>();
+		public Link<LinkQuality> get() {
+			return new Link<LinkQuality>();
 		}
 	}
 
@@ -25,27 +25,26 @@ public class DeterministicMANETSupplier implements
 		}
 	}
 
-	public static class DeterministicMANETLinkQualitySupplier implements Supplier<MultipleDijkstraLinkQuality> {
+	public static class DeterministicMANETLinkQualitySupplier implements Supplier<LinkQuality> {
 		@Override
-		public MultipleDijkstraLinkQuality get() {
-			return new MultipleDijkstraLinkQuality();
+		public LinkQuality get() {
+			return new LinkQuality();
 		}
 	}
 
-	public static class DeterministicMANETFlowSupplier
-			implements Supplier<Flow<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality>> {
+	public static class DeterministicMANETFlowSupplier implements Supplier<Flow<Node, Link<LinkQuality>, LinkQuality>> {
 		@Override
-		public Flow<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality> get() {
-			return new Flow<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality>();
+		public Flow<Node, Link<LinkQuality>, LinkQuality> get() {
+			return new Flow<Node, Link<LinkQuality>, LinkQuality>();
 		}
 	}
 
 	@Override
-	public MANET<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality, Flow<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality>> get() {
+	public MANET<Node, Link<LinkQuality>, LinkQuality, Flow<Node, Link<LinkQuality>, LinkQuality>> get() {
 		// TODO Auto-generated method stub
-		return new MANET<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality, Flow<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality>>(
+		return new MANET<Node, Link<LinkQuality>, LinkQuality, Flow<Node, Link<LinkQuality>, LinkQuality>>(
 				new DeterministicMANETNodeSupplier(), new DeterministicMANETLinkSupplier(),
-				new DeterministicMANETFlowSupplier(), null, null);
+				new DeterministicMANETLinkQualitySupplier(), new DeterministicMANETFlowSupplier(), null, null);
 	}
 
 }

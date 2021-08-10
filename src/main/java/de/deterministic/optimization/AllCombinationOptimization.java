@@ -3,37 +3,36 @@ package de.deterministic.optimization;
 import java.util.List;
 import java.util.function.Function;
 
-import de.algorithmhelper.Selection;
-import de.deterministic.algorithm.DijkstraShortestDataRateConstrainedPath;
+import de.deterministic.algorithm.DijkstraShortesFlow;
 import de.jgraphlib.util.Tuple;
 import de.manetmodel.network.Flow;
 import de.manetmodel.network.Link;
+import de.manetmodel.network.LinkQuality;
 import de.manetmodel.network.MANET;
 import de.manetmodel.network.Node;
 import de.manetmodel.network.unit.DataRate;
+import de.manetmodel.util.Selection;
 import de.parallelism.Optimization;
 
-public class AllCombinationOptimization<M extends MANET<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality, Flow<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality>>>
+public class AllCombinationOptimization<M extends MANET<Node, Link<LinkQuality>, LinkQuality, Flow<Node, Link<LinkQuality>, LinkQuality>>>
 		extends Optimization<Void, M> {
 
-	protected DijkstraShortestDataRateConstrainedPath sp;
+	protected DijkstraShortesFlow sp;
 
 	public AllCombinationOptimization(M manet) {
 		super(manet);
-		sp = new DijkstraShortestDataRateConstrainedPath(manet);
+		sp = new DijkstraShortesFlow(manet);
 	}
 
-	Function<Tuple<MultipleDijkstraLinkQuality, DataRate>, Double> metric = (tuple) -> {
-		MultipleDijkstraLinkQuality linkQuality = tuple.getFirst();
-		DataRate rate = tuple.getSecond();
-		Flow<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality> reversePath = linkQuality
-				.getReversePath();
+	Function<Tuple<LinkQuality, Flow<Node, Link<LinkQuality>, LinkQuality>>, Double> metric = (tuple) -> {
+		LinkQuality linkQuality = tuple.getFirst();
+		Flow<Node, Link<LinkQuality>, LinkQuality> reversePath = tuple.getSecond();
 
-		Tuple<Link<MultipleDijkstraLinkQuality>, Node> current = reversePath.getLast();
-		double cost = current.getFirst().getWeight().getReceptionPower();
+		Tuple<Link<LinkQuality>, Node> current = reversePath.getLast();
+		double cost = manet.getUtilizedLinksOf(current.getFirst()).size() * reversePath.getDataRate().get();
 		manet.deployFlow(reversePath);
 
-		if (manet.getOverUtilizedLinks().get() != 0) {
+		if (manet.getOverUtilization().get() != 0) {
 			cost = manet.getCapacity().get() + 1L;
 		}
 		manet.undeployFlow(reversePath);
@@ -43,7 +42,7 @@ public class AllCombinationOptimization<M extends MANET<Node, Link<MultipleDijks
 
 	@Override
 	public Void execute() {
-		List<Integer> flowIds = manet.getFlowIds();
+		List<Integer> flowIds = manet.getFlowIDs();
 		int[] flowIdArray = new int[flowIds.size()];
 		for (int i = 0; i < flowIdArray.length; i++) {
 			flowIdArray[i] = flowIds.get(i);
@@ -57,7 +56,7 @@ public class AllCombinationOptimization<M extends MANET<Node, Link<MultipleDijks
 		for (List<Integer> flowIdSequence : flowCombinations) {
 
 			deployFlow(flowIdSequence);
-			double currentOverUtilization = manet.getOverUtilizedLinks().get();
+			double currentOverUtilization = manet.getOverUtilization().get();
 			double currentUtilization = manet.getUtilization().get();
 
 			if (overUtilization >= currentOverUtilization) {
@@ -74,7 +73,7 @@ public class AllCombinationOptimization<M extends MANET<Node, Link<MultipleDijks
 			}
 			index++;
 		}
-
+		System.out.println(manet.getFlow(0).toString());
 		deployFlow(flowCombinations.get(bestCombination));
 		return null;
 	}
@@ -82,7 +81,7 @@ public class AllCombinationOptimization<M extends MANET<Node, Link<MultipleDijks
 	private void deployFlow(List<Integer> flowIds) {
 		manet.eraseFlows();
 		for (int fId : flowIds) {
-			Flow<Node, Link<MultipleDijkstraLinkQuality>, MultipleDijkstraLinkQuality> flow = manet.getFlow(fId);
+			Flow<Node, Link<LinkQuality>, LinkQuality> flow = manet.getFlow(fId);
 			flow.clear();
 			flow = sp.compute(flow, metric);
 			manet.deployFlow(flow);
