@@ -1,5 +1,7 @@
 package de.app;
 
+import java.util.concurrent.ExecutionException;
+
 import de.deterministic.app.DeterministicRun;
 import de.deterministic.optimization.GreedyCombinationOptimization;
 import de.manetmodel.network.Flow;
@@ -12,11 +14,19 @@ import de.results.MANETResultRecorder;
 import de.results.RunResultMapper;
 import de.results.RunResultParameter;
 import de.runprovider.ExecutionCallable;
+import ilog.concert.IloException;
 
 public class GreedyApp extends App {
 
 	public GreedyApp(int runs, Scenario scenario) {
 		super(runs, scenario);
+	}
+
+	public static void main(String[] args) throws InterruptedException, ExecutionException, IloException {
+		HighUtilizedMANETSecenario scenario = new HighUtilizedMANETSecenario("test", 10, 100);
+		GreedyApp greedyApp = new GreedyApp(1, scenario);
+
+		greedyApp.execute();
 	}
 
 	@Override
@@ -29,6 +39,5 @@ public class GreedyApp extends App {
 				manet);
 		return new DeterministicRun(go, geneticEvalRecorder, runResultMapper);
 	}
-
 
 }

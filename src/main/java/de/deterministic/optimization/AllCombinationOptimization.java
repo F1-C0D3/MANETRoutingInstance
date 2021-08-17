@@ -28,10 +28,9 @@ public class AllCombinationOptimization<M extends MANET<Node, Link<LinkQuality>,
 		LinkQuality linkQuality = tuple.getFirst();
 		Flow<Node, Link<LinkQuality>, LinkQuality> reversePath = tuple.getSecond();
 
-		Tuple<Link<LinkQuality>, Node> current = reversePath.getLast();
-		double cost = manet.getUtilizedLinksOf(current.getFirst()).size() * reversePath.getDataRate().get();
-		manet.deployFlow(reversePath);
+		double cost = linkQuality.getReceptionPower();
 
+		manet.deployFlow(reversePath);
 		if (manet.getOverUtilization().get() != 0) {
 			cost = manet.getCapacity().get() + 1L;
 		}
@@ -53,33 +52,40 @@ public class AllCombinationOptimization<M extends MANET<Node, Link<LinkQuality>,
 		double overUtilization = Double.POSITIVE_INFINITY;
 		List<List<Integer>> flowCombinations = Selection.allCombination(flowIdArray);
 		int index = 0;
+
 		for (List<Integer> flowIdSequence : flowCombinations) {
 
-			deployFlow(flowIdSequence);
+			deploySolution(flowIdSequence);
 			double currentOverUtilization = manet.getOverUtilization().get();
 			double currentUtilization = manet.getUtilization().get();
 
 			if (overUtilization >= currentOverUtilization) {
 
 				if (currentOverUtilization == 0d && overUtilization == 0d && currentUtilization < utilization) {
+
 					bestCombination = index;
 					overUtilization = currentOverUtilization;
 					utilization = currentUtilization;
+
 				} else if (currentOverUtilization < overUtilization) {
+
 					bestCombination = index;
 					overUtilization = currentOverUtilization;
 					utilization = currentUtilization;
+
 				}
 			}
+
 			index++;
 		}
-		System.out.println(manet.getFlow(0).toString());
-		deployFlow(flowCombinations.get(bestCombination));
+
+		deploySolution(flowCombinations.get(bestCombination));
+
 		return null;
 	}
 
-	private void deployFlow(List<Integer> flowIds) {
-		manet.eraseFlows();
+	private void deploySolution(List<Integer> flowIds) {
+		manet.undeployFlows();
 		for (int fId : flowIds) {
 			Flow<Node, Link<LinkQuality>, LinkQuality> flow = manet.getFlow(fId);
 			flow.clear();

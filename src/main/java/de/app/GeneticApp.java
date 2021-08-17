@@ -26,6 +26,7 @@ import de.results.MANETResultRecorder;
 import de.results.RunResultMapper;
 import de.runprovider.ExecutionCallable;
 import de.runprovider.Program;
+import ilog.concert.IloException;
 
 public class GeneticApp extends App {
 
@@ -33,6 +34,12 @@ public class GeneticApp extends App {
 		super(runs, scenario);
 	}
 
+	public static void main(String[] args) throws InterruptedException, ExecutionException, IloException {
+		HighUtilizedMANETSecenario scenario = new HighUtilizedMANETSecenario("test", 10, 100);
+		GeneticApp greedyApp = new GeneticApp(1, scenario);
+
+		greedyApp.execute();
+	}
 
 	@Override
 	public ExecutionCallable<Flow<Node, Link<LinkQuality>, LinkQuality>, Node, Link<LinkQuality>, LinkQuality> configureRun(

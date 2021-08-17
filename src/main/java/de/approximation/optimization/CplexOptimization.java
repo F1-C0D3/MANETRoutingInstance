@@ -1,10 +1,7 @@
 package de.approximation.optimization;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
-import java.util.Set;
-import java.util.function.Function;
 
 import de.deterministic.algorithm.DijkstraShortesFlow;
 import de.jgraphlib.util.Tuple;
@@ -13,24 +10,21 @@ import de.manetmodel.network.Link;
 import de.manetmodel.network.LinkQuality;
 import de.manetmodel.network.MANET;
 import de.manetmodel.network.Node;
-import de.manetmodel.network.unit.DataRate;
 import de.parallelism.Optimization;
 import ilog.concert.IloException;
 import ilog.concert.IloIntVar;
+import ilog.concert.IloLinearIntExpr;
 import ilog.concert.IloLinearNumExpr;
 import ilog.concert.IloNumExpr;
-import ilog.concert.IloNumVar;
 import ilog.cplex.IloCplex;
 
 public class CplexOptimization<M extends MANET<Node, Link<LinkQuality>, LinkQuality, Flow<Node, Link<LinkQuality>, LinkQuality>>>
 		extends Optimization<Void, M> {
 
 	private Random random;
-	protected DijkstraShortesFlow sp;
 
 	public CplexOptimization(M manet) {
 		super(manet);
-//		this.sp = new DijkstraShortestDataRateConstrainedPath(manet);
 		this.random = new Random();
 	}
 
@@ -42,13 +36,16 @@ public class CplexOptimization<M extends MANET<Node, Link<LinkQuality>, LinkQual
 	}
 
 	private void determinePaths() {
+		
+		
 		/*
 		 * path arc
 		 */
 		try (IloCplex cplex = new IloCplex()) {
 
 			IloIntVar[][] x = new IloIntVar[manet.getFlows().size()][manet.getEdges().size()];
-			IloNumVar[] r = cplex.numVarArray(manet.getFlows().size(), 0d, 1d);
+			IloIntVar[][] ulinks = new IloIntVar[manet.getEdges().size()][];
+			IloIntVar[] y = new IloIntVar[manet.getEdges().size()];
 
 			/*
 			 * Decision varialbes initializatiopn:
@@ -61,8 +58,12 @@ public class CplexOptimization<M extends MANET<Node, Link<LinkQuality>, LinkQual
 							manet.getVerticesOf(link).getFirst().getID(),
 							manet.getVerticesOf(link).getSecond().getID()));
 
+					y[link.getID()] = cplex.boolVar();
+					y[link.getID()].setName(
+							String.format("y_[%d]_(%d,%d)", link.getID(), manet.getVerticesOf(link).getFirst().getID(),
+									manet.getVerticesOf(link).getSecond().getID()));
+
 				}
-				r[f.getID()].setName(String.format("r^%d", f.getID()));
 
 			}
 
@@ -104,17 +105,33 @@ public class CplexOptimization<M extends MANET<Node, Link<LinkQuality>, LinkQual
 			/*
 			 * Capacity Constraint
 			 */
-			for (Link<LinkQuality> link : manet.getEdges()) {
-				IloLinearNumExpr flowExpression = cplex.linearNumExpr();
+			IloNumExpr[] max = new IloNumExpr[manet.getEdges().size()];
+			for (Link<LinkQuality> currnetlink : manet.getEdges()) {
+
+				IloNumExpr[][] hasActiveLink = new IloNumExpr[manet.getEdges().size()][manet.getFlows().size()];
 
 				for (Flow<Node, Link<LinkQuality>, LinkQuality> f : manet.getFlows()) {
 
-					for (Link<LinkQuality> ulink : manet.getUtilizedLinksOf(link)) {
-						flowExpression.addTerm((int) f.getDataRate().get(), x[f.getID()][ulink.getID()]);
+					cplex.add(cplex.ifThen(cplex.eq(x[f.getID()][currnetlink.getID()], 1),
+							cplex.eq(y[currnetlink.getID()], 0)));
+				}
+			}
+
+			for (Link<LinkQuality> currentlink : manet.getEdges()) {
+
+				IloLinearIntExpr flowExpression = cplex.linearIntExpr();
+				for (Flow<Node, Link<LinkQuality>, LinkQuality> f : manet.getFlows()) {
+					for (Link<LinkQuality> ul : manet.getUtilizedLinksOf(currentlink)) {
+
+						flowExpression.addTerm((int) f.getDataRate().get(), x[f.getID()][ul.getID()]);
+
+						flowExpression.addTerm(-(int) (int) f.getDataRate().get(), y[currentlink.getID()]);
+
 					}
-					cplex.addGe((int) link.getWeight().getTransmissionRate().get(), flowExpression);
 
 				}
+				cplex.addGe((int) currentlink.getWeight().getTransmissionRate().get(), flowExpression);
+
 			}
 
 			/*
@@ -130,30 +147,89 @@ public class CplexOptimization<M extends MANET<Node, Link<LinkQuality>, LinkQual
 				}
 				result[f.getID()] = cplex.max(maxr);
 			}
+
+			IloNumExpr minPathInstability = cplex.sum(result);
+			/*
+			 * Link quality constraint
+			 */
+			IloNumExpr[] result2 = new IloNumExpr[manet.getEdges().size()];
+//
+//			for (Link<LinkQuality> link : manet.getEdges()) {
+//
+//				result2[link.getID()] = cplex.prod(y[link.getID()], link.getWeight().getReceptionPower());
+//			}
+//
+//			IloNumExpr minLinkinstability = cplex.sum(result2);
+
+			IloNumExpr[] minUtilization = new IloNumExpr[manet.getEdges().size()];
+			for (Flow<Node, Link<LinkQuality>, LinkQuality> f : manet.getFlows()) {
+
+				IloNumExpr[] maxr = new IloNumExpr[manet.getEdges().size()];
+				for (Link<LinkQuality> link : manet.getEdges()) {
+
+					maxr[link.getID()] = cplex.prod(x[f.getID()][link.getID()], link.getWeight().getReceptionPower());
+				}
+				result[f.getID()] = cplex.max(maxr);
+			}
+			for (Link<LinkQuality> link : manet.getEdges()) {
+
+				result2[link.getID()] = cplex.prod(y[link.getID()], link.getWeight().getReceptionPower());
+			}
 			/*
 			 * Optimization
 			 */
-			cplex.addMinimize(cplex.sum(result));
+			double[][] flows = new double[manet.getFlows().size()][manet.getEdges().size()];
 
-			cplex.solve();
+			for (int k = 0; k < flows.length; k++) {
+				for (int i = 0; i < flows[k].length; i++) {
+					flows[k][i] = manet.getEdge(i).getWeight().getReceptionPower();
+				}
+			}
+			IloNumExpr[] result3 = new IloNumExpr[manet.getFlows().size()];
 
+			for (int i = 0; i < flows.length; i++) {
+				result3[i] = cplex.scalProd(flows[i], x[i]);
+
+			}
+
+//
+//			for (Link<LinkQuality> currentlink : manet.getEdges()) {
+//				IloLinearIntExpr[][] bla = new IloLinearIntExpr[manet.getFlows().size()][manet.getEdges().size()];
+//
+//				for (Flow<Node, Link<LinkQuality>, LinkQuality> f : manet.getFlows()) {
+//
+//					for (Link<LinkQuality> ul : manet.getUtilizedLinksOf(currentlink)) {
+//
+//						bla[f.getID()][currentlink.getID()].addTerm((int)f.getDataRate().get(), x[f.getID()][ul.getID()]); 
+////						prod((int)f.getDataRate().get(), x[f.getID()][ul.getID()]);
+//					}
+//cplex.scalProd(bla[f.getID()], arg1)
+//				}
+//				
+//				for (int i =0; i<manet.getFlows().size();i++) {
+//					cplex.scalProd(bla[i], x[i]);
+//				}
+//
+//			}
+
+			cplex.addMinimize(cplex.sum(result3));
+//			cplex.addMinimize(minLinkinstability);
+//			cplex.setParam(IloCplex.Param.MIP.Limits.Solutions, 1);
+			cplex.setParam(IloCplex.Param.Threads, Runtime.getRuntime().availableProcessors());
+
+			cplex.exportModel("FixNet.lp");
+			boolean res = cplex.solve();
+			cplex.diff(cplex.sum(result3), 1);
+
+			if (!res) {
+
+			}
 			// Write solution value and objective to the screen.
 			System.out.println("Solution status: " + cplex.getStatus());
 			System.out.println("Solution value  = " + cplex.getObjValue());
 			System.out.println("Solution vector:");
-//			for (IloNumVar[] v : x) {
-//				for (IloNumVar activeLink : v) {
-//					System.out.println(String.format("%s, %15.6f", activeLink.getName(), cplex.getValue(activeLink)));
-//				}
-//			}
 
-//			for (int i = 0; i < x.length; i++) {
-//				for (int k = 0; k < x[i].length; k++) {
-//					System.out.println(String.format("%s, %15.6f, %s, %15.6f", x[i][k].getName(),
-//							cplex.getValue(x[i][k]), y[i][k].getName(), cplex.getValue(y[i][k])));
-//				}
-//			}
-			// cplex.exportModel("FixNet.lp");
+			cplex.exportModel("FixNet.lp");
 
 			for (int i = 0; i < x.length; i++) {
 				Flow<Node, Link<LinkQuality>, LinkQuality> flow = manet.getFlow(i);

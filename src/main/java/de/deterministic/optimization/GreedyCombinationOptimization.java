@@ -32,8 +32,7 @@ public class GreedyCombinationOptimization<M extends MANET<Node, Link<LinkQualit
 		LinkQuality linkQuality = tuple.getFirst();
 		Flow<Node, Link<LinkQuality>, LinkQuality> reversePath = tuple.getSecond();
 
-		Tuple<Link<LinkQuality>, Node> current = reversePath.getLast();
-		double cost = manet.getUtilizedLinksOf(current.getFirst()).size() * reversePath.getDataRate().get();
+		double cost = linkQuality.getReceptionPower();
 		manet.deployFlow(reversePath);
 
 		if (manet.getOverUtilization().get() != 0) {

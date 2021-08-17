@@ -11,8 +11,13 @@ import java.util.concurrent.TimeUnit;
 import de.genetic.app.GeneticRun;
 import de.genetic.network.GeneticMANETSupplier;
 import de.genetic.optimization.GeneticOptimization;
+import de.jgraphlib.graph.generator.GridGraphGenerator;
+import de.jgraphlib.graph.generator.GridGraphProperties;
 import de.jgraphlib.graph.generator.NetworkGraphProperties;
+import de.jgraphlib.gui.VisualGraphApp;
+import de.jgraphlib.util.RandomNumbers;
 import de.jgraphlib.util.Triple;
+import de.manetmodel.gui.LinkQualityPrinter;
 import de.manetmodel.network.Flow;
 import de.manetmodel.network.Link;
 import de.manetmodel.network.LinkQuality;
@@ -20,6 +25,7 @@ import de.manetmodel.network.MANET;
 import de.manetmodel.network.Node;
 import de.manetmodel.network.mobility.MobilityModel;
 import de.manetmodel.network.radio.IRadioModel;
+import de.manetmodel.network.radio.IdealRadioModel;
 import de.manetmodel.network.unit.DataRate;
 import de.manetmodel.network.unit.DataUnit;
 import de.manetmodel.scenarios.Scenario;
@@ -65,32 +71,77 @@ public abstract class App {
 		while (runs > 0) {
 
 			MobilityModel mobilityModel = program.setMobilityModel(runs);
-			IRadioModel radioModel = program.setRadioModel();
+//			IRadioModel radioModel = program.setRadioModel();
+			IRadioModel radioModel = new IdealRadioModel(100, new DataRate(30, DataUnit.Type.megabit));
 			MANET<Node, Link<LinkQuality>, LinkQuality, Flow<Node, Link<LinkQuality>, LinkQuality>> manet = program
 					.createMANET(mobilityModel, radioModel);
 
-			Visualization<Node, Link<LinkQuality>, LinkQuality, Flow<Node, Link<LinkQuality>, LinkQuality>> visualization = null;
-
 			NetworkGraphProperties networkProperties = program.generateNetwork(manet, runs, scenario.getNumNodes());
-			scenario.generateFlows(manet, runs);
+
+//			GridGraphProperties gridPropoerties = new GridGraphProperties(800,800, 100, 100);
+//			GridGraphGenerator<Node, Link<LinkQuality>, LinkQuality> generator = new GridGraphGenerator<Node, Link<LinkQuality>, LinkQuality>(
+//					manet, RandomNumbers.getInstance(runs));
+
+//			generator.generate(gridPropoerties);
+//			manet.initialize();
+//			scenario.generateFlows(manet, runs);
+			Flow<Node, Link<LinkQuality>, LinkQuality> flow1 = new Flow<Node, Link<LinkQuality>, LinkQuality>(
+					manet.getVertex(31), manet.getVertex(40), new DataRate(5, DataUnit.Type.megabit));
+
+			Flow<Node, Link<LinkQuality>, LinkQuality> flow2 = new Flow<Node, Link<LinkQuality>, LinkQuality>(
+					manet.getVertex(28), manet.getVertex(34), new DataRate(1, DataUnit.Type.megabit));
+
+			Flow<Node, Link<LinkQuality>, LinkQuality> flow3 = new Flow<Node, Link<LinkQuality>, LinkQuality>(
+					manet.getVertex(42), manet.getVertex(52), new DataRate(2.5, DataUnit.Type.megabit));
+//
+			Flow<Node, Link<LinkQuality>, LinkQuality> flow4 = new Flow<Node, Link<LinkQuality>, LinkQuality>(
+					manet.getVertex(29), manet.getVertex(58), new DataRate(0.05, DataUnit.Type.megabit));
+//
+			Flow<Node, Link<LinkQuality>, LinkQuality> flow5 = new Flow<Node, Link<LinkQuality>, LinkQuality>(
+					manet.getVertex(56), manet.getVertex(68), new DataRate(1.0, DataUnit.Type.megabit));
+//
+			Flow<Node, Link<LinkQuality>, LinkQuality> flow6 = new Flow<Node, Link<LinkQuality>, LinkQuality>(
+					manet.getVertex(36), manet.getVertex(20), new DataRate(0.01, DataUnit.Type.megabit));
+//			Flow<Node, Link<LinkQuality>, LinkQuality> flow7 = new Flow<Node, Link<LinkQuality>, LinkQuality>(
+//					manet.getVertex(49), manet.getVertex(7), new DataRate(1.0, DataUnit.Type.megabit));
+//
+//			Flow<Node, Link<LinkQuality>, LinkQuality> flow8 = new Flow<Node, Link<LinkQuality>, LinkQuality>(
+//					manet.getVertex(10), manet.getVertex(6), new DataRate(1.0, DataUnit.Type.megabit));
+//
+//			Flow<Node, Link<LinkQuality>, LinkQuality> flow9 = new Flow<Node, Link<LinkQuality>, LinkQuality>(
+//					manet.getVertex(66), manet.getVertex(3), new DataRate(1.0, DataUnit.Type.megabit));
+			manet.addFlow(flow1);
+			manet.addFlow(flow2);
+			manet.addFlow(flow3);
+			manet.addFlow(flow4);
+			manet.addFlow(flow5);
+			manet.addFlow(flow6);
+//			manet.addFlow(flow7);
 			RunResultMapper<RunResultParameter> runResultMapper = program.setIndividualRunResultMapper(
 					new RunResultParameterSupplier(), networkProperties, mobilityModel, radioModel, scenario);
 			runResultMapper.getMappingStrategy().setType(RunResultParameter.class);
 
-			/* Visialization */
-//				visualization = new Visualization<Node, Link<LinkQuality>, LinkQuality, Flow<Node, Link<LinkQuality>, LinkQuality>>(
-//						manet);
-//				visualization.run();
-
-			/* Evaluation of each run starts here */
 			ExecutionCallable<Flow<Node, Link<LinkQuality>, LinkQuality>, Node, Link<LinkQuality>, LinkQuality> run = this
 					.configureRun(manet, resultRecorder, runResultMapper);
 			Future<List<Flow<Node, Link<LinkQuality>, LinkQuality>>> futureFlows = executor.submit(run);
+			futureFlows.get();
+			boolean taskFinished = false;
+			while (!taskFinished) {
+				taskFinished = futureFlows.isDone();
 
-//				for (Flow<Node, Link<LinkQuality>, LinkQuality> flow : futureFlows.get())
-//					visualization.printPath(flow);
+			}
+			manet.undeployFlows();
+			
+			for (Flow<Node,Link<LinkQuality>,LinkQuality> f: futureFlows.get()) {
+				manet.deployFlow(f);
+				System.out.println(f.toString());
+				
+			}
+			System.out.println(manet.getOverUtilization());
 			runs--;
 
+			VisualGraphApp<Node, Link<LinkQuality>, LinkQuality> visualGraphApp = new VisualGraphApp<Node, Link<LinkQuality>, LinkQuality>(
+					manet, new LinkQualityPrinter());
 		}
 		executor.shutdown();
 		try {

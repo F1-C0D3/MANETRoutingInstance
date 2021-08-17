@@ -50,18 +50,14 @@ public class HighUtilizedMANETSecenario extends Scenario {
 
 		for (Triple<Integer, Integer, Integer> triple : flowSourceTargetPairs) {
 			double random = RandomNumbers.getInstance(runs).getRandom(0d, 1d);
-			DataRate initDataRate = new DataRate();
 			if (random >= 0 && random < 0.2) {
-				initDataRate = new DataRate(1.5d, DataUnit.Type.megabit);
 				triple.setThird(1);
 			} else if (random >= 0.2 && random < 0.55) {
-				initDataRate = new DataRate(512d, DataUnit.Type.kilobit);
 				triple.setThird(2);
 			} else if (random >= 0.55 && random <= 1d) {
-				initDataRate = new DataRate(90d, DataUnit.Type.kilobit);
 				triple.setThird(3);
 			}
-			manet.addFlow(manet.getVertex(triple.getFirst()), manet.getVertex(triple.getSecond()), initDataRate);
+			manet.addFlow(manet.getVertex(triple.getFirst()), manet.getVertex(triple.getSecond()), new DataRate());
 		}
 
 		for (Flow<Node, Link<LinkQuality>, LinkQuality> f : manet.getFlows()) {
@@ -71,12 +67,7 @@ public class HighUtilizedMANETSecenario extends Scenario {
 
 		}
 
-		for (Flow<Node, Link<LinkQuality>, LinkQuality> f : manet.getFlows()) {
-			manet.deployFlow(f);
-		}
-
 		DataRate step = new DataRate(1d, DataUnit.Type.megabit);
-		boolean initialOverUtilized = manet.getOverUtilization().get() > 0L;
 
 		boolean thresholdReached = false;
 		while (!thresholdReached) {
@@ -84,68 +75,74 @@ public class HighUtilizedMANETSecenario extends Scenario {
 			if (thresholdReached)
 				break;
 
-			manet.eraseFlows();
-
+			this.adaptDataRate(flowSourceTargetPairs, manet.getFlows(), step);
 			for (Flow<Node, Link<LinkQuality>, LinkQuality> f : manet.getFlows()) {
-				Triple<Integer, Integer, Integer> triple = flowSourceTargetPairs.get(f.getID());
 
-				f.setDataRate(adaptDataRate(f.getDataRate(), step, triple.getThird(), initialOverUtilized));
-			}
-
-			for (Flow<Node, Link<LinkQuality>, LinkQuality> f : manet.getFlows()) {
-				f = sp.compute(f, (Tuple<LinkQuality, Flow<Node, Link<LinkQuality>, LinkQuality>> q) -> {
-					return 1d;
-				});
-			}
-
-			for (Flow<Node, Link<LinkQuality>, LinkQuality> f : manet.getFlows()) {
 				manet.deployFlow(f);
 			}
-			long currentUtilization = manet.getOverUtilization().get();
-
-			if ((currentUtilization == 0L && initialOverUtilized)
-					|| (currentUtilization > 0L && !initialOverUtilized)) {
+			if (manet.getOverUtilization().get() != 0L)
 				thresholdReached = true;
-			}
 
+			manet.undeployFlows();
+		}
+		for (Flow<Node, Link<LinkQuality>, LinkQuality> f : manet.getFlows()) {
+			f.clear();
 		}
 		return manet.getFlows();
 	}
 
-	private DataRate adaptDataRate(DataRate currentDataRate, DataRate step, int type, boolean overUtilized) {
-		long bits = currentDataRate.get();
-		DataRate newDatarate = new DataRate();
-		switch (type) {
+	private void adaptDataRate(List<Triple<Integer, Integer, Integer>> flowSourceTargetPairs,
+			List<Flow<Node, Link<LinkQuality>, LinkQuality>> flows, DataRate step) {
 
-		case 1:
-			long amount = (long) (step.get() * 0.6);
-			if (overUtilized && bits - amount > 0) {
-				newDatarate.set(bits - amount);
-			} else {
-				newDatarate.set(bits + amount);
+		int numFlowTypeOne = 0;
+		int numFlowTypeTwo = 0;
+		int numFlowTypeThree = 0;
+
+		for (Triple<Integer, Integer, Integer> triple : flowSourceTargetPairs) {
+			int flowType = triple.getThird();
+
+			switch (flowType) {
+
+			case 1:
+				numFlowTypeOne++;
+				break;
+			case 2:
+				numFlowTypeTwo++;
+				break;
+			case 3:
+				numFlowTypeThree++;
+				break;
+			default:
+				break;
 			}
-			break;
-		case 2:
-			amount = (long) (step.get() * 0.3);
-			if (overUtilized && bits - amount > 0) {
-				newDatarate.set(bits - amount);
-			} else {
-				newDatarate.set(bits + amount);
+		}
+		int index = 0;
+		for (Triple<Integer, Integer, Integer> triple : flowSourceTargetPairs) {
+			int flowType = triple.getThird();
+			long amount = 0;
+			switch (flowType) {
+
+			case 1:
+				amount = (long) (step.get() * 0.6);
+				amount = amount / numFlowTypeThree;
+				break;
+			case 2:
+				amount = (long) (step.get() * 0.3);
+				amount = amount / numFlowTypeThree;
+
+				break;
+			case 3:
+				amount = (long) (step.get() * 0.1);
+				amount = amount / numFlowTypeThree;
+				break;
+			default:
+				break;
 			}
-			break;
-		case 3:
-			amount = (long) (step.get() * 0.1);
-			if (overUtilized && bits - amount > 0) {
-				newDatarate.set(bits - amount);
-			} else {
-				newDatarate.set(bits + amount);
-			}
-			break;
-		default:
-			break;
+			DataRate currentDataRate = flows.get(index).getDataRate();
+			flows.get(index).setDataRate(new DataRate(amount + currentDataRate.get()));
+			index++;
 		}
 
-		return newDatarate;
 	}
 
 }
