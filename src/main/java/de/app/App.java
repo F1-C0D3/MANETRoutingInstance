@@ -77,17 +77,17 @@ public abstract class App {
 			MANET<Node, Link<LinkQuality>, LinkQuality, Flow<Node, Link<LinkQuality>, LinkQuality>> manet = program
 					.createMANET(mobilityModel, radioModel);
 
-//			NetworkGraphProperties networkProperties = program.generateNetwork(manet, runs, scenario.getNumNodes());
+			NetworkGraphProperties networkProperties = program.generateNetwork(manet, runs, scenario.getNumNodes());
 
-			GridGraphProperties gridPropoerties = new GridGraphProperties(800,100, 100, 100);
-			GridGraphGenerator<Node, Link<LinkQuality>, LinkQuality> generator = new GridGraphGenerator<Node, Link<LinkQuality>, LinkQuality>(
-					manet, RandomNumbers.getInstance(runs));
-
-			generator.generate(gridPropoerties);
-			manet.initialize();
-//			scenario.generatePaths(manet, runs, new DataRate(1, Type.megabit));
-			Flow<Node, Link<LinkQuality>, LinkQuality> flow1 = new Flow<Node, Link<LinkQuality>, LinkQuality>(
-					manet.getVertex(6), manet.getVertex(8), new DataRate(5, DataUnit.Type.megabit));
+//			GridGraphProperties gridPropoerties = new GridGraphProperties(800, 100, 100, 100);
+//			GridGraphGenerator<Node, Link<LinkQuality>, LinkQuality> generator = new GridGraphGenerator<Node, Link<LinkQuality>, LinkQuality>(
+//					manet, RandomNumbers.getInstance(runs));
+//
+//			generator.generate(gridPropoerties);
+//			manet.initialize();
+			scenario.generatePaths(manet, runs, new DataRate(1, Type.megabit));
+//			Flow<Node, Link<LinkQuality>, LinkQuality> flow1 = new Flow<Node, Link<LinkQuality>, LinkQuality>(
+//					manet.getVertex(6), manet.getVertex(8), new DataRate(5, DataUnit.Type.megabit));
 //
 //			Flow<Node, Link<LinkQuality>, LinkQuality> flow2 = new Flow<Node, Link<LinkQuality>, LinkQuality>(
 //					manet.getVertex(0), manet.getVertex(17), new DataRate(1, DataUnit.Type.megabit));
@@ -111,7 +111,7 @@ public abstract class App {
 //
 //			Flow<Node, Link<LinkQuality>, LinkQuality> flow9 = new Flow<Node, Link<LinkQuality>, LinkQuality>(
 //					manet.getVertex(66), manet.getVertex(3), new DataRate(1.0, DataUnit.Type.megabit));
-			manet.addFlow(flow1);
+//			manet.addFlow(flow1);
 //			manet.addFlow(flow2);
 //			manet.addFlow(flow3);
 //			manet.addFlow(flow4);
@@ -119,7 +119,7 @@ public abstract class App {
 //			manet.addFlow(flow6);
 //			manet.addFlow(flow7);
 			RunResultMapper<RunResultParameter> runResultMapper = program.setIndividualRunResultMapper(
-					new RunResultParameterSupplier(), gridPropoerties, mobilityModel, radioModel, scenario);
+					new RunResultParameterSupplier(), networkProperties, mobilityModel, radioModel, scenario);
 			runResultMapper.getMappingStrategy().setType(RunResultParameter.class);
 
 			ExecutionCallable<Flow<Node, Link<LinkQuality>, LinkQuality>, Node, Link<LinkQuality>, LinkQuality> run = this
@@ -136,7 +136,7 @@ public abstract class App {
 			runs--;
 
 			VisualGraphApp<Node, Link<LinkQuality>, LinkQuality> visualGraphApp = new VisualGraphApp<Node, Link<LinkQuality>, LinkQuality>(
-					manet, new LinkQualityPrinter());
+					manet, manet.getFlows(), new LinkQualityPrinter());
 		}
 		executor.shutdown();
 		try {
