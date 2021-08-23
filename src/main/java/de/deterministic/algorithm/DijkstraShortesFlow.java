@@ -25,7 +25,7 @@ public class DijkstraShortesFlow {
 	}
 
 	public Flow<Node, Link<LinkQuality>, LinkQuality> compute(Flow<Node, Link<LinkQuality>, LinkQuality> sp,
-			Function<Tuple<LinkQuality, Flow<Node, Link<LinkQuality>, LinkQuality>>, Double> metric) {
+			Function<Tuple<Flow<Node, Link<LinkQuality>, LinkQuality>, LinkQuality>, Double> metric) {
 
 		/* Initializaton */
 		Node current = sp.getSource();
@@ -56,22 +56,26 @@ public class DijkstraShortesFlow {
 
 			for (Node neig : manet.getNextHopsOf(current)) {
 
-				Flow<Node, Link<LinkQuality>, LinkQuality> rsp = new Flow<Node, Link<LinkQuality>, LinkQuality>(source,
-						current, sp.getDataRate());
+				Flow<Node, Link<LinkQuality>, LinkQuality> rsp = new Flow<Node, Link<LinkQuality>, LinkQuality>(-1,
+						source, current, sp.getDataRate());
 				rsp.clear();
 				rsp = (Flow<Node, Link<LinkQuality>, LinkQuality>) generateSP(predDist, rsp);
 				Link<LinkQuality> currentLink = manet.getEdge(current, neig);
 				rsp.add(new Tuple<Link<LinkQuality>, Node>(currentLink, neig));
-				double edgeDist = metric.apply(new Tuple<LinkQuality, Flow<Node, Link<LinkQuality>, LinkQuality>>(
-						currentLink.getWeight(), rsp));
+				double edgeDist = metric.apply(new Tuple(rsp, currentLink.getWeight()));
 
+				double newPathDist = edgeDist + predDist.get(current.getID()).getSecond();
 				double oldPahtDist = predDist.get(neig.getID()).getSecond();
-				double altPathDist = edgeDist + predDist.get(current.getID()).getSecond();
+				manet.deployFlow(rsp);
+				if (manet.getOverUtilization().get() > 0)
+					newPathDist = manet.getCapacity().get() + 1L;
+				manet.undeployFlow(rsp);
 
-				if (altPathDist < oldPahtDist) {
+				if (newPathDist < oldPahtDist) {
 					predDist.get(neig.getID()).setFirst(current);
-					predDist.get(neig.getID()).setSecond(altPathDist);
+					predDist.get(neig.getID()).setSecond(newPathDist);
 				}
+
 			}
 		}
 		sp.clear();
