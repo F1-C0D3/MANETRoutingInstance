@@ -30,11 +30,11 @@ public class ApproximationRun
 	}
 
 	@Override
-	public List<Flow<Node, Link<LinkQuality>, LinkQuality>> call() {
+	public Void call() {
 		this.op.execute();
 		Time duration = this.op.stop();
 		this.resultRecorder.recordRun(op.getManet(), runResultMapper, duration);
-		return op.getManet().getFlows();
+		return null;
 	}
 
 }
