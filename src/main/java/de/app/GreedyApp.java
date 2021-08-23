@@ -23,7 +23,7 @@ public class GreedyApp extends App {
 	}
 
 	public static void main(String[] args) throws InterruptedException, ExecutionException, IloException {
-		HighUtilizedMANETSecenario scenario = new HighUtilizedMANETSecenario("test", 10, 100);
+		HighUtilizedMANETSecenario scenario = new HighUtilizedMANETSecenario("greedy", 4, 100,1);
 		GreedyApp greedyApp = new GreedyApp(1, scenario);
 
 		greedyApp.execute();

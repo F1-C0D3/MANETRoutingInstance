@@ -35,7 +35,7 @@ public class GeneticRun
 	}
 
 	@Override
-	public List<Flow<Node, Link<LinkQuality>, LinkQuality>> call() {
+	public Void call() {
 		PathComposition pc = this.op.execute();
 		Time duration = op.stop();
 		MANET<Node, Link<LinkQuality>, LinkQuality, Flow<Node, Link<LinkQuality>, LinkQuality>> manet = op.getManet();
@@ -45,6 +45,6 @@ public class GeneticRun
 		}
 
 		this.parameterRecorder.recordRun(op.getManet(), runResultMapper, duration);
-		return manet.getFlows();
+		return null;
 	}
 }

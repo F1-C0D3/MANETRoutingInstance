@@ -19,10 +19,12 @@ import ilog.concert.IloException;
 public class AllCompApp extends App {
 
 	public static void main(String[] args) throws InterruptedException, ExecutionException, IloException {
-		HighUtilizedMANETSecenario scenario = new HighUtilizedMANETSecenario("test", 10, 100);
+		HighUtilizedMANETSecenario scenario = new HighUtilizedMANETSecenario("allCombination", 4, 100,1);
 		AllCompApp allComp = new AllCompApp(1, scenario);
 
 		allComp.execute();
+		
+//	System.exit(0);
 	}
 
 	public AllCompApp(int runs, Scenario scenario) {

@@ -35,7 +35,7 @@ public class GeneticApp extends App {
 	}
 
 	public static void main(String[] args) throws InterruptedException, ExecutionException, IloException {
-		HighUtilizedMANETSecenario scenario = new HighUtilizedMANETSecenario("test", 10, 100);
+		HighUtilizedMANETSecenario scenario = new HighUtilizedMANETSecenario("test", 10, 100, 1);
 		GeneticApp greedyApp = new GeneticApp(1, scenario);
 
 		greedyApp.execute();
@@ -46,7 +46,7 @@ public class GeneticApp extends App {
 			MANET<Node, Link<LinkQuality>, LinkQuality, Flow<Node, Link<LinkQuality>, LinkQuality>> manet,
 			MANETResultRecorder<RunResultParameter> geneticEvalRecorder,
 			RunResultMapper<RunResultParameter> runResultMapper) {
-		GeneticOptimization go = new GeneticOptimization(manet, 20000, 12);
+		GeneticOptimization go = new GeneticOptimization(manet, 200, 12);
 		return new GeneticRun(go, geneticEvalRecorder, runResultMapper);
 	}
 }
