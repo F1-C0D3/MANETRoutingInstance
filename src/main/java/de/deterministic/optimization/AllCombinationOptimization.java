@@ -24,18 +24,11 @@ public class AllCombinationOptimization<M extends MANET<Node, Link<LinkQuality>,
 		sp = new DijkstraShortesFlow(manet);
 	}
 
-	Function<Tuple<LinkQuality, Flow<Node, Link<LinkQuality>, LinkQuality>>, Double> metric = (tuple) -> {
-		LinkQuality linkQuality = tuple.getFirst();
-		Flow<Node, Link<LinkQuality>, LinkQuality> reversePath = tuple.getSecond();
+	Function<Tuple<Flow<Node, Link<LinkQuality>, LinkQuality>,LinkQuality>, Double> metric = (tuple) -> {
+		LinkQuality linkQuality = tuple.getSecond();
+		Flow<Node, Link<LinkQuality>, LinkQuality> reversePath = tuple.getFirst();
 
-		double cost = linkQuality.getReceptionPower();
-
-		manet.deployFlow(reversePath);
-		if (manet.getOverUtilization().get() != 0) {
-			cost = manet.getCapacity().get() + 1L;
-		}
-		manet.undeployFlow(reversePath);
-		return cost;
+		return  linkQuality.getReceptionPower();
 
 	};
 
@@ -80,7 +73,6 @@ public class AllCombinationOptimization<M extends MANET<Node, Link<LinkQuality>,
 		}
 
 		deploySolution(flowCombinations.get(bestCombination));
-
 		return null;
 	}
 
