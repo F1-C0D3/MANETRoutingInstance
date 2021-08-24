@@ -19,7 +19,7 @@ import ilog.concert.IloException;
 public class CplexApp extends App {
 
 	public static void main(String[] args) throws InterruptedException, ExecutionException, IloException {
-		HighUtilizedMANETSecenario scenario = new HighUtilizedMANETSecenario("cplex", 4, 100,1);
+		HighUtilizedMANETSecenario scenario = new HighUtilizedMANETSecenario("cplex", 10, 100,1);
 		CplexApp app = new CplexApp(1, scenario);
 		app.execute();
 	}

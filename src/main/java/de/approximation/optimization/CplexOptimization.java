@@ -209,13 +209,13 @@ public class CplexOptimization<M extends MANET<Node, Link<LinkQuality>, LinkQual
 				}
 
 //				minHighUtilizedNearbyLinksRange[link.getID()] = cplex.sum(minHighUtilizedNearbyLinks);
-				minHighUtilizedNearbyLinksExpr[link.getID()] = cplex.ge(link.getWeight().getTransmissionRate().get(),
-						minHighUtilizedNearbyLinks[link.getID()]);
+//				minHighUtilizedNearbyLinksExpr[link.getID()] = cplex.ge(link.getWeight().getTransmissionRate().get(),
+//						minHighUtilizedNearbyLinks[link.getID()]);
 			}
 
 //			cplex.addMinimize(cplex.sum(minPathInstabilityExpr, cplex.sum(minLinkStabilityExpr)));
-//			cplex.addMinimize(cplex.sum(cplex.sum(cplex.sum(minHighUtilizedNearbyLinksExpr), cplex.sum(minLinkStabilityExpr)),minPathInstabilityExpr));
-			cplex.addMinimize(cplex.sum(minLinkStabilityExpr));
+			cplex.addMinimize(cplex.sum(cplex.sum(cplex.sum(minHighUtilizedNearbyLinks), cplex.sum(minLinkStabilityExpr)),minPathInstabilityExpr));
+//			cplex.addMinimize(cplex.sum(minHighUtilizedNearbyLinks));
 //			cplex.setParam(IloCplex.Param.MIP.Limits.Solutions, 1);
 			cplex.setParam(IloCplex.Param.Threads, Runtime.getRuntime().availableProcessors());
 //			cplex.setParam(IloCplex.Param.Tune.TimeLimit,1);
