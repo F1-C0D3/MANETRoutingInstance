@@ -165,13 +165,13 @@ public class HighUtilizedMANETSecenario extends Scenario {
 			case HD_Video:
 
 				amount = (long) (step.get() * 0.6);
-				tuple.setSecond(amount / numFlowTypeThree);
+				tuple.setSecond(amount / numFlowTypeOne);
 
 				break;
 			case SD_Video:
 
 				amount = (long) (step.get() * 0.3);
-				tuple.setSecond(amount / numFlowTypeThree);
+				tuple.setSecond(amount / numFlowTypeTwo);
 
 				break;
 			case VoIP:
