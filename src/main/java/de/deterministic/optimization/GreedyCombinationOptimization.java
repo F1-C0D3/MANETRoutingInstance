@@ -6,14 +6,12 @@ import java.util.Random;
 import java.util.function.Function;
 
 import de.deterministic.algorithm.DijkstraShortesFlow;
-import de.deterministic.network.DeterministicMANET;
 import de.jgraphlib.util.Tuple;
 import de.manetmodel.network.Flow;
 import de.manetmodel.network.Link;
 import de.manetmodel.network.LinkQuality;
 import de.manetmodel.network.MANET;
 import de.manetmodel.network.Node;
-import de.manetmodel.network.unit.DataRate;
 import de.parallelism.Optimization;
 
 public class GreedyCombinationOptimization<M extends MANET<Node, Link<LinkQuality>, LinkQuality, Flow<Node, Link<LinkQuality>, LinkQuality>>>

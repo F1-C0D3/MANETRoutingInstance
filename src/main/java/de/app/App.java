@@ -1,27 +1,19 @@
 package de.app;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
-import de.genetic.app.GeneticRun;
-import de.genetic.network.GeneticMANETSupplier;
-import de.genetic.optimization.GeneticOptimization;
-import de.jgraphlib.graph.generator.GridGraphGenerator;
-import de.jgraphlib.graph.generator.GridGraphProperties;
 import de.jgraphlib.graph.generator.NetworkGraphProperties;
 import de.jgraphlib.gui.VisualGraphApp;
-import de.jgraphlib.util.RandomNumbers;
-import de.jgraphlib.util.Triple;
 import de.manetmodel.gui.LinkQualityPrinter;
 import de.manetmodel.network.Flow;
 import de.manetmodel.network.Link;
 import de.manetmodel.network.LinkQuality;
 import de.manetmodel.network.MANET;
+import de.manetmodel.network.MANETSupplier;
 import de.manetmodel.network.Node;
 import de.manetmodel.network.mobility.MobilityModel;
 import de.manetmodel.network.radio.IRadioModel;
@@ -59,10 +51,8 @@ public abstract class App {
 
 	protected void execute() throws InterruptedException, ExecutionException, IloException {
 		Program<Node, Link<LinkQuality>, LinkQuality, Flow<Node, Link<LinkQuality>, LinkQuality>> program = new Program<Node, Link<LinkQuality>, LinkQuality, Flow<Node, Link<LinkQuality>, LinkQuality>>(
-				new GeneticMANETSupplier.GeneticMANETNodeSupplier(),
-				new GeneticMANETSupplier.GeneticMANETLinkSupplier(),
-				new GeneticMANETSupplier.GeneticMANETLinkQualitySupplier(),
-				new GeneticMANETSupplier.GeneticMANETFlowSupplier());
+				new MANETSupplier.NodeSupplier(), new MANETSupplier.LinkSupplier(),
+				new MANETSupplier.LinkPopertiesSupplier(), new MANETSupplier.FlowSupplier());
 
 		MANETResultRecorder<RunResultParameter> resultRecorder = program.setResultRecorder(scenario.getScenarioName());
 		MANETAverageResultMapper<AverageResultParameter> totalResultMapper = program

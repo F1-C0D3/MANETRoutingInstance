@@ -3,7 +3,6 @@ package de.genetic.optimization;
 import java.util.ArrayList;
 import java.util.List;
 
-import de.genetic.network.GeneticMANET;
 import de.jgraphlib.util.Tuple;
 import de.manetmodel.network.Flow;
 import de.manetmodel.network.Link;

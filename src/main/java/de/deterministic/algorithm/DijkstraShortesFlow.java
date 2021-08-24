@@ -5,8 +5,6 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.function.Function;
 
-import de.deterministic.network.DeterministicMANET;
-import de.jgraphlib.graph.algorithms.DijkstraShortestPath;
 import de.jgraphlib.graph.elements.Path;
 import de.jgraphlib.util.Tuple;
 import de.manetmodel.network.Flow;
@@ -14,7 +12,6 @@ import de.manetmodel.network.Link;
 import de.manetmodel.network.LinkQuality;
 import de.manetmodel.network.MANET;
 import de.manetmodel.network.Node;
-import de.manetmodel.network.unit.DataRate;
 
 public class DijkstraShortesFlow {
 	MANET<Node, Link<LinkQuality>, LinkQuality, Flow<Node, Link<LinkQuality>, LinkQuality>> manet;

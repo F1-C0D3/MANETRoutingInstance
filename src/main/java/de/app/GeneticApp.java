@@ -1,31 +1,19 @@
 package de.app;
 
-import java.util.List;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
 
 import de.genetic.app.GeneticRun;
-import de.genetic.network.GeneticMANETSupplier;
 import de.genetic.optimization.GeneticOptimization;
-import de.jgraphlib.graph.generator.NetworkGraphProperties;
 import de.manetmodel.network.Flow;
 import de.manetmodel.network.Link;
 import de.manetmodel.network.LinkQuality;
 import de.manetmodel.network.MANET;
 import de.manetmodel.network.Node;
-import de.manetmodel.network.mobility.MobilityModel;
-import de.manetmodel.network.radio.IRadioModel;
 import de.manetmodel.scenarios.Scenario;
-import de.results.RunResultParameter;
-import de.results.RunResultParameterSupplier;
-import de.results.AverageResultParameter;
-import de.results.AverageResultParameterSupplier;
-import de.results.MANETAverageResultMapper;
 import de.results.MANETResultRecorder;
 import de.results.RunResultMapper;
+import de.results.RunResultParameter;
 import de.runprovider.ExecutionCallable;
-import de.runprovider.Program;
 import ilog.concert.IloException;
 
 public class GeneticApp extends App {

@@ -3,8 +3,6 @@ package de.genetic.optimization;
 import java.util.List;
 import java.util.Random;
 
-import de.deterministic.optimization.MultipleDijkstraLinkQuality;
-import de.genetic.network.GeneticMANET;
 import de.jgraphlib.util.Tuple;
 import de.manetmodel.network.Flow;
 import de.manetmodel.network.Link;
