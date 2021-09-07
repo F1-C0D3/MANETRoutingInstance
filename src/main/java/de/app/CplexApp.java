@@ -26,7 +26,7 @@ public class CplexApp extends App {
 		app.execute();
 	}
 
-	public CplexApp(int runs, Scenario scenario) {
+	public CplexApp(int runs, HighUtilizedMANETSecenario scenario) {
 		super(runs, scenario);
 	}
 

@@ -158,7 +158,7 @@ public class CplexOptimization
 
 				for (int i = 0; i < individualLinkStabilityMatrix[k].length; i++) {
 
-					individualLinkStabilityMatrix[k][i] = manet.getEdge(i).getWeight().getReceptionConfidence();
+					individualLinkStabilityMatrix[k][i] =1- manet.getEdge(i).getWeight().getReceptionConfidence();
 //					individualLinkStabilityMatrix[k][i] = 1;
 				}
 			}
@@ -180,7 +180,7 @@ public class CplexOptimization
 
 				for (int i = 0; i < individualspeedStabilityMatrix[k].length; i++) {
 
-					individualspeedStabilityMatrix[k][i] = manet.getEdge(i).getWeight().getMobilityQuality();
+					individualspeedStabilityMatrix[k][i] = 1-manet.getEdge(i).getWeight().getMobilityQuality();
 				}
 			}
 
@@ -224,7 +224,7 @@ public class CplexOptimization
 			}
 
 //			cplex.addMinimize(cplex.sum(minPathInstabilityExpr, cplex.sum(minLinkStabilityExpr)));
-			cplex.addMinimize(cplex.sum(cplex.sum(cplex.sum(minHighUtilizedNearbyLinks), cplex.sum(minLinkStabilityExpr)),minPathInstabilityExpr));
+			cplex.addMinimize(cplex.sum(cplex.sum(minLinkStabilityExpr), cplex.sum(minSpeedStabilityExpr)));
 //			cplex.addMinimize(cplex.sum(minLinkStabilityExpr));
 //			cplex.addMinimize(cplex.sum(cplex.sum(minSpeedStabilityExpr),cplex.sum(minLinkStabilityExpr)));
 //			cplex.setParam(IloCplex.Param.MIP.Limits.Solutions, 1);
@@ -259,6 +259,7 @@ public class CplexOptimization
 				}
 
 				manet.deployFlow(flow);
+				
 			}
 		} catch (
 

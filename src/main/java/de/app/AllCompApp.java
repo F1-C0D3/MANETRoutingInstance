@@ -22,7 +22,7 @@ public class AllCompApp extends App {
 
 	public static void main(String[] args) throws InterruptedException, ExecutionException, IloException, InvocationTargetException {
 
-		HighUtilizedMANETSecenario scenario = new HighUtilizedMANETSecenario("allCombination", 3, 100, 2);
+		HighUtilizedMANETSecenario scenario = new HighUtilizedMANETSecenario("allCombination", 7, 100, 1);
 
 		AllCompApp allComp = new AllCompApp(1, scenario);
 
@@ -31,7 +31,7 @@ public class AllCompApp extends App {
 //	System.exit(0);
 	}
 
-	public AllCompApp(int runs, Scenario scenario) {
+	public AllCompApp(int runs, HighUtilizedMANETSecenario scenario) {
 		super(runs, scenario);
 	}
 

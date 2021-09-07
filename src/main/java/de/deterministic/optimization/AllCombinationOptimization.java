@@ -24,7 +24,7 @@ public class AllCombinationOptimization extends Optimization<Void, ScalarRadioMA
 
 	Function< ScalarLinkQuality, Double> metric = (linkQuality) -> {
 
-		return linkQuality.getReceptionConfidence();
+		return 1d-linkQuality.getReceptionConfidence();
 
 	};
 
@@ -68,10 +68,6 @@ public class AllCombinationOptimization extends Optimization<Void, ScalarRadioMA
 			index++;
 		}
 
-		ScalarRadioFlow flow = manet.getFlow(flowCombinations.get(bestCombination).get(0));
-		for (ScalarRadioLink link : flow.getEdges()) {
-			System.out.println(link.getWeight().getReceptionConfidence());
-		}
 		deploySolution(flowCombinations.get(bestCombination));
 
 		return null;

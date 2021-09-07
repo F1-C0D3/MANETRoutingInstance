@@ -50,6 +50,7 @@ public class HighUtilizedMANETSecenario extends Scenario {
 	}
 
 	Function<ScalarLinkQuality, Double> metric = (linkQuality) -> {
+		System.out.println(linkQuality.getScore());
 		return linkQuality.getScore();
 
 	};
@@ -87,6 +88,7 @@ public class HighUtilizedMANETSecenario extends Scenario {
 		while (true) {
 
 			if (manet.getOverUtilization().get() != 0L) {
+				System.out.println(manet.getOverUtilization().toString());
 				manet.undeployFlows();
 				break;
 			}

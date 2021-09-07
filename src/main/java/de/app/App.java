@@ -57,7 +57,7 @@ public abstract class App {
 	ExecutorService executor;
 	private List<ScalarRadioLink> edges;
 
-	public App(int runs, Scenario scenario) {
+	public App(int runs, HighUtilizedMANETSecenario scenario) {
 		this.runs = runs;
 		this.scenario = scenario;
 		this.executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
@@ -93,6 +93,7 @@ public abstract class App {
 					new Time(Unit.TimeSteps.second, 30l), new Speed(1.2d, Unit.Distance.kilometer, Unit.TimeSteps.hour),
 					10);
 
+			
 			double maxCommunicationRange = 100d;
 			// Set RadioModel
 			ScalarRadioModel radioModel = new ScalarRadioModel(new Watt(0.001d), new Watt(1e-11), 2000000d, 2412000000d,
@@ -124,21 +125,16 @@ public abstract class App {
 			OverUtilzedProblemGenerator<ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality, ScalarRadioFlow> overUtilizedProblemGenerator = new OverUtilzedProblemGenerator<ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality, ScalarRadioFlow>(
 					manet, metric);
 
-			OverUtilizedProblemProperties problemProperties = new OverUtilizedProblemProperties();
-			problemProperties.pathCount = 10;
-			problemProperties.minLength = 10;
-			problemProperties.maxLength = 20;
-			problemProperties.minDemand = new DataRate(100);
-			problemProperties.maxDemand = new DataRate(200);
-			problemProperties.overUtilizationPercentage = 5;
-
-			List<ScalarRadioFlow> flowProblems = overUtilizedProblemGenerator.compute(problemProperties);
-
-
-			for (ScalarRadioFlow scalarRadioFlow : flowProblems) {
-				manet.addFlow(scalarRadioFlow);
-			}
 			
+			
+			
+			ScalarRadioFlow f1 = new ScalarRadioFlow(manet.getVertex(38),manet.getVertex(63),new DataRate(1d,Type.megabit));
+			ScalarRadioFlow f2 = new ScalarRadioFlow(manet.getVertex(71),manet.getVertex(100),new DataRate(2d,Type.megabit));
+//			ScalarRadioFlow f3 = new ScalarRadioFlow(manet.getVertex(22),manet.getVertex(53),new DataRate(2d,Type.megabit));
+			
+			manet.addFlow(f1);
+			manet.addFlow(f2);
+//			manet.addFlow(f3);
 			// Define individual run result recorder
 			ColumnPositionMappingStrategy<RunResultParameter> individualMappingStrategy = new ColumnPositionMappingStrategy<RunResultParameter>() {
 				@Override
