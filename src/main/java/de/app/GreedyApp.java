@@ -1,19 +1,21 @@
 package de.app;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.concurrent.ExecutionException;
 
 import de.deterministic.app.DeterministicRun;
 import de.deterministic.optimization.GreedyCombinationOptimization;
-import de.manetmodel.network.Flow;
-import de.manetmodel.network.Link;
-import de.manetmodel.network.LinkQuality;
-import de.manetmodel.network.MANET;
-import de.manetmodel.network.Node;
+import de.manetmodel.network.scalar.ScalarLinkQuality;
+import de.manetmodel.network.scalar.ScalarRadioFlow;
+import de.manetmodel.network.scalar.ScalarRadioLink;
+import de.manetmodel.network.scalar.ScalarRadioMANET;
+import de.manetmodel.network.scalar.ScalarRadioNode;
+import de.manetmodel.results.AverageResultParameter;
+import de.manetmodel.results.MANETResultRecorder;
+import de.manetmodel.results.RunResultMapper;
+import de.manetmodel.results.RunResultParameter;
 import de.manetmodel.scenarios.Scenario;
-import de.results.MANETResultRecorder;
-import de.results.RunResultMapper;
-import de.results.RunResultParameter;
-import de.runprovider.ExecutionCallable;
+import de.parallelism.ExecutionCallable;
 import ilog.concert.IloException;
 
 public class GreedyApp extends App {
@@ -22,22 +24,19 @@ public class GreedyApp extends App {
 		super(runs, scenario);
 	}
 
-	public static void main(String[] args) throws InterruptedException, ExecutionException, IloException {
-		HighUtilizedMANETSecenario scenario = new HighUtilizedMANETSecenario("greedy", 4, 100,1);
+	public static void main(String[] args) throws InterruptedException, ExecutionException, IloException, InvocationTargetException {
+		HighUtilizedMANETSecenario scenario = new HighUtilizedMANETSecenario("greedy", 3, 100, 1);
 		GreedyApp greedyApp = new GreedyApp(1, scenario);
 
 		greedyApp.execute();
 	}
 
 	@Override
-	public ExecutionCallable<Flow<Node, Link<LinkQuality>, LinkQuality>, Node, Link<LinkQuality>, LinkQuality> configureRun(
-			MANET<Node, Link<LinkQuality>, LinkQuality, Flow<Node, Link<LinkQuality>, LinkQuality>> manet,
-			MANETResultRecorder<RunResultParameter> geneticEvalRecorder,
-			RunResultMapper<RunResultParameter> runResultMapper) {
-		/* Evaluation of each run starts here */
-		GreedyCombinationOptimization<MANET<Node, Link<LinkQuality>, LinkQuality, Flow<Node, Link<LinkQuality>, LinkQuality>>> go = new GreedyCombinationOptimization<MANET<Node, Link<LinkQuality>, LinkQuality, Flow<Node, Link<LinkQuality>, LinkQuality>>>(
-				manet);
-		return new DeterministicRun(go, geneticEvalRecorder, runResultMapper);
+	public ExecutionCallable<ScalarRadioFlow, ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality> configureRun(
+			ScalarRadioMANET manet, MANETResultRecorder<RunResultParameter, AverageResultParameter> resultRecorder,
+			RunResultMapper<RunResultParameter, ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality> runResultMapper) {
+		GreedyCombinationOptimization go = new GreedyCombinationOptimization(manet);
+		return new DeterministicRun(go, resultRecorder, runResultMapper);
 	}
 
 }

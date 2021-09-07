@@ -7,30 +7,26 @@ import java.util.function.Function;
 
 import de.deterministic.algorithm.DijkstraShortesFlow;
 import de.jgraphlib.util.Tuple;
-import de.manetmodel.network.Flow;
-import de.manetmodel.network.Link;
 import de.manetmodel.network.LinkQuality;
-import de.manetmodel.network.MANET;
-import de.manetmodel.network.Node;
+import de.manetmodel.network.scalar.ScalarLinkQuality;
+import de.manetmodel.network.scalar.ScalarRadioFlow;
+import de.manetmodel.network.scalar.ScalarRadioMANET;
 import de.parallelism.Optimization;
 
-public class GreedyCombinationOptimization<M extends MANET<Node, Link<LinkQuality>, LinkQuality, Flow<Node, Link<LinkQuality>, LinkQuality>>>
-		extends Optimization<Void, M> {
+public class GreedyCombinationOptimization extends Optimization<Void, ScalarRadioMANET> {
 
 	private Random random;
 	protected DijkstraShortesFlow sp;
 
-	public GreedyCombinationOptimization(M manet) {
+	public GreedyCombinationOptimization(ScalarRadioMANET manet) {
 		super(manet);
 		this.sp = new DijkstraShortesFlow(manet);
 		this.random = new Random();
 	}
 
-	Function<Tuple<Flow<Node, Link<LinkQuality>, LinkQuality>,LinkQuality>, Double> metric = (tuple) -> {
-		LinkQuality linkQuality = tuple.getSecond();
-		Flow<Node, Link<LinkQuality>, LinkQuality> reversePath = tuple.getFirst();
+	Function<ScalarLinkQuality, Double> metric = (linkQuality) -> {
 
-		return linkQuality.getReceptionPower();
+		return linkQuality.getReceptionConfidence();
 
 	};
 
@@ -46,7 +42,7 @@ public class GreedyCombinationOptimization<M extends MANET<Node, Link<LinkQualit
 
 				if (!visitedIds.contains(flowId)) {
 
-					Flow<Node, Link<LinkQuality>, LinkQuality> suggestedSolution = sp.compute(manet.getFlow(flowId),
+					ScalarRadioFlow suggestedSolution = sp.compute(manet.getFlow(flowId),
 							metric);
 
 					manet.deployFlow(suggestedSolution);
@@ -73,7 +69,7 @@ public class GreedyCombinationOptimization<M extends MANET<Node, Link<LinkQualit
 			visitedIds.add(currentId);
 			manet.deployFlow(manet.getFlow(currentId));
 
-			for (Flow<Node, Link<LinkQuality>, LinkQuality> l : manet.getFlows()) {
+			for (ScalarRadioFlow l : manet.getFlows()) {
 				if (!visitedIds.contains(l.getID())) {
 					l.clear();
 				}

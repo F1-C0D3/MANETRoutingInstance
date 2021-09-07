@@ -4,11 +4,7 @@ import java.util.List;
 import java.util.Random;
 
 import de.jgraphlib.util.Tuple;
-import de.manetmodel.network.Flow;
-import de.manetmodel.network.Link;
-import de.manetmodel.network.LinkQuality;
-import de.manetmodel.network.MANET;
-import de.manetmodel.network.Node;
+import de.manetmodel.network.scalar.ScalarRadioMANET;
 import de.parallelism.Optimization;
 import de.terministic.serein.api.EvolutionEnvironment;
 import de.terministic.serein.api.Mutation;
@@ -22,7 +18,7 @@ import de.terministic.serein.core.selection.individual.TournamentSelection;
 import de.terministic.serein.core.termination.TerminationConditionGenerations;
 
 public class GeneticOptimization extends
-		Optimization<PathComposition, MANET<Node, Link<LinkQuality>, LinkQuality, Flow<Node, Link<LinkQuality>, LinkQuality>>> {
+		Optimization<PathComposition, ScalarRadioMANET> {
 
 	private GenesManetGraphTranslator translator;
 
@@ -30,7 +26,7 @@ public class GeneticOptimization extends
 	final int generations;
 
 	public GeneticOptimization(
-			MANET<Node, Link<LinkQuality>, LinkQuality, Flow<Node, Link<LinkQuality>, LinkQuality>> manet,
+			ScalarRadioMANET manet,
 			int populationSize, int generations) {
 		super(manet);
 		this.generations = generations;

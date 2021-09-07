@@ -1,36 +1,29 @@
 package de.genetic.app;
 
-import java.util.List;
-
-import de.deterministic.optimization.MultipleDijkstraLinkQuality;
 import de.genetic.optimization.PathComposition;
-import de.manetmodel.network.Flow;
-import de.manetmodel.network.Link;
-import de.manetmodel.network.LinkQuality;
-import de.manetmodel.network.MANET;
-import de.manetmodel.network.Node;
-import de.manetmodel.network.unit.Time;
+import de.manetmodel.network.scalar.ScalarLinkQuality;
+import de.manetmodel.network.scalar.ScalarRadioFlow;
+import de.manetmodel.network.scalar.ScalarRadioLink;
+import de.manetmodel.network.scalar.ScalarRadioMANET;
+import de.manetmodel.network.scalar.ScalarRadioNode;
+import de.manetmodel.results.AverageResultParameter;
+import de.manetmodel.results.MANETResultRecorder;
+import de.manetmodel.results.RunResultMapper;
+import de.manetmodel.results.RunResultParameter;
+import de.manetmodel.units.Time;
+import de.parallelism.ExecutionCallable;
 import de.parallelism.Optimization;
-import de.parallelism.Run;
-import de.results.RunResultParameter;
-import de.results.MANETResultRecorder;
-import de.results.MANETRunResultMapper;
-import de.results.ResultParameter;
-import de.results.RunResultMapper;
-import de.runprovider.ExecutionCallable;
 
-public class GeneticRun
-		extends ExecutionCallable<Flow<Node, Link<LinkQuality>, LinkQuality>, Node, Link<LinkQuality>, LinkQuality> {
-	Optimization<PathComposition, MANET<Node, Link<LinkQuality>, LinkQuality, Flow<Node, Link<LinkQuality>, LinkQuality>>> op;
-	MANETResultRecorder<RunResultParameter> parameterRecorder;
-	RunResultMapper<RunResultParameter> runResultMapper;
+public class GeneticRun extends ExecutionCallable<ScalarRadioFlow, ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality> {
+	private Optimization<PathComposition, ScalarRadioMANET> op;
+	private MANETResultRecorder<RunResultParameter, AverageResultParameter> resultRecorder;
+	private RunResultMapper<RunResultParameter, ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality> runResultMapper;
 
-	public GeneticRun(
-			Optimization<PathComposition, MANET<Node, Link<LinkQuality>, LinkQuality, Flow<Node, Link<LinkQuality>, LinkQuality>>> op,
-			MANETResultRecorder<RunResultParameter> geneticEvalRecorder,
-			RunResultMapper<RunResultParameter> runResultMapper) {
+	public GeneticRun(Optimization<PathComposition, ScalarRadioMANET> op,
+			MANETResultRecorder<RunResultParameter, AverageResultParameter> resultRecorder,
+			RunResultMapper<RunResultParameter, ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality> runResultMapper) {
 		this.op = op;
-		this.parameterRecorder = geneticEvalRecorder;
+		this.resultRecorder = resultRecorder;
 		this.runResultMapper = runResultMapper;
 	}
 
@@ -38,13 +31,13 @@ public class GeneticRun
 	public Void call() {
 		PathComposition pc = this.op.execute();
 		Time duration = op.stop();
-		MANET<Node, Link<LinkQuality>, LinkQuality, Flow<Node, Link<LinkQuality>, LinkQuality>> manet = op.getManet();
+		ScalarRadioMANET manet = op.getManet();
 
-		for (Flow<Node, Link<LinkQuality>, LinkQuality> flow : pc.flows) {
+		for (ScalarRadioFlow flow : pc.flows) {
 			manet.deployFlow(flow);
 		}
 
-		this.parameterRecorder.recordRun(op.getManet(), runResultMapper, duration);
+		this.resultRecorder.recordRun(op.getManet(), runResultMapper, duration);
 		return null;
 	}
 }

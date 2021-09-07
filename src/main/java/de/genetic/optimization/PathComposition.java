@@ -6,26 +6,25 @@ import java.util.Iterator;
 import java.util.List;
 
 import de.jgraphlib.util.Tuple;
-import de.manetmodel.network.Flow;
-import de.manetmodel.network.Link;
-import de.manetmodel.network.LinkQuality;
-import de.manetmodel.network.MANET;
-import de.manetmodel.network.Node;
-import de.manetmodel.network.unit.DataRate;
+import de.manetmodel.network.scalar.ScalarRadioFlow;
+import de.manetmodel.network.scalar.ScalarRadioLink;
+import de.manetmodel.network.scalar.ScalarRadioMANET;
+import de.manetmodel.network.scalar.ScalarRadioNode;
+import de.manetmodel.units.DataRate;
 
 public class PathComposition {
 
-	MANET<Node, Link<LinkQuality>, LinkQuality, Flow<Node, Link<LinkQuality>, LinkQuality>> manet;
-	public List<Flow<Node, Link<LinkQuality>, LinkQuality>> flows;
+	ScalarRadioMANET manet;
+	public List<ScalarRadioFlow> flows;
 
-	public PathComposition(MANET<Node, Link<LinkQuality>, LinkQuality, Flow<Node, Link<LinkQuality>, LinkQuality>> manet, List<Flow<Node, Link<LinkQuality>, LinkQuality>> flows) {
+	public PathComposition(ScalarRadioMANET manet, List<ScalarRadioFlow> flows) {
 		this.manet = manet;
 		this.flows = flows;
 	}
 
 	public double getLength() {
 		double size = 0;
-		for (Flow<Node, Link<LinkQuality>, LinkQuality> f : this.flows) {
+		for (ScalarRadioFlow f : this.flows) {
 			size += f.size();
 		}
 		return size;
@@ -45,28 +44,28 @@ public class PathComposition {
 		int numLinks = 0;
 		List<Double> variance = new ArrayList<Double>();
 
-		for (Flow<Node, Link<LinkQuality>, LinkQuality> flow : flows) {
+		for (ScalarRadioFlow flow : flows) {
 			numLinks += flow.size() - 1;
 
-			Iterator<Tuple<Link<LinkQuality>, Node>> linkIterator = flow.iterator();
+			Iterator<Tuple<ScalarRadioLink, ScalarRadioNode>> linkIterator = flow.iterator();
 			linkIterator.next();
 			while (linkIterator.hasNext()) {
-				Tuple<Link<LinkQuality>, Node> linkAndNode = linkIterator.next();
-				receptionPowerMean += linkAndNode.getFirst().getWeight().getReceptionPower();
+				Tuple<ScalarRadioLink, ScalarRadioNode> linkAndNode = linkIterator.next();
+				receptionPowerMean += linkAndNode.getFirst().getReceptionPower().get();
 			}
 		}
 
 		receptionPowerMean = receptionPowerMean / numLinks;
 		for (
 
-		Flow<Node, Link<LinkQuality>, LinkQuality> flow : flows) {
+				ScalarRadioFlow flow : flows) {
 
-			Iterator<Tuple<Link<LinkQuality>, Node>> linkIterator = flow.iterator();
+			Iterator<Tuple<ScalarRadioLink, ScalarRadioNode>> linkIterator = flow.iterator();
 			linkIterator.next();
 			while (linkIterator.hasNext()) {
-				Tuple<Link<LinkQuality>, Node> linkAndNode = linkIterator.next();
+				Tuple<ScalarRadioLink, ScalarRadioNode> linkAndNode = linkIterator.next();
 				variance.add(
-						Math.pow((linkAndNode.getFirst().getWeight().getReceptionPower() - receptionPowerMean), 2));
+						Math.pow((linkAndNode.getFirst().getReceptionPower().get() - receptionPowerMean), 2));
 			}
 		}
 
@@ -86,11 +85,11 @@ public class PathComposition {
 		double receptionPowerMean = 0d;
 		int numLinks = 0;
 
-		for (Flow<Node, Link<LinkQuality>, LinkQuality> flow : flows) {
+		for (ScalarRadioFlow flow : flows) {
 			numLinks += flow.size() - 1;
 
-			for (Tuple<Link<LinkQuality>, Node> linkAndNode : flow) {
-				receptionPowerMean += linkAndNode.getFirst().getWeight().getReceptionPower();
+			for (Tuple<ScalarRadioLink, ScalarRadioNode> linkAndNode : flow) {
+				receptionPowerMean += linkAndNode.getFirst().getReceptionPower().get();
 			}
 		}
 
@@ -101,10 +100,10 @@ public class PathComposition {
 	public String toString() {
 		StringBuffer buffer = new StringBuffer();
 
-		Iterator<Flow<Node, Link<LinkQuality>, LinkQuality>> fIterator = flows.iterator();
+		Iterator<ScalarRadioFlow> fIterator = flows.iterator();
 
 		while (fIterator.hasNext()) {
-			Flow<Node, Link<LinkQuality>, LinkQuality> f = fIterator.next();
+			ScalarRadioFlow f = fIterator.next();
 			buffer.append(f.toString());
 		}
 		return buffer.toString();
@@ -113,11 +112,11 @@ public class PathComposition {
 	public DataRate overUtilization() {
 		DataRate overUtilization = new DataRate(0L);
 
-		for (Link<LinkQuality> l : manet.getEdges()) {
+		for (ScalarRadioLink l : manet.getEdges()) {
 //			System.out.println("v1: " + manet.getVerticesOf(l).getFirst().getID() + ",  v2: "
 //					+ manet.getVerticesOf(l).getSecond().getID() + ", u= " + l.getUtilization().toString());
-			DataRate tRate = l.getWeight().getTransmissionRate();
-			DataRate utilization = l.getWeight().getUtilization();
+			DataRate tRate = l.getTransmissionRate();
+			DataRate utilization = l.getUtilization();
 			double oU = tRate.get() - utilization.get();
 			overUtilization.set(oU < 0 ? overUtilization.get() + (long) Math.abs(oU) : overUtilization.get());
 		}
@@ -130,7 +129,7 @@ public class PathComposition {
 	}
 
 	public void undeployFlows() {
-		for (Flow<Node, Link<LinkQuality>, LinkQuality> flow : flows) {
+		for (ScalarRadioFlow flow : flows) {
 
 			manet.undeployFlow(flow);
 		}
@@ -138,7 +137,7 @@ public class PathComposition {
 	}
 
 	public void deployFlows() {
-		for (Flow<Node, Link<LinkQuality>, LinkQuality> flow : flows) {
+		for (ScalarRadioFlow flow : flows) {
 			manet.deployFlow(flow);
 		}
 

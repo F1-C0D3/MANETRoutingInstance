@@ -1,6 +1,6 @@
 package de.genetic.optimization;
 
-import de.manetmodel.network.unit.DataRate;
+import de.manetmodel.units.DataRate;
 import de.terministic.serein.api.Individual;
 import de.terministic.serein.core.fitness.AbstractFitnessFunction;
 

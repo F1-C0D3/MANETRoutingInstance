@@ -2,8 +2,10 @@ package de.parallelism;
 
 import java.util.EventListener;
 
-import de.manetmodel.network.unit.Time;
-import de.manetmodel.network.unit.Timer;
+import de.manetmodel.units.Time;
+import de.manetmodel.units.Timer;
+
+
 
 public abstract class Optimization<Q, M> implements EventListener {
 	protected M manet;

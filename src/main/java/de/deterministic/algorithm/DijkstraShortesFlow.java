@@ -7,38 +7,37 @@ import java.util.function.Function;
 
 import de.jgraphlib.graph.elements.Path;
 import de.jgraphlib.util.Tuple;
-import de.manetmodel.network.Flow;
-import de.manetmodel.network.Link;
-import de.manetmodel.network.LinkQuality;
-import de.manetmodel.network.MANET;
-import de.manetmodel.network.Node;
+import de.manetmodel.network.scalar.ScalarLinkQuality;
+import de.manetmodel.network.scalar.ScalarRadioFlow;
+import de.manetmodel.network.scalar.ScalarRadioLink;
+import de.manetmodel.network.scalar.ScalarRadioMANET;
+import de.manetmodel.network.scalar.ScalarRadioNode;
 
 public class DijkstraShortesFlow {
-	MANET<Node, Link<LinkQuality>, LinkQuality, Flow<Node, Link<LinkQuality>, LinkQuality>> manet;
+	ScalarRadioMANET manet;
 
-	public DijkstraShortesFlow(
-			MANET<Node, Link<LinkQuality>, LinkQuality, Flow<Node, Link<LinkQuality>, LinkQuality>> manet) {
+	public DijkstraShortesFlow(ScalarRadioMANET manet) {
 		this.manet = manet;
 	}
 
-	public Flow<Node, Link<LinkQuality>, LinkQuality> compute(Flow<Node, Link<LinkQuality>, LinkQuality> sp,
-			Function<Tuple<Flow<Node, Link<LinkQuality>, LinkQuality>, LinkQuality>, Double> metric) {
+	public ScalarRadioFlow compute(ScalarRadioFlow sp,
+			Function<ScalarLinkQuality, Double> metric) {
 
 		/* Initializaton */
-		Node current = sp.getSource();
-		Node source = sp.getSource();
-		Node target = sp.getTarget();
+		ScalarRadioNode current = sp.getSource();
+		ScalarRadioNode source = sp.getSource();
+		ScalarRadioNode target = sp.getTarget();
 
 		List<Integer> vertices = new ArrayList<Integer>();
-		List<Tuple<Node, Double>> predDist = new ArrayList<Tuple<Node, Double>>();
+		List<Tuple<ScalarRadioNode, Double>> predDist = new ArrayList<Tuple<ScalarRadioNode, Double>>();
 
-		for (Node n : manet.getVertices()) {
+		for (ScalarRadioNode n : manet.getVertices()) {
 			vertices.add(n.getID());
 
 			if (n.getID() == current.getID()) {
-				predDist.add(new Tuple<Node, Double>(null, 0d));
+				predDist.add(new Tuple<ScalarRadioNode, Double>(null, 0d));
 			} else {
-				predDist.add(new Tuple<Node, Double>(null, Double.POSITIVE_INFINITY));
+				predDist.add(new Tuple<ScalarRadioNode, Double>(null, Double.POSITIVE_INFINITY));
 			}
 		}
 
@@ -48,18 +47,17 @@ public class DijkstraShortesFlow {
 			current = manet.getVertex(nId);
 
 			if (current.getID() == target.getID()) {
-				return (Flow<Node, Link<LinkQuality>, LinkQuality>) generateSP(predDist, sp);
+				return (ScalarRadioFlow) generateSP(predDist, sp);
 			}
 
-			for (Node neig : manet.getNextHopsOf(current)) {
+			for (ScalarRadioNode neig : manet.getNextHopsOf(current)) {
 
-				Flow<Node, Link<LinkQuality>, LinkQuality> rsp = new Flow<Node, Link<LinkQuality>, LinkQuality>(-1,
-						source, current, sp.getDataRate());
+				ScalarRadioFlow rsp = new ScalarRadioFlow(-1, source, current, sp.getDataRate());
 				rsp.clear();
-				rsp = (Flow<Node, Link<LinkQuality>, LinkQuality>) generateSP(predDist, rsp);
-				Link<LinkQuality> currentLink = manet.getEdge(current, neig);
-				rsp.add(new Tuple<Link<LinkQuality>, Node>(currentLink, neig));
-				double edgeDist = metric.apply(new Tuple(rsp, currentLink.getWeight()));
+				rsp = (ScalarRadioFlow) generateSP(predDist, rsp);
+				ScalarRadioLink currentLink = manet.getEdge(current, neig);
+				rsp.add(new Tuple<ScalarRadioLink, ScalarRadioNode>(currentLink, neig));
+				double edgeDist = metric.apply(currentLink.getWeight());
 
 				double newPathDist = edgeDist + predDist.get(current.getID()).getSecond();
 				double oldPahtDist = predDist.get(neig.getID()).getSecond();
@@ -79,19 +77,19 @@ public class DijkstraShortesFlow {
 		return sp;
 	}
 
-	protected Path<Node, Link<LinkQuality>, LinkQuality> generateSP(List<Tuple<Node, Double>> predDist,
-			Path<Node, Link<LinkQuality>, LinkQuality> sp) {
-		Node t = sp.getTarget();
-		List<Tuple<Link<LinkQuality>, Node>> copy = new ArrayList<Tuple<Link<LinkQuality>, Node>>();
+	protected Path<ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality> generateSP(List<Tuple<ScalarRadioNode, Double>> predDist,
+			Path<ScalarRadioNode,ScalarRadioLink, ScalarLinkQuality> sp) {
+		ScalarRadioNode t = sp.getTarget();
+		List<Tuple<ScalarRadioLink, ScalarRadioNode>> copy = new ArrayList<Tuple<ScalarRadioLink, ScalarRadioNode>>();
 
 		do {
-			Node pred = predDist.get(t.getID()).getFirst();
+			ScalarRadioNode pred = predDist.get(t.getID()).getFirst();
 
 			if (pred == null) {
 				return sp;
 			}
 
-			copy.add(0, new Tuple<Link<LinkQuality>, Node>(manet.getEdge(pred, t), t));
+			copy.add(0, new Tuple<ScalarRadioLink, ScalarRadioNode>(manet.getEdge(pred, t), t));
 			t = pred;
 		} while (t.getID() != sp.getSource().getID());
 
@@ -100,13 +98,13 @@ public class DijkstraShortesFlow {
 		return sp;
 	}
 
-	protected Integer minDistance(List<Tuple<Node, Double>> predT, List<Integer> v) {
+	protected Integer minDistance(List<Tuple<ScalarRadioNode, Double>> predT, List<Integer> v) {
 		int id = -1;
 		double result = Double.POSITIVE_INFINITY;
-		ListIterator<Tuple<Node, Double>> it = predT.listIterator();
+		ListIterator<Tuple<ScalarRadioNode, Double>> it = predT.listIterator();
 
 		while (it.hasNext()) {
-			Tuple<Node, Double> pred = it.next();
+			Tuple<ScalarRadioNode, Double> pred = it.next();
 
 			if (v.contains(it.previousIndex()) && pred.getSecond() < result) {
 				result = pred.getSecond();
@@ -116,8 +114,7 @@ public class DijkstraShortesFlow {
 		return id;
 	}
 
-	Flow<Node, Link<LinkQuality>, LinkQuality> generateReverseSP(Tuple<Node, Double> preDist,
-			Flow<Node, Link<LinkQuality>, LinkQuality> flow) {
+	ScalarRadioFlow generateReverseSP(Tuple<ScalarRadioNode, Double> preDist, ScalarRadioFlow flow) {
 
 		return null;
 

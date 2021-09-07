@@ -1,42 +1,61 @@
 package de.app;
 
+import java.lang.reflect.InvocationTargetException;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 
+import javax.swing.SwingUtilities;
+
+import com.opencsv.bean.ColumnPositionMappingStrategy;
+import com.opencsv.exceptions.CsvRequiredFieldEmptyException;
+
+import de.jgraphlib.graph.generator.GraphProperties.DoubleRange;
+import de.jgraphlib.graph.generator.GraphProperties.IntRange;
+import de.jgraphlib.graph.generator.NetworkGraphGenerator;
 import de.jgraphlib.graph.generator.NetworkGraphProperties;
 import de.jgraphlib.gui.VisualGraphApp;
-import de.manetmodel.gui.LinkQualityPrinter;
-import de.manetmodel.network.Flow;
-import de.manetmodel.network.Link;
-import de.manetmodel.network.LinkQuality;
-import de.manetmodel.network.MANET;
-import de.manetmodel.network.MANETSupplier;
-import de.manetmodel.network.Node;
-import de.manetmodel.network.mobility.MobilityModel;
-import de.manetmodel.network.radio.IRadioModel;
-import de.manetmodel.network.radio.IdealRadioModel;
-import de.manetmodel.network.unit.DataRate;
-import de.manetmodel.network.unit.DataUnit;
-import de.manetmodel.network.unit.DataUnit.Type;
+import de.jgraphlib.gui.printer.WeightedEdgeIDPrinter;
+import de.jgraphlib.util.RandomNumbers;
+import de.manetmodel.evaluator.DoubleScope;
+import de.manetmodel.evaluator.ScalarLinkQualityEvaluator;
+import de.manetmodel.generator.OverUtilizedProblemProperties;
+import de.manetmodel.generator.OverUtilzedProblemGenerator;
+import de.manetmodel.gui.LinkQualityScorePrinter;
+import de.manetmodel.mobilitymodel.PedestrianMobilityModel;
+import de.manetmodel.network.scalar.ScalarLinkQuality;
+import de.manetmodel.network.scalar.ScalarRadioFlow;
+import de.manetmodel.network.scalar.ScalarRadioLink;
+import de.manetmodel.network.scalar.ScalarRadioMANET;
+import de.manetmodel.network.scalar.ScalarRadioMANETSupplier;
+import de.manetmodel.network.scalar.ScalarRadioModel;
+import de.manetmodel.network.scalar.ScalarRadioNode;
+import de.manetmodel.results.AverageResultParameter;
+import de.manetmodel.results.MANETAverageResultMapper;
+import de.manetmodel.results.MANETResultRecorder;
+import de.manetmodel.results.RunResultMapper;
+import de.manetmodel.results.RunResultParameter;
 import de.manetmodel.scenarios.Scenario;
-import de.results.AverageResultParameter;
-import de.results.AverageResultParameterSupplier;
-import de.results.MANETAverageResultMapper;
-import de.results.MANETResultRecorder;
-import de.results.RunResultMapper;
-import de.results.RunResultParameter;
-import de.results.RunResultParameterSupplier;
-import de.runprovider.ExecutionCallable;
-import de.runprovider.Program;
+import de.manetmodel.units.DataRate;
+import de.manetmodel.units.DataUnit.Type;
+import de.manetmodel.units.Speed;
+import de.manetmodel.units.Speed.SpeedRange;
+import de.manetmodel.units.Time;
+import de.manetmodel.units.Unit;
+import de.manetmodel.units.Watt;
+import de.parallelism.ExecutionCallable;
+import de.results.ScalarRadioRunResultMapper;
 import ilog.concert.IloException;
 
 public abstract class App {
 	private int runs;
 	private Scenario scenario;
 	ExecutorService executor;
+	private List<ScalarRadioLink> edges;
 
 	public App(int runs, Scenario scenario) {
 		this.runs = runs;
@@ -44,76 +63,98 @@ public abstract class App {
 		this.executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
 	}
 
-	public abstract ExecutionCallable<Flow<Node, Link<LinkQuality>, LinkQuality>, Node, Link<LinkQuality>, LinkQuality> configureRun(
-			MANET<Node, Link<LinkQuality>, LinkQuality, Flow<Node, Link<LinkQuality>, LinkQuality>> manet,
-			MANETResultRecorder<RunResultParameter> geneticEvalRecorder,
-			RunResultMapper<RunResultParameter> runResultMapper);
+	public abstract ExecutionCallable<ScalarRadioFlow, ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality> configureRun(
+			ScalarRadioMANET manet, MANETResultRecorder<RunResultParameter, AverageResultParameter> resultRecorder,
+			RunResultMapper<RunResultParameter, ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality> runResultMapper);
 
-	protected void execute() throws InterruptedException, ExecutionException, IloException {
-		Program<Node, Link<LinkQuality>, LinkQuality, Flow<Node, Link<LinkQuality>, LinkQuality>> program = new Program<Node, Link<LinkQuality>, LinkQuality, Flow<Node, Link<LinkQuality>, LinkQuality>>(
-				new MANETSupplier.NodeSupplier(), new MANETSupplier.LinkSupplier(),
-				new MANETSupplier.LinkPopertiesSupplier(), new MANETSupplier.FlowSupplier());
+	protected void execute() throws InvocationTargetException, InterruptedException, ExecutionException {
 
-		MANETResultRecorder<RunResultParameter> resultRecorder = program.setResultRecorder(scenario.getScenarioName());
-		MANETAverageResultMapper<AverageResultParameter> totalResultMapper = program
-				.setTotalResultMapper(new AverageResultParameterSupplier(), scenario);
+		/* Result recording options for further evaluation */
+		MANETResultRecorder<RunResultParameter, AverageResultParameter> resultRecorder = new MANETResultRecorder<RunResultParameter, AverageResultParameter>(
+				scenario.getScenarioName());
+
+		/* Result recording options for further evaluation */
+		ColumnPositionMappingStrategy<AverageResultParameter> mappingStrategy = new ColumnPositionMappingStrategy<AverageResultParameter>() {
+			@Override
+			public String[] generateHeader(AverageResultParameter bean) throws CsvRequiredFieldEmptyException {
+				return this.getColumnMapping();
+			}
+		};
+		mappingStrategy.setColumnMapping("overUtilization", "utilization", "activePathParticipants",
+				"connectionStability", "simulationTime");
+		MANETAverageResultMapper totalResultMapper = new MANETAverageResultMapper(mappingStrategy, scenario);
 		totalResultMapper.getMappingStrategy().setType(AverageResultParameter.class);
 
 		while (runs > 0) {
 
-			MobilityModel mobilityModel = program.setMobilityModel(runs);
-//			IRadioModel radioModel = program.setRadioModel();
-			IRadioModel radioModel = new IdealRadioModel(100, new DataRate(5, DataUnit.Type.megabit));
-			MANET<Node, Link<LinkQuality>, LinkQuality, Flow<Node, Link<LinkQuality>, LinkQuality>> manet = program
-					.createMANET(mobilityModel, radioModel);
+			// Define Mobility Model
+			PedestrianMobilityModel mobilityModel = new PedestrianMobilityModel(RandomNumbers.getInstance(runs),
+					new SpeedRange(2d, 10d, Unit.TimeSteps.hour, Unit.Distance.kilometer),
+					new Time(Unit.TimeSteps.second, 30l), new Speed(1.2d, Unit.Distance.kilometer, Unit.TimeSteps.hour),
+					10);
 
-			NetworkGraphProperties networkProperties = program.generateNetwork(manet, runs, scenario.getNumNodes());
+			double maxCommunicationRange = 100d;
+			// Set RadioModel
+			ScalarRadioModel radioModel = new ScalarRadioModel(new Watt(0.001d), new Watt(1e-11), 2000000d, 2412000000d,
+					maxCommunicationRange);
 
-//			GridGraphProperties gridPropoerties = new GridGraphProperties(800, 100, 100, 100);
-//			GridGraphGenerator<Node, Link<LinkQuality>, LinkQuality> generator = new GridGraphGenerator<Node, Link<LinkQuality>, LinkQuality>(
-//					manet, RandomNumbers.getInstance(runs));
-//
-//			generator.generate(gridPropoerties);
-//			manet.initialize();
-			scenario.generatePaths(manet, runs, new DataRate(1, Type.megabit));
-//			Flow<Node, Link<LinkQuality>, LinkQuality> flow1 = new Flow<Node, Link<LinkQuality>, LinkQuality>(
-//					manet.getVertex(6), manet.getVertex(8), new DataRate(5, DataUnit.Type.megabit));
-//
-//			Flow<Node, Link<LinkQuality>, LinkQuality> flow2 = new Flow<Node, Link<LinkQuality>, LinkQuality>(
-//					manet.getVertex(0), manet.getVertex(17), new DataRate(1, DataUnit.Type.megabit));
-////
-//			Flow<Node, Link<LinkQuality>, LinkQuality> flow3 = new Flow<Node, Link<LinkQuality>, LinkQuality>(
-//					manet.getVertex(0), manet.getVertex(1), new DataRate(1, DataUnit.Type.megabit));
-//
-//			Flow<Node, Link<LinkQuality>, LinkQuality> flow4 = new Flow<Node, Link<LinkQuality>, LinkQuality>(
-//					manet.getVertex(29), manet.getVertex(58), new DataRate(0.05, DataUnit.Type.megabit));
-//
-//			Flow<Node, Link<LinkQuality>, LinkQuality> flow5 = new Flow<Node, Link<LinkQuality>, LinkQuality>(
-//					manet.getVertex(56), manet.getVertex(68), new DataRate(1.0, DataUnit.Type.megabit));
-//
-//			Flow<Node, Link<LinkQuality>, LinkQuality> flow6 = new Flow<Node, Link<LinkQuality>, LinkQuality>(
-//					manet.getVertex(36), manet.getVertex(20), new DataRate(0.01, DataUnit.Type.megabit));
-//			Flow<Node, Link<LinkQuality>, LinkQuality> flow7 = new Flow<Node, Link<LinkQuality>, LinkQuality>(
-//					manet.getVertex(49), manet.getVertex(7), new DataRate(1.0, DataUnit.Type.megabit));
-//
-//			Flow<Node, Link<LinkQuality>, LinkQuality> flow8 = new Flow<Node, Link<LinkQuality>, LinkQuality>(
-//					manet.getVertex(10), manet.getVertex(6), new DataRate(1.0, DataUnit.Type.megabit));
-//
-//			Flow<Node, Link<LinkQuality>, LinkQuality> flow9 = new Flow<Node, Link<LinkQuality>, LinkQuality>(
-//					manet.getVertex(66), manet.getVertex(3), new DataRate(1.0, DataUnit.Type.megabit));
-//			manet.addFlow(flow1);
-//			manet.addFlow(flow2);
-//			manet.addFlow(flow3);
-//			manet.addFlow(flow4);
-//			manet.addFlow(flow5);
-//			manet.addFlow(flow6);
-//			manet.addFlow(flow7);
-			RunResultMapper<RunResultParameter> runResultMapper = program.setIndividualRunResultMapper(
-					new RunResultParameterSupplier(), networkProperties, mobilityModel, radioModel, scenario);
+			// ScalLinkQualityEvaluator
+			ScalarLinkQualityEvaluator evaluator = new ScalarLinkQualityEvaluator(new DoubleScope(0d, 1d), radioModel,
+					mobilityModel);
+			// Create MANET with scalar radio properties
+			ScalarRadioMANET manet = new ScalarRadioMANET(new ScalarRadioMANETSupplier.ScalarRadioNodeSupplier(),
+					new ScalarRadioMANETSupplier.ScalarRadioLinkSupplier(),
+					new ScalarRadioMANETSupplier.ScalarLinkQualitySupplier(),
+					new ScalarRadioMANETSupplier.ScalarRadioFlowSupplier(), radioModel, mobilityModel, evaluator);
+
+			NetworkGraphProperties properties = new NetworkGraphProperties( /* playground width */ 1024,
+					/* playground height */ 768,
+					/* number of vertices */ new IntRange(scenario.getNumNodes(), scenario.getNumNodes()),
+					/* distance between vertices */ new DoubleRange(45d, maxCommunicationRange),
+					/* edge distance */ new DoubleRange(100, 100));
+			NetworkGraphGenerator<ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality> networkGraphGenerator = new NetworkGraphGenerator<ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality>(
+					manet, RandomNumbers.getInstance(runs));
+			networkGraphGenerator.generate(properties);
+			manet.initialize();
+
+			Function<ScalarLinkQuality, Double> metric = (ScalarLinkQuality q) -> {
+				return q.getReceptionConfidence();
+			};
+
+			OverUtilzedProblemGenerator<ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality, ScalarRadioFlow> overUtilizedProblemGenerator = new OverUtilzedProblemGenerator<ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality, ScalarRadioFlow>(
+					manet, metric);
+
+			OverUtilizedProblemProperties problemProperties = new OverUtilizedProblemProperties();
+			problemProperties.pathCount = 10;
+			problemProperties.minLength = 10;
+			problemProperties.maxLength = 20;
+			problemProperties.minDemand = new DataRate(100);
+			problemProperties.maxDemand = new DataRate(200);
+			problemProperties.overUtilizationPercentage = 5;
+
+			List<ScalarRadioFlow> flowProblems = overUtilizedProblemGenerator.compute(problemProperties);
+
+
+			for (ScalarRadioFlow scalarRadioFlow : flowProblems) {
+				manet.addFlow(scalarRadioFlow);
+			}
+			
+			// Define individual run result recorder
+			ColumnPositionMappingStrategy<RunResultParameter> individualMappingStrategy = new ColumnPositionMappingStrategy<RunResultParameter>() {
+				@Override
+				public String[] generateHeader(RunResultParameter bean) throws CsvRequiredFieldEmptyException {
+					return this.getColumnMapping();
+				}
+			};
+			individualMappingStrategy.setColumnMapping("lId", "n1Id", "n2Id", "overUtilization", "utilization",
+					"isPathParticipant", "connectionStability");
+			ScalarRadioRunResultMapper runResultMapper = new ScalarRadioRunResultMapper(individualMappingStrategy,
+					scenario, mobilityModel);
 			runResultMapper.getMappingStrategy().setType(RunResultParameter.class);
 
-			ExecutionCallable<Flow<Node, Link<LinkQuality>, LinkQuality>, Node, Link<LinkQuality>, LinkQuality> run = this
+			ExecutionCallable<ScalarRadioFlow, ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality> run = this
 					.configureRun(manet, resultRecorder, runResultMapper);
+
 			Future<Void> futureFlows = executor.submit(run);
 			futureFlows.get();
 			boolean taskFinished = false;
@@ -122,12 +163,15 @@ public abstract class App {
 
 			}
 
-			System.out.println(manet.getOverUtilization());
 			runs--;
+//
+//			VisualGraphApp<ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality> visualGraphApp = new VisualGraphApp<ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality>(
+//					manet, new LinkQualityScorePrinter<ScalarLinkQuality>());
 
-			VisualGraphApp<Node, Link<LinkQuality>, LinkQuality> visualGraphApp = new VisualGraphApp<Node, Link<LinkQuality>, LinkQuality>(
-					manet, manet.getFlows(), new LinkQualityPrinter());
+			SwingUtilities.invokeAndWait(new VisualGraphApp<ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality>(manet,
+					new LinkQualityScorePrinter<ScalarLinkQuality>()));
 		}
+
 		executor.shutdown();
 		try {
 			executor.awaitTermination(1L, TimeUnit.DAYS);

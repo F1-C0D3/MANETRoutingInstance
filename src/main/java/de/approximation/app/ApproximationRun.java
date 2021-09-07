@@ -1,27 +1,28 @@
+
 package de.approximation.app;
 
-import de.manetmodel.network.Flow;
-import de.manetmodel.network.Link;
-import de.manetmodel.network.LinkQuality;
-import de.manetmodel.network.MANET;
-import de.manetmodel.network.Node;
-import de.manetmodel.network.unit.Time;
+import de.manetmodel.network.scalar.ScalarLinkQuality;
+import de.manetmodel.network.scalar.ScalarRadioFlow;
+import de.manetmodel.network.scalar.ScalarRadioLink;
+import de.manetmodel.network.scalar.ScalarRadioMANET;
+import de.manetmodel.network.scalar.ScalarRadioNode;
+import de.manetmodel.results.AverageResultParameter;
+import de.manetmodel.results.MANETResultRecorder;
+import de.manetmodel.results.RunResultMapper;
+import de.manetmodel.results.RunResultParameter;
+import de.manetmodel.units.Time;
+import de.parallelism.ExecutionCallable;
 import de.parallelism.Optimization;
-import de.results.MANETResultRecorder;
-import de.results.RunResultMapper;
-import de.results.RunResultParameter;
-import de.runprovider.ExecutionCallable;
 
 public class ApproximationRun
-		extends ExecutionCallable<Flow<Node, Link<LinkQuality>, LinkQuality>, Node, Link<LinkQuality>, LinkQuality> {
-	private Optimization<Void, MANET<Node, Link<LinkQuality>, LinkQuality, Flow<Node, Link<LinkQuality>, LinkQuality>>> op;
-	private MANETResultRecorder<RunResultParameter> resultRecorder;
-	private RunResultMapper<RunResultParameter> runResultMapper;
+		extends ExecutionCallable<ScalarRadioFlow, ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality> {
+	private Optimization<Void, ScalarRadioMANET> op;
+	private MANETResultRecorder<RunResultParameter, AverageResultParameter> resultRecorder;
+	private RunResultMapper<RunResultParameter, ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality> runResultMapper;
 
-	public ApproximationRun(
-			Optimization<Void, MANET<Node, Link<LinkQuality>, LinkQuality, Flow<Node, Link<LinkQuality>, LinkQuality>>> op,
-			MANETResultRecorder<RunResultParameter> resultRecorder,
-			RunResultMapper<RunResultParameter> runResultMapper) {
+	public ApproximationRun(Optimization<Void, ScalarRadioMANET> op,
+			MANETResultRecorder<RunResultParameter, AverageResultParameter> resultRecorder,
+			RunResultMapper<RunResultParameter, ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality> runResultMapper) {
 		this.op = op;
 		this.resultRecorder = resultRecorder;
 		this.runResultMapper = runResultMapper;

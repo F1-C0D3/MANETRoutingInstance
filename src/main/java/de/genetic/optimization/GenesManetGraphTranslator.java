@@ -4,18 +4,17 @@ import java.util.ArrayList;
 import java.util.List;
 
 import de.jgraphlib.util.Tuple;
-import de.manetmodel.network.Flow;
-import de.manetmodel.network.Link;
-import de.manetmodel.network.LinkQuality;
-import de.manetmodel.network.MANET;
-import de.manetmodel.network.Node;
+import de.manetmodel.network.scalar.ScalarRadioFlow;
+import de.manetmodel.network.scalar.ScalarRadioLink;
+import de.manetmodel.network.scalar.ScalarRadioMANET;
+import de.manetmodel.network.scalar.ScalarRadioNode;
 import de.terministic.serein.api.Translator;
 
 public class GenesManetGraphTranslator implements Translator<PathComposition, GraphGenome> {
-	private MANET<Node, Link<LinkQuality>, LinkQuality, Flow<Node, Link<LinkQuality>, LinkQuality>> manet;
-	private List<Flow<Node, Link<LinkQuality>, LinkQuality>> flowMetaData;
+	private ScalarRadioMANET manet;
+	private List<ScalarRadioFlow> flowMetaData;
 
-	public GenesManetGraphTranslator(MANET<Node, Link<LinkQuality>, LinkQuality, Flow<Node, Link<LinkQuality>, LinkQuality>> manet) {
+	public GenesManetGraphTranslator(ScalarRadioMANET manet) {
 		this.manet = manet;
 		this.flowMetaData = manet.getFlows();
 	}
@@ -23,21 +22,20 @@ public class GenesManetGraphTranslator implements Translator<PathComposition, Gr
 	@Override
 	public PathComposition translate(GraphGenome genome) {
 
-		List<Flow<Node, Link<LinkQuality>, LinkQuality>> flows = new ArrayList<Flow<Node, Link<LinkQuality>, LinkQuality>>();
+		List<ScalarRadioFlow> flows = new ArrayList<ScalarRadioFlow>();
 		for (int i = 0; i < flowMetaData.size(); i++) {
 			/* load flow fa at index i */
-			Flow<Node, Link<LinkQuality>, LinkQuality> meta = flowMetaData.get(i);
-			Flow<Node, Link<LinkQuality>, LinkQuality> f = new Flow<Node, Link<LinkQuality>, LinkQuality>(
-					meta.getSource(), meta.getTarget(), meta.getDataRate());
+			ScalarRadioFlow meta = flowMetaData.get(i);
+			ScalarRadioFlow f = new ScalarRadioFlow(meta.getSource(), meta.getTarget(), meta.getDataRate());
 
 			/* load chromosomePart at index i */
 			List<Integer> chromosomePart = genome.getGenes().get(i);
 
 			for (int index = 0; index < chromosomePart.size() - 1; index++) {
-				Node sourceNode = manet.getVertex(chromosomePart.get(index));
-				Node targetNode = manet.getVertex(chromosomePart.get(index + 1));
+				ScalarRadioNode sourceNode = manet.getVertex(chromosomePart.get(index));
+				ScalarRadioNode targetNode = manet.getVertex(chromosomePart.get(index + 1));
 
-				f.add(new Tuple<Link<LinkQuality>, Node>(manet.getEdge(sourceNode, targetNode), targetNode));
+				f.add(new Tuple<ScalarRadioLink, ScalarRadioNode>(manet.getEdge(sourceNode, targetNode), targetNode));
 			}
 			flows.add(f);
 
@@ -64,7 +62,7 @@ public class GenesManetGraphTranslator implements Translator<PathComposition, Gr
 	public List<Tuple<Integer, Integer>> flowsPhenoToGeno() {
 		List<Tuple<Integer, Integer>> genoFlows = new ArrayList<Tuple<Integer, Integer>>();
 
-		for (Flow<Node, Link<LinkQuality>, LinkQuality> flow : flowMetaData) {
+		for (ScalarRadioFlow flow : flowMetaData) {
 			genoFlows.add(new Tuple<Integer, Integer>(flow.getSource().getID(), flow.getTarget().getID()));
 		}
 
@@ -73,9 +71,9 @@ public class GenesManetGraphTranslator implements Translator<PathComposition, Gr
 
 	public List<List<Integer>> manetVerticesPhenoToGeno() {
 		List<Integer> genesVertices = new ArrayList<Integer>();
-		List<Node> manetVertices = manet.getVertices();
+		List<ScalarRadioNode> manetVertices = manet.getVertices();
 
-		for (Node manetVertex : manetVertices) {
+		for (ScalarRadioNode manetVertex : manetVertices) {
 			genesVertices.add(manetVertex.getID());
 		}
 

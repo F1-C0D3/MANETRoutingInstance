@@ -7,13 +7,12 @@ import java.util.function.Function;
 import de.deterministic.algorithm.DijkstraShortesFlow;
 import de.jgraphlib.util.RandomNumbers;
 import de.jgraphlib.util.Tuple;
-import de.manetmodel.network.Flow;
-import de.manetmodel.network.Link;
 import de.manetmodel.network.LinkQuality;
-import de.manetmodel.network.MANET;
-import de.manetmodel.network.Node;
-import de.manetmodel.network.unit.DataRate;
+import de.manetmodel.network.scalar.ScalarLinkQuality;
+import de.manetmodel.network.scalar.ScalarRadioFlow;
+import de.manetmodel.network.scalar.ScalarRadioMANET;
 import de.manetmodel.scenarios.Scenario;
+import de.manetmodel.units.DataRate;
 
 public class HighUtilizedMANETSecenario extends Scenario {
 
@@ -28,7 +27,6 @@ public class HighUtilizedMANETSecenario extends Scenario {
 		this.flowCharacteristics = new ArrayList<Tuple<DataType, Long>>();
 	}
 
-	@Override
 	protected void generateSourceTargetPairs(int runs) {
 		List<Integer> exclusionList = new ArrayList<Integer>();
 
@@ -51,19 +49,12 @@ public class HighUtilizedMANETSecenario extends Scenario {
 
 	}
 
-	Function<Tuple<Flow<Node, Link<LinkQuality>, LinkQuality>, LinkQuality>, Double> metric = (tuple) -> {
-		LinkQuality linkQuality = tuple.getSecond();
-		Flow<Node, Link<LinkQuality>, LinkQuality> reversePath = tuple.getFirst();
-
-		double cost = linkQuality.getReceptionPower();
-		return cost;
+	Function<ScalarLinkQuality, Double> metric = (linkQuality) -> {
+		return linkQuality.getScore();
 
 	};
 
-	@Override
-	public List<Flow<Node, Link<LinkQuality>, LinkQuality>> generatePaths(
-			MANET<Node, Link<LinkQuality>, LinkQuality, Flow<Node, Link<LinkQuality>, LinkQuality>> manet, int runs,
-			DataRate step) {
+	public List<ScalarRadioFlow> generatePaths(ScalarRadioMANET manet, int runs, DataRate step) {
 
 		DijkstraShortesFlow sp = new DijkstraShortesFlow(manet);
 
@@ -88,7 +79,7 @@ public class HighUtilizedMANETSecenario extends Scenario {
 
 		initializeDataRateRelations(step);
 
-		for (Flow<Node, Link<LinkQuality>, LinkQuality> flow : manet.getFlows()) {
+		for (ScalarRadioFlow flow : manet.getFlows()) {
 
 			sp.compute(flow, metric);
 		}
@@ -101,7 +92,7 @@ public class HighUtilizedMANETSecenario extends Scenario {
 			}
 			manet.undeployFlows();
 
-			for (Flow<Node, Link<LinkQuality>, LinkQuality> f : manet.getFlows()) {
+			for (ScalarRadioFlow f : manet.getFlows()) {
 
 				Long rate = flowCharacteristics.get(f.getID()).getSecond();
 
@@ -116,13 +107,13 @@ public class HighUtilizedMANETSecenario extends Scenario {
 
 			}
 
-			for (Flow<Node, Link<LinkQuality>, LinkQuality> f : manet.getFlows()) {
+			for (ScalarRadioFlow f : manet.getFlows()) {
 				manet.deployFlow(f);
 			}
 
 		}
 
-		for (Flow<Node, Link<LinkQuality>, LinkQuality> f : manet.getFlows()) {
+		for (ScalarRadioFlow f : manet.getFlows()) {
 			f.clear();
 			System.out.println(f.toString());
 		}

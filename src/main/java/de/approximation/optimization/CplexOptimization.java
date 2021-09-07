@@ -2,33 +2,27 @@ package de.approximation.optimization;
 
 import java.util.HashSet;
 import java.util.List;
-import java.util.Random;
 import java.util.Set;
 
-import de.deterministic.algorithm.DijkstraShortesFlow;
 import de.jgraphlib.util.Tuple;
-import de.manetmodel.network.Flow;
-import de.manetmodel.network.Link;
-import de.manetmodel.network.LinkQuality;
-import de.manetmodel.network.MANET;
-import de.manetmodel.network.Node;
+import de.manetmodel.network.scalar.ScalarRadioFlow;
+import de.manetmodel.network.scalar.ScalarRadioLink;
+import de.manetmodel.network.scalar.ScalarRadioMANET;
+import de.manetmodel.network.scalar.ScalarRadioNode;
 import de.parallelism.Optimization;
 import ilog.concert.IloException;
 import ilog.concert.IloIntVar;
 import ilog.concert.IloLinearIntExpr;
 import ilog.concert.IloLinearNumExpr;
 import ilog.concert.IloNumExpr;
-import ilog.concert.IloRange;
 import ilog.cplex.IloCplex;
 
-public class CplexOptimization<M extends MANET<Node, Link<LinkQuality>, LinkQuality, Flow<Node, Link<LinkQuality>, LinkQuality>>>
-		extends Optimization<Void, M> {
+public class CplexOptimization
+		extends Optimization<Void,ScalarRadioMANET> {
 
-	private Random random;
 
-	public CplexOptimization(M manet) {
+	public CplexOptimization(ScalarRadioMANET manet) {
 		super(manet);
-		this.random = new Random();
 	}
 
 	public Void execute() {
@@ -43,7 +37,6 @@ public class CplexOptimization<M extends MANET<Node, Link<LinkQuality>, LinkQual
 		/*
 		 * path arc
 		 */
-		System.out.println(manet.getEdge(46).getWeight().isActive());
 		try (IloCplex cplex = new IloCplex()) {
 
 			IloIntVar[][] x_f_l = new IloIntVar[manet.getFlows().size()][manet.getEdges().size()];
@@ -53,8 +46,8 @@ public class CplexOptimization<M extends MANET<Node, Link<LinkQuality>, LinkQual
 			/*
 			 * Decision varialbes initializatiopn:
 			 */
-			for (Flow<Node, Link<LinkQuality>, LinkQuality> f : manet.getFlows()) {
-				for (Link<LinkQuality> link : manet.getEdges()) {
+			for (ScalarRadioFlow f : manet.getFlows()) {
+				for (ScalarRadioLink link : manet.getEdges()) {
 
 					x_f_l[f.getID()][link.getID()] = cplex.boolVar();
 					x_f_l[f.getID()][link.getID()].setName(String.format("x^%d_[%d]_(%d,%d)", f.getID(), link.getID(),
@@ -74,21 +67,21 @@ public class CplexOptimization<M extends MANET<Node, Link<LinkQuality>, LinkQual
 			 * Guarantee same amount at incoming edges goes out at outgoing edges This also
 			 * includes unsplittable path guarantee
 			 */
-			for (Flow<Node, Link<LinkQuality>, LinkQuality> f : manet.getFlows()) {
+			for (ScalarRadioFlow f : manet.getFlows()) {
 
-				for (Node node : manet.getVertices()) {
+				for (ScalarRadioNode node : manet.getVertices()) {
 
 					IloLinearNumExpr unsplittablePath = cplex.linearNumExpr();
 					IloLinearNumExpr nodeEqualDemand = cplex.linearNumExpr();
-					List<Link<LinkQuality>> incomingEdgesOf = manet.getIncomingEdgesOf(node);
-					List<Link<LinkQuality>> outgoingEdgesOf = manet.getOutgoingEdgesOf(node);
+					List<ScalarRadioLink> incomingEdgesOf = manet.getIncomingEdgesOf(node);
+					List<ScalarRadioLink> outgoingEdgesOf = manet.getOutgoingEdgesOf(node);
 
-					for (Link<LinkQuality> link : incomingEdgesOf) {
+					for (ScalarRadioLink link : incomingEdgesOf) {
 						nodeEqualDemand.addTerm(+(int) f.getDataRate().get(), x_f_l[f.getID()][link.getID()]);
 						unsplittablePath.addTerm(+1, x_f_l[f.getID()][link.getID()]);
 					}
 
-					for (Link<LinkQuality> link : outgoingEdgesOf) {
+					for (ScalarRadioLink link : outgoingEdgesOf) {
 						nodeEqualDemand.addTerm(-(int) f.getDataRate().get(), x_f_l[f.getID()][link.getID()]);
 						unsplittablePath.addTerm(+1, x_f_l[f.getID()][link.getID()]);
 					}
@@ -109,12 +102,9 @@ public class CplexOptimization<M extends MANET<Node, Link<LinkQuality>, LinkQual
 			/*
 			 * if x^f_l == 1 -> y_l ==0 Identifies if a link is an active link or not
 			 */
-			IloNumExpr[] max = new IloNumExpr[manet.getEdges().size()];
-			for (Link<LinkQuality> currnetlink : manet.getEdges()) {
+			for (ScalarRadioLink currnetlink : manet.getEdges()) {
 
-				IloNumExpr[][] hasActiveLink = new IloNumExpr[manet.getEdges().size()][manet.getFlows().size()];
-
-				for (Flow<Node, Link<LinkQuality>, LinkQuality> f : manet.getFlows()) {
+				for (ScalarRadioFlow f : manet.getFlows()) {
 
 					cplex.add(cplex.ifThen(cplex.eq(x_f_l[f.getID()][currnetlink.getID()], 1),
 							cplex.eq(a_l[currnetlink.getID()], 0)));
@@ -125,13 +115,13 @@ public class CplexOptimization<M extends MANET<Node, Link<LinkQuality>, LinkQual
 			 * Capacity constraint: Ensures that if a link is active, c_l of l is greater or
 			 * equal the utilization
 			 */
-			for (Link<LinkQuality> currentlink : manet.getEdges()) {
+			for (ScalarRadioLink currentlink : manet.getEdges()) {
 
 				IloLinearIntExpr flowExpression = cplex.linearIntExpr();
 
-				for (Flow<Node, Link<LinkQuality>, LinkQuality> f : manet.getFlows()) {
+				for (ScalarRadioFlow f : manet.getFlows()) {
 
-					for (Link<LinkQuality> ul : manet.getUtilizedLinksOf(currentlink)) {
+					for (ScalarRadioLink ul : manet.getUtilizedLinksOf(currentlink)) {
 
 						flowExpression.addTerm((int) f.getDataRate().get(), x_f_l[f.getID()][ul.getID()]);
 						flowExpression.addTerm(-(int) f.getDataRate().get(), a_l[currentlink.getID()]);
@@ -140,26 +130,25 @@ public class CplexOptimization<M extends MANET<Node, Link<LinkQuality>, LinkQual
 
 				}
 
-				cplex.addGe((int) currentlink.getWeight().getTransmissionRate().get(), flowExpression);
+				cplex.addGe((int) currentlink.getTransmissionRate().get(), flowExpression);
 			}
 
 			/*
 			 * Determines worst instabil path of all x_^f_l which equals 1
 			 */
 			IloNumExpr[] minPathStabilityArray = new IloNumExpr[manet.getFlows().size()];
-			for (Flow<Node, Link<LinkQuality>, LinkQuality> f : manet.getFlows()) {
+			for (ScalarRadioFlow f : manet.getFlows()) {
 
 				IloNumExpr[] maxr = new IloNumExpr[manet.getEdges().size()];
-				for (Link<LinkQuality> link : manet.getEdges()) {
+				for (ScalarRadioLink link : manet.getEdges()) {
 
 					maxr[link.getID()] = cplex.prod(x_f_l[f.getID()][link.getID()],
-							link.getWeight().getReceptionPower());
+							link.getWeight().getReceptionConfidence());
 				}
 				minPathStabilityArray[f.getID()] = cplex.max(maxr);
 			}
 
 			IloNumExpr minPathInstabilityExpr = cplex.sum(minPathStabilityArray);
-
 			/*
 			 * Individual link instability
 			 */
@@ -169,7 +158,8 @@ public class CplexOptimization<M extends MANET<Node, Link<LinkQuality>, LinkQual
 
 				for (int i = 0; i < individualLinkStabilityMatrix[k].length; i++) {
 
-					individualLinkStabilityMatrix[k][i] = manet.getEdge(i).getWeight().getReceptionPower();
+					individualLinkStabilityMatrix[k][i] = manet.getEdge(i).getWeight().getReceptionConfidence();
+//					individualLinkStabilityMatrix[k][i] = 1;
 				}
 			}
 
@@ -179,26 +169,46 @@ public class CplexOptimization<M extends MANET<Node, Link<LinkQuality>, LinkQual
 				minLinkStabilityExpr[i] = cplex.scalProd(individualLinkStabilityMatrix[i], x_f_l[i]);
 
 			}
+			
+			
+			/*
+			 * Individual Speed instability
+			 */
+			double[][] individualspeedStabilityMatrix = new double[manet.getFlows().size()][manet.getEdges().size()];
+
+			for (int k = 0; k < individualspeedStabilityMatrix.length; k++) {
+
+				for (int i = 0; i < individualspeedStabilityMatrix[k].length; i++) {
+
+					individualspeedStabilityMatrix[k][i] = manet.getEdge(i).getWeight().getMobilityQuality();
+				}
+			}
+
+			IloNumExpr[] minSpeedStabilityExpr = new IloNumExpr[manet.getFlows().size()];
+			for (int i = 0; i < individualspeedStabilityMatrix.length; i++) {
+
+				minSpeedStabilityExpr[i] = cplex.scalProd(individualspeedStabilityMatrix[i], x_f_l[i]);
+
+			}
 
 			/*
 			 * Reduce number of 3 hop links which in total over utilize active links
 			 */
 			IloLinearNumExpr[] minHighUtilizedNearbyLinks = new IloLinearNumExpr[manet.getEdges().size()];
-			IloNumExpr[] minHighUtilizedNearbyLinksExpr = new IloNumExpr[manet.getEdges().size()];
-			for (Link<LinkQuality> link : manet.getEdges()) {
+			for (ScalarRadioLink link : manet.getEdges()) {
 
-				Set<Link<LinkQuality>> nearbyLinks = new HashSet<Link<LinkQuality>>();
+				Set<ScalarRadioLink> nearbyLinks = new HashSet<ScalarRadioLink>();
 
-				for (Link<LinkQuality> ulink : manet.getUtilizedLinksOf(link)) {
+				for (ScalarRadioLink ulink : manet.getUtilizedLinksOf(link)) {
 
 					nearbyLinks.add(ulink);
 					nearbyLinks.addAll(manet.getNeighboringEdgesOf(ulink));
 				}
 
 				minHighUtilizedNearbyLinks[link.getID()] = cplex.linearNumExpr();
-				for (Flow<Node, Link<LinkQuality>, LinkQuality> flow : manet.getFlows()) {
+				for (ScalarRadioFlow flow : manet.getFlows()) {
 
-					for (Link<LinkQuality> nearbyLink : nearbyLinks) {
+					for (ScalarRadioLink nearbyLink : nearbyLinks) {
 
 						minHighUtilizedNearbyLinks[link.getID()].addTerm((int) flow.getDataRate().get(),
 								x_f_l[flow.getID()][nearbyLink.getID()]);
@@ -215,7 +225,8 @@ public class CplexOptimization<M extends MANET<Node, Link<LinkQuality>, LinkQual
 
 //			cplex.addMinimize(cplex.sum(minPathInstabilityExpr, cplex.sum(minLinkStabilityExpr)));
 			cplex.addMinimize(cplex.sum(cplex.sum(cplex.sum(minHighUtilizedNearbyLinks), cplex.sum(minLinkStabilityExpr)),minPathInstabilityExpr));
-//			cplex.addMinimize(cplex.sum(minHighUtilizedNearbyLinks));
+//			cplex.addMinimize(cplex.sum(minLinkStabilityExpr));
+//			cplex.addMinimize(cplex.sum(cplex.sum(minSpeedStabilityExpr),cplex.sum(minLinkStabilityExpr)));
 //			cplex.setParam(IloCplex.Param.MIP.Limits.Solutions, 1);
 			cplex.setParam(IloCplex.Param.Threads, Runtime.getRuntime().availableProcessors());
 //			cplex.setParam(IloCplex.Param.Tune.TimeLimit,1);
@@ -226,19 +237,18 @@ public class CplexOptimization<M extends MANET<Node, Link<LinkQuality>, LinkQual
 			System.out.println("Solution value  = " + cplex.getObjValue());
 			System.out.println("Solution vector:");
 
-			cplex.exportModel("FixNet.lp");
 
 			for (int i = 0; i < x_f_l.length; i++) {
-				Flow<Node, Link<LinkQuality>, LinkQuality> flow = manet.getFlow(i);
+				ScalarRadioFlow flow = manet.getFlow(i);
 				int index = 0;
-				Node node = flow.getSource();
+				ScalarRadioNode node = flow.getSource();
 				while (node.getID() != flow.getTarget().getID()) {
 
-					List<Link<LinkQuality>> oLinks = manet.getOutgoingEdgesOf(node);
+					List<ScalarRadioLink> oLinks = manet.getOutgoingEdgesOf(node);
 
-					for (Link<LinkQuality> link : oLinks) {
+					for (ScalarRadioLink link : oLinks) {
 						if (cplex.getValue(x_f_l[i][link.getID()]) > 0) {
-							flow.add(new Tuple<Link<LinkQuality>, Node>(link, manet.getTargetOf(link)));
+							flow.add(new Tuple<ScalarRadioLink, ScalarRadioNode>(link, manet.getTargetOf(link)));
 							break;
 						}
 

@@ -5,30 +5,26 @@ import java.util.function.Function;
 
 import de.deterministic.algorithm.DijkstraShortesFlow;
 import de.jgraphlib.util.Tuple;
-import de.manetmodel.network.Flow;
-import de.manetmodel.network.Link;
-import de.manetmodel.network.LinkQuality;
-import de.manetmodel.network.MANET;
-import de.manetmodel.network.Node;
-import de.manetmodel.network.unit.DataRate;
+import de.manetmodel.network.scalar.ScalarLinkQuality;
+import de.manetmodel.network.scalar.ScalarRadioFlow;
+import de.manetmodel.network.scalar.ScalarRadioLink;
+import de.manetmodel.network.scalar.ScalarRadioMANET;
+import de.manetmodel.network.scalar.ScalarRadioNode;
 import de.manetmodel.util.Selection;
 import de.parallelism.Optimization;
 
-public class AllCombinationOptimization<M extends MANET<Node, Link<LinkQuality>, LinkQuality, Flow<Node, Link<LinkQuality>, LinkQuality>>>
-		extends Optimization<Void, M> {
+public class AllCombinationOptimization extends Optimization<Void, ScalarRadioMANET> {
 
 	protected DijkstraShortesFlow sp;
 
-	public AllCombinationOptimization(M manet) {
+	public AllCombinationOptimization(ScalarRadioMANET manet) {
 		super(manet);
 		sp = new DijkstraShortesFlow(manet);
 	}
 
-	Function<Tuple<Flow<Node, Link<LinkQuality>, LinkQuality>,LinkQuality>, Double> metric = (tuple) -> {
-		LinkQuality linkQuality = tuple.getSecond();
-		Flow<Node, Link<LinkQuality>, LinkQuality> reversePath = tuple.getFirst();
+	Function< ScalarLinkQuality, Double> metric = (linkQuality) -> {
 
-		return  linkQuality.getReceptionPower();
+		return linkQuality.getReceptionConfidence();
 
 	};
 
@@ -72,14 +68,19 @@ public class AllCombinationOptimization<M extends MANET<Node, Link<LinkQuality>,
 			index++;
 		}
 
+		ScalarRadioFlow flow = manet.getFlow(flowCombinations.get(bestCombination).get(0));
+		for (ScalarRadioLink link : flow.getEdges()) {
+			System.out.println(link.getWeight().getReceptionConfidence());
+		}
 		deploySolution(flowCombinations.get(bestCombination));
+
 		return null;
 	}
 
 	private void deploySolution(List<Integer> flowIds) {
 		manet.undeployFlows();
 		for (int fId : flowIds) {
-			Flow<Node, Link<LinkQuality>, LinkQuality> flow = manet.getFlow(fId);
+			ScalarRadioFlow flow = manet.getFlow(fId);
 			flow.clear();
 			flow = sp.compute(flow, metric);
 			manet.deployFlow(flow);
