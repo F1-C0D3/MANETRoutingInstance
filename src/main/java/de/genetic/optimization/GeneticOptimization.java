@@ -3,6 +3,7 @@ package de.genetic.optimization;
 import java.util.List;
 import java.util.Random;
 
+import de.jgraphlib.util.RandomNumbers;
 import de.jgraphlib.util.Tuple;
 import de.manetmodel.network.scalar.ScalarRadioMANET;
 import de.parallelism.Optimization;
@@ -17,28 +18,28 @@ import de.terministic.serein.core.StatsListener;
 import de.terministic.serein.core.selection.individual.TournamentSelection;
 import de.terministic.serein.core.termination.TerminationConditionGenerations;
 
-public class GeneticOptimization extends
-		Optimization<PathComposition, ScalarRadioMANET> {
+public class GeneticOptimization extends Optimization<PathComposition, ScalarRadioMANET> {
 
 	private GenesManetGraphTranslator translator;
 
-	final int populationSize;
-	final int generations;
+	private final int populationSize;
+	private final int generations;
+
+	private RandomNumbers random;
 
 	public GeneticOptimization(
 			ScalarRadioMANET manet,
-			int populationSize, int generations) {
+			int populationSize, int generations,RandomNumbers random) {
 		super(manet);
 		this.generations = generations;
 		this.populationSize = populationSize;
+		this.random=random;
 		translator = new GenesManetGraphTranslator(manet);
 
 	}
 
-
 	public PathComposition execute() {
 
-		Random random = new Random(1233);
 		List<List<Tuple<Integer, Integer>>> manetGraphPhenotoGeno = translator.manetGraphPhenotoGeno();
 		List<Tuple<Integer, Integer>> flowsPhenoToGeno = translator.flowsPhenoToGeno();
 		List<List<Integer>> manetVerticesPhenoToGeno = translator.manetVerticesPhenoToGeno();
@@ -58,12 +59,12 @@ public class GeneticOptimization extends
 		initialIndividual.setMutation(mutation);
 		initialIndividual.setMateSelection(new TournamentSelection<>(fitness, 3));
 		Population<PathComposition> initialPopulation = Populations.generatePopulation(initialIndividual,
-				populationSize, random);
+				populationSize, random.getDoubleRandom());
 		// assembling the metaheuristic
 		AlgorithmFactory<PathComposition> factory = new AlgorithmFactory<>();
 		factory.termination = termination;
 		EvolutionEnvironment<PathComposition> algo = factory.createReferenceEvolutionaryAlgorithm(fitness,
-				initialPopulation, random);
+				initialPopulation, random.getDoubleRandom());
 
 		StatsListener<PathComposition> listener = new StatsListener<PathComposition>(fitness, 1);
 		algo.addListener(listener);

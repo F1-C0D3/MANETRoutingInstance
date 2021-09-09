@@ -1,5 +1,7 @@
 package de.genetic.app;
 
+import java.util.List;
+
 import de.genetic.optimization.PathComposition;
 import de.manetmodel.network.scalar.ScalarLinkQuality;
 import de.manetmodel.network.scalar.ScalarRadioFlow;
@@ -28,16 +30,10 @@ public class GeneticRun extends ExecutionCallable<ScalarRadioFlow, ScalarRadioNo
 	}
 
 	@Override
-	public Void call() {
+	public List<ScalarRadioFlow> call() {
 		PathComposition pc = this.op.execute();
 		Time duration = op.stop();
-		ScalarRadioMANET manet = op.getManet();
-
-		for (ScalarRadioFlow flow : pc.flows) {
-			manet.deployFlow(flow);
-		}
-
 		this.resultRecorder.recordRun(op.getManet(), runResultMapper, duration);
-		return null;
+		return pc.getFlows();
 	}
 }

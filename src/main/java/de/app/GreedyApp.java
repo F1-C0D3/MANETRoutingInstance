@@ -20,12 +20,12 @@ import ilog.concert.IloException;
 
 public class GreedyApp extends App {
 
-	public GreedyApp(int runs, Scenario scenario) {
+	public GreedyApp(int runs, HighUtilizedMANETSecenario scenario) {
 		super(runs, scenario);
 	}
 
 	public static void main(String[] args) throws InterruptedException, ExecutionException, IloException, InvocationTargetException {
-		HighUtilizedMANETSecenario scenario = new HighUtilizedMANETSecenario("greedy", 3, 100, 1);
+		HighUtilizedMANETSecenario scenario = new HighUtilizedMANETSecenario("greedy", 7, 100, 1);
 		GreedyApp greedyApp = new GreedyApp(1, scenario);
 
 		greedyApp.execute();

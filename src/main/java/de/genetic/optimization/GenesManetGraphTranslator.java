@@ -2,6 +2,7 @@ package de.genetic.optimization;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.TreeMap;
 
 import de.jgraphlib.util.Tuple;
 import de.manetmodel.network.scalar.ScalarRadioFlow;
@@ -46,8 +47,8 @@ public class GenesManetGraphTranslator implements Translator<PathComposition, Gr
 
 	public List<List<Tuple<Integer, Integer>>> manetGraphPhenotoGeno() {
 		List<List<Tuple<Integer, Integer>>> result = new ArrayList<List<Tuple<Integer, Integer>>>();
-		List<ArrayList<Tuple<Integer, Integer>>> vertexAdjacencies = manet.getVertexAdjacencies();
-		for (List<Tuple<Integer, Integer>> vertexAdjacency : vertexAdjacencies) {
+		TreeMap<Integer,ArrayList<Tuple<Integer, Integer>>> vertexAdjacencies =  manet.getVertexAdjacencies();
+		for (List<Tuple<Integer, Integer>> vertexAdjacency : vertexAdjacencies.values()) {
 			List<Tuple<Integer, Integer>> tupleList = new ArrayList<Tuple<Integer, Integer>>();
 
 			for (Tuple<Integer, Integer> mapping : vertexAdjacency) {

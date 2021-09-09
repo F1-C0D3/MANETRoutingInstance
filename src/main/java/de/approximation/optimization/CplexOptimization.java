@@ -17,9 +17,7 @@ import ilog.concert.IloLinearNumExpr;
 import ilog.concert.IloNumExpr;
 import ilog.cplex.IloCplex;
 
-public class CplexOptimization
-		extends Optimization<Void,ScalarRadioMANET> {
-
+public class CplexOptimization extends Optimization<Void, ScalarRadioMANET> {
 
 	public CplexOptimization(ScalarRadioMANET manet) {
 		super(manet);
@@ -46,6 +44,7 @@ public class CplexOptimization
 			/*
 			 * Decision varialbes initializatiopn:
 			 */
+			System.out.println(manet.getFlows().size());
 			for (ScalarRadioFlow f : manet.getFlows()) {
 				for (ScalarRadioLink link : manet.getEdges()) {
 
@@ -158,7 +157,7 @@ public class CplexOptimization
 
 				for (int i = 0; i < individualLinkStabilityMatrix[k].length; i++) {
 
-					individualLinkStabilityMatrix[k][i] =1- manet.getEdge(i).getWeight().getReceptionConfidence();
+					individualLinkStabilityMatrix[k][i] =  manet.getEdge(i).getWeight().getReceptionConfidence();
 //					individualLinkStabilityMatrix[k][i] = 1;
 				}
 			}
@@ -169,8 +168,7 @@ public class CplexOptimization
 				minLinkStabilityExpr[i] = cplex.scalProd(individualLinkStabilityMatrix[i], x_f_l[i]);
 
 			}
-			
-			
+
 			/*
 			 * Individual Speed instability
 			 */
@@ -180,7 +178,7 @@ public class CplexOptimization
 
 				for (int i = 0; i < individualspeedStabilityMatrix[k].length; i++) {
 
-					individualspeedStabilityMatrix[k][i] = 1-manet.getEdge(i).getWeight().getMobilityQuality();
+					individualspeedStabilityMatrix[k][i] = manet.getEdge(i).getWeight().getMobilityQuality();
 				}
 			}
 
@@ -229,38 +227,39 @@ public class CplexOptimization
 //			cplex.addMinimize(cplex.sum(cplex.sum(minSpeedStabilityExpr),cplex.sum(minLinkStabilityExpr)));
 //			cplex.setParam(IloCplex.Param.MIP.Limits.Solutions, 1);
 			cplex.setParam(IloCplex.Param.Threads, Runtime.getRuntime().availableProcessors());
-//			cplex.setParam(IloCplex.Param.Tune.TimeLimit,1);
+			cplex.setParam(IloCplex.Param.MIP.Display, 0);
 
-			cplex.solve();
-			// Write solution value and objective to the screen.
-			System.out.println("Solution status: " + cplex.getStatus());
-			System.out.println("Solution value  = " + cplex.getObjValue());
-			System.out.println("Solution vector:");
+			if (cplex.solve()) {
 
+				for (int i = 0; i < x_f_l.length; i++) {
+					ScalarRadioFlow flow = manet.getFlow(i);
+					int index = 0;
+					ScalarRadioNode node = flow.getSource();
+					while (node.getID() != flow.getTarget().getID()) {
 
-			for (int i = 0; i < x_f_l.length; i++) {
-				ScalarRadioFlow flow = manet.getFlow(i);
-				int index = 0;
-				ScalarRadioNode node = flow.getSource();
-				while (node.getID() != flow.getTarget().getID()) {
+						List<ScalarRadioLink> oLinks = manet.getOutgoingEdgesOf(node);
 
-					List<ScalarRadioLink> oLinks = manet.getOutgoingEdgesOf(node);
+						for (ScalarRadioLink link : oLinks) {
+							if (cplex.getValue(x_f_l[i][link.getID()]) > 0) {
+								flow.add(new Tuple<ScalarRadioLink, ScalarRadioNode>(link, manet.getTargetOf(link)));
+								break;
+							}
 
-					for (ScalarRadioLink link : oLinks) {
-						if (cplex.getValue(x_f_l[i][link.getID()]) > 0) {
-							flow.add(new Tuple<ScalarRadioLink, ScalarRadioNode>(link, manet.getTargetOf(link)));
-							break;
 						}
+						index++;
+						node = flow.get(index).getSecond();
 
 					}
-					index++;
-					node = flow.get(index).getSecond();
+
+					manet.deployFlow(flow);
 
 				}
-
-				manet.deployFlow(flow);
-				
 			}
+			// Write solution value and objective to the screen.
+//			System.out.println("Solution status: " + cplex.getStatus());
+//			System.out.println("Solution value  = " + cplex.getObjValue());
+//			System.out.println("Solution vector:");
+
 		} catch (
 
 		IloException e) {

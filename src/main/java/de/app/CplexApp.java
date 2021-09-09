@@ -5,6 +5,7 @@ import java.util.concurrent.ExecutionException;
 
 import de.approximation.app.ApproximationRun;
 import de.approximation.optimization.CplexOptimization;
+import de.jgraphlib.util.RandomNumbers;
 import de.manetmodel.network.scalar.ScalarLinkQuality;
 import de.manetmodel.network.scalar.ScalarRadioFlow;
 import de.manetmodel.network.scalar.ScalarRadioLink;
@@ -21,13 +22,13 @@ import ilog.concert.IloException;
 public class CplexApp extends App {
 
 	public static void main(String[] args) throws InterruptedException, ExecutionException, IloException, InvocationTargetException {
-		HighUtilizedMANETSecenario scenario = new HighUtilizedMANETSecenario("cplex",7 , 100,1);
-		CplexApp app = new CplexApp(1, scenario);
+		Scenario scenario = new Scenario("cplex_both",7 , 100,1);
+		CplexApp app = new CplexApp(5, scenario,RandomNumbers.getInstance(0));
 		app.execute();
 	}
 
-	public CplexApp(int runs, HighUtilizedMANETSecenario scenario) {
-		super(runs, scenario);
+	public CplexApp(int runs, Scenario scenario,RandomNumbers random) {
+		super(runs, scenario,random);
 	}
 
 

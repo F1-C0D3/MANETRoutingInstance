@@ -22,10 +22,8 @@ public class AllCombinationOptimization extends Optimization<Void, ScalarRadioMA
 		sp = new DijkstraShortesFlow(manet);
 	}
 
-	Function< ScalarLinkQuality, Double> metric = (linkQuality) -> {
-
-		return 1d-linkQuality.getReceptionConfidence();
-
+	Function<ScalarLinkQuality, Double> metric = (linkQuality) -> {
+		return  1d;
 	};
 
 	@Override

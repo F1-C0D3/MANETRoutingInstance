@@ -1,10 +1,12 @@
 package de.app;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.Random;
 import java.util.concurrent.ExecutionException;
 
 import de.deterministic.app.DeterministicRun;
 import de.deterministic.optimization.AllCombinationOptimization;
+import de.jgraphlib.util.RandomNumbers;
 import de.manetmodel.network.scalar.ScalarLinkQuality;
 import de.manetmodel.network.scalar.ScalarRadioFlow;
 import de.manetmodel.network.scalar.ScalarRadioLink;
@@ -22,17 +24,17 @@ public class AllCompApp extends App {
 
 	public static void main(String[] args) throws InterruptedException, ExecutionException, IloException, InvocationTargetException {
 
-		HighUtilizedMANETSecenario scenario = new HighUtilizedMANETSecenario("allCombination", 7, 100, 1);
+		Scenario scenario = new Scenario("allCombination", 7, 100, 1);
 
-		AllCompApp allComp = new AllCompApp(1, scenario);
+		AllCompApp allComp = new AllCompApp(5, scenario, RandomNumbers.getInstance(0));
 
 		allComp.execute();
 
 //	System.exit(0);
 	}
 
-	public AllCompApp(int runs, HighUtilizedMANETSecenario scenario) {
-		super(runs, scenario);
+	public AllCompApp(int runs, Scenario scenario,RandomNumbers random) {
+		super(runs, scenario,random);
 	}
 
 	@Override

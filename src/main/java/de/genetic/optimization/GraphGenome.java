@@ -48,7 +48,7 @@ public class GraphGenome extends ValueGenome<List<Integer>> {
 	private List<Integer> generateRandomPath(int sourceGene, int targetGene, Random random) {
 		List<Integer> pathChromosome = new ArrayList<Integer>();
 		List<Integer> visited = new ArrayList<Integer>();
-
+		
 		while (targetGene != sourceGene) {
 			List<Tuple<Integer, Integer>> sinkGenes = new ArrayList<Tuple<Integer, Integer>>();
 			sinkGenes.addAll(adjacencyGenesList.get(sourceGene));

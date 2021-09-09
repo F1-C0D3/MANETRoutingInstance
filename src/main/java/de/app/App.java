@@ -16,6 +16,8 @@ import com.opencsv.exceptions.CsvRequiredFieldEmptyException;
 
 import de.jgraphlib.graph.generator.GraphProperties.DoubleRange;
 import de.jgraphlib.graph.generator.GraphProperties.IntRange;
+import de.approximation.app.ApproximationRun;
+import de.approximation.optimization.CplexOptimization;
 import de.jgraphlib.graph.generator.NetworkGraphGenerator;
 import de.jgraphlib.graph.generator.NetworkGraphProperties;
 import de.jgraphlib.gui.VisualGraphApp;
@@ -27,6 +29,7 @@ import de.manetmodel.generator.OverUtilizedProblemProperties;
 import de.manetmodel.generator.OverUtilzedProblemGenerator;
 import de.manetmodel.gui.LinkQualityScorePrinter;
 import de.manetmodel.mobilitymodel.PedestrianMobilityModel;
+import de.manetmodel.network.Flow;
 import de.manetmodel.network.scalar.ScalarLinkQuality;
 import de.manetmodel.network.scalar.ScalarRadioFlow;
 import de.manetmodel.network.scalar.ScalarRadioLink;
@@ -55,11 +58,13 @@ public abstract class App {
 	private int runs;
 	private Scenario scenario;
 	ExecutorService executor;
-	private List<ScalarRadioLink> edges;
+	private RandomNumbers random;
+	private List<ScalarRadioFlow> list;
 
-	public App(int runs, HighUtilizedMANETSecenario scenario) {
+	public App(int runs, Scenario scenario,RandomNumbers random) {
 		this.runs = runs;
 		this.scenario = scenario;
+		this.random = random;
 		this.executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
 	}
 
@@ -88,12 +93,11 @@ public abstract class App {
 		while (runs > 0) {
 
 			// Define Mobility Model
-			PedestrianMobilityModel mobilityModel = new PedestrianMobilityModel(RandomNumbers.getInstance(runs),
+			PedestrianMobilityModel mobilityModel = new PedestrianMobilityModel(random,
 					new SpeedRange(2d, 10d, Unit.TimeSteps.hour, Unit.Distance.kilometer),
 					new Time(Unit.TimeSteps.second, 30l), new Speed(1.2d, Unit.Distance.kilometer, Unit.TimeSteps.hour),
 					10);
 
-			
 			double maxCommunicationRange = 100d;
 			// Set RadioModel
 			ScalarRadioModel radioModel = new ScalarRadioModel(new Watt(0.001d), new Watt(1e-11), 2000000d, 2412000000d,
@@ -114,27 +118,39 @@ public abstract class App {
 					/* distance between vertices */ new DoubleRange(45d, maxCommunicationRange),
 					/* edge distance */ new DoubleRange(100, 100));
 			NetworkGraphGenerator<ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality> networkGraphGenerator = new NetworkGraphGenerator<ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality>(
-					manet, RandomNumbers.getInstance(runs));
+					manet, random);
 			networkGraphGenerator.generate(properties);
 			manet.initialize();
 
-			Function<ScalarLinkQuality, Double> metric = (ScalarLinkQuality q) -> {
-				return q.getReceptionConfidence();
+			Function<ScalarLinkQuality, Double> metric = (ScalarLinkQuality w) -> {
+				return w.getDistance();
 			};
 
 			OverUtilzedProblemGenerator<ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality, ScalarRadioFlow> overUtilizedProblemGenerator = new OverUtilzedProblemGenerator<ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality, ScalarRadioFlow>(
 					manet, metric);
 
-			
-			
-			
-			ScalarRadioFlow f1 = new ScalarRadioFlow(manet.getVertex(38),manet.getVertex(63),new DataRate(1d,Type.megabit));
-			ScalarRadioFlow f2 = new ScalarRadioFlow(manet.getVertex(71),manet.getVertex(100),new DataRate(2d,Type.megabit));
-//			ScalarRadioFlow f3 = new ScalarRadioFlow(manet.getVertex(22),manet.getVertex(53),new DataRate(2d,Type.megabit));
-			
-			manet.addFlow(f1);
-			manet.addFlow(f2);
+			OverUtilizedProblemProperties problemProperties = new OverUtilizedProblemProperties();
+			problemProperties.pathCount = 1;
+			problemProperties.minLength = 10;
+			problemProperties.maxLength = 20;
+			problemProperties.minDemand = new DataRate(100);
+			problemProperties.maxDemand = new DataRate(200);
+			problemProperties.overUtilizationPercentage = 2;
+			problemProperties.uniqueSourceDestination = true;
+
+			List<ScalarRadioFlow> flowProblems = overUtilizedProblemGenerator.compute(problemProperties,random);
+			manet.addFlows(flowProblems);
+//			ScalarRadioFlow f1 = new ScalarRadioFlow(manet.getVertex(0), manet.getVertex(99),
+//					new DataRate(1, Type.megabit));
+//			ScalarRadioFlow f2 = new ScalarRadioFlow(manet.getVertex(10), manet.getVertex(89),
+//					new DataRate(1, Type.megabit));
+//
+//			ScalarRadioFlow f3 = new ScalarRadioFlow(manet.getVertex(20), manet.getVertex(79),
+//					new DataRate(1, Type.megabit));
+//			manet.addFlow(f1);
+//			manet.addFlow(f2);
 //			manet.addFlow(f3);
+			System.out.println("start");
 			// Define individual run result recorder
 			ColumnPositionMappingStrategy<RunResultParameter> individualMappingStrategy = new ColumnPositionMappingStrategy<RunResultParameter>() {
 				@Override
@@ -151,21 +167,28 @@ public abstract class App {
 			ExecutionCallable<ScalarRadioFlow, ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality> run = this
 					.configureRun(manet, resultRecorder, runResultMapper);
 
-			Future<Void> futureFlows = executor.submit(run);
+			Future<List<ScalarRadioFlow>> futureFlows = executor.submit(run);
 			futureFlows.get();
 			boolean taskFinished = false;
 			while (!taskFinished) {
 				taskFinished = futureFlows.isDone();
 
 			}
+			
+			List<ScalarRadioFlow> list2 = futureFlows.get();
+			manet.deployFlows(list2);
+//			CplexOptimization op = new CplexOptimization(manet);
+//			ApproximationRun approximationRun = new ApproximationRun(op, resultRecorder, runResultMapper);
+//			approximationRun.call();
 
-			runs--;
+			System.out.println(runs--);
 //
 //			VisualGraphApp<ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality> visualGraphApp = new VisualGraphApp<ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality>(
 //					manet, new LinkQualityScorePrinter<ScalarLinkQuality>());
 
 			SwingUtilities.invokeAndWait(new VisualGraphApp<ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality>(manet,
 					new LinkQualityScorePrinter<ScalarLinkQuality>()));
+
 		}
 
 		executor.shutdown();
