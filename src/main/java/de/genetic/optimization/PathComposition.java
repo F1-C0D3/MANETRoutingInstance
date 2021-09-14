@@ -2,8 +2,10 @@ package de.genetic.optimization;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import de.jgraphlib.util.Tuple;
 import de.manetmodel.network.scalar.ScalarRadioFlow;
@@ -51,6 +53,7 @@ public class PathComposition {
 		return null;
 	}
 
+
 	public double getDistance() {
 		double distance = 0d;
 		int numLinks = 0;
@@ -61,17 +64,17 @@ public class PathComposition {
 				distance += link.getWeight().getDistance();
 			}
 		}
-		
-		return 1-((distance)/(100d*numLinks));
+
+		return 1 - ((distance) / (100d * numLinks));
 	}
-	
+
 	public double getNumLinks() {
 		int numLinks = 0;
 
 		for (ScalarRadioFlow flow : flows) {
 			numLinks += flow.size() - 1;
 		}
-		
+
 		return numLinks;
 	}
 
@@ -129,6 +132,21 @@ public class PathComposition {
 		}
 
 		return receptionPowerMean / numLinks;
+	}
+
+	public double meanReceptionConfidence() {
+		double receptionConfidenceMean = 0d;
+		int numLinks = 0;
+
+		for (ScalarRadioFlow flow : flows) {
+			numLinks += flow.size() - 1;
+
+			for (ScalarRadioLink link : flow.getEdges()) {
+				receptionConfidenceMean += link.getWeight().getReceptionConfidence();
+			}
+		}
+
+		return receptionConfidenceMean / numLinks;
 	}
 
 	public double meanMobilityQuality() {

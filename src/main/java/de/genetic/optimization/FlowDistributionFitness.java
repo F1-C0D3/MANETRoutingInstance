@@ -9,7 +9,6 @@ import de.terministic.serein.api.Individual;
 import de.terministic.serein.core.fitness.AbstractFitnessFunction;
 
 public class FlowDistributionFitness<W> extends AbstractFitnessFunction<PathComposition> {
-
 	// over utilization weight
 	double ouW = 0.51;
 
@@ -17,9 +16,11 @@ public class FlowDistributionFitness<W> extends AbstractFitnessFunction<PathComp
 	double mW = 0.49;
 
 	// reception power weight
-	double rpW = 0.20;
-	
-	double uW = 0.49;
+	double rcW = 0.10;
+
+	double uW = 0.39;
+
+	private double maxOverUtilization = 0d;
 
 	@Override
 	public boolean isNaturalOrder() {
@@ -29,7 +30,6 @@ public class FlowDistributionFitness<W> extends AbstractFitnessFunction<PathComp
 
 	@Override
 	protected Double calculateFitness(Individual<PathComposition, ?> individual) {
-
 		PathComposition pc = individual.getPhenotype();
 
 		ScalarRadioMANET manet = pc.getManet();
@@ -39,24 +39,27 @@ public class FlowDistributionFitness<W> extends AbstractFitnessFunction<PathComp
 //		/* Compute entire manet capacity */
 		DataRate manetCapacity = manet.getCapacity();
 
-		
 		DataRate networkUtilization = manet.getUtilization();
 		double utilizationNormalized = ((1d / manetCapacity.get()) * networkUtilization.get()) * uW;
-		
+
 //		/* Data rate over utilized */
 		DataRate overUtilization = manet.getOverUtilization();
-		double overUtilizationNormalized=0d;
-		if(overUtilization.get()>0)
-		 overUtilizationNormalized = 1 * ouW;
+		double overUtilizationNormalized = 0d;
+		if (overUtilization.get() > 0) {
 
-		
-		double receptionPower = pc.meanLinkReception() * rpW;
+			if (maxOverUtilization < overUtilization.get())
+				maxOverUtilization = overUtilization.get();
+
+			overUtilizationNormalized = 1d * ouW;
+		}
+
+		double receptionPower = pc.meanReceptionConfidence() * rcW;
 
 		double mobilityQuality = pc.meanMobilityQuality() * mW;
-		
-		double distance = pc.getNumLinks();
+
+		double distance = (pc.getNumLinks() / (double) manet.getEdges().size()) * uW;
 		manet.undeployFlows();
-		return utilizationNormalized;
+		return overUtilizationNormalized + utilizationNormalized+receptionPower;
 	}
 
 }

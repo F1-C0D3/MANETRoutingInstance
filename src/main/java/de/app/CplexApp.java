@@ -1,5 +1,6 @@
 package de.app;
 
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.concurrent.ExecutionException;
 
@@ -21,9 +22,9 @@ import ilog.concert.IloException;
 
 public class CplexApp extends App {
 
-	public static void main(String[] args) throws InterruptedException, ExecutionException, IloException, InvocationTargetException {
-		Scenario scenario = new Scenario("cplex_both",7 , 100,1);
-		CplexApp app = new CplexApp(5, scenario,RandomNumbers.getInstance(0));
+	public static void main(String[] args) throws InterruptedException, ExecutionException, IloException, InvocationTargetException, IOException {
+		Scenario scenario = new Scenario("cplex_both",1 , 60,1);
+		CplexApp app = new CplexApp(1, scenario,RandomNumbers.getInstance(0));
 		app.execute();
 	}
 

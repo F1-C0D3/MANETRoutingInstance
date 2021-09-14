@@ -1,6 +1,9 @@
 
 package de.approximation.app;
 
+import java.util.List;
+
+import de.approximation.optimization.CplexOptimization;
 import de.manetmodel.network.scalar.ScalarLinkQuality;
 import de.manetmodel.network.scalar.ScalarRadioFlow;
 import de.manetmodel.network.scalar.ScalarRadioLink;
@@ -16,11 +19,11 @@ import de.parallelism.Optimization;
 
 public class ApproximationRun
 		extends ExecutionCallable<ScalarRadioFlow, ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality> {
-	private Optimization<Void, ScalarRadioMANET> op;
+	private CplexOptimization op;
 	private MANETResultRecorder<RunResultParameter, AverageResultParameter> resultRecorder;
 	private RunResultMapper<RunResultParameter, ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality> runResultMapper;
 
-	public ApproximationRun(Optimization<Void, ScalarRadioMANET> op,
+	public ApproximationRun(CplexOptimization op,
 			MANETResultRecorder<RunResultParameter, AverageResultParameter> resultRecorder,
 			RunResultMapper<RunResultParameter, ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality> runResultMapper) {
 		this.op = op;
@@ -29,11 +32,11 @@ public class ApproximationRun
 	}
 
 	@Override
-	public Void call() {
-		this.op.execute();
+	public ScalarRadioMANET call() {
+		ScalarRadioMANET manet = this.op.execute();
 		Time duration = this.op.stop();
-		this.resultRecorder.recordRun(op.getManet(), runResultMapper, duration);
-		return null;
+		this.resultRecorder.recordRun(manet, runResultMapper, duration);
+		return manet;
 	}
 
 }

@@ -1,6 +1,8 @@
 package de.app;
 
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -18,6 +20,8 @@ import de.jgraphlib.graph.generator.GraphProperties.DoubleRange;
 import de.jgraphlib.graph.generator.GraphProperties.IntRange;
 import de.approximation.app.ApproximationRun;
 import de.approximation.optimization.CplexOptimization;
+import de.genetic.app.GeneticRun;
+import de.genetic.optimization.GeneticOptimization;
 import de.jgraphlib.graph.generator.NetworkGraphGenerator;
 import de.jgraphlib.graph.generator.NetworkGraphProperties;
 import de.jgraphlib.gui.VisualGraphApp;
@@ -28,6 +32,7 @@ import de.manetmodel.evaluator.ScalarLinkQualityEvaluator;
 import de.manetmodel.generator.OverUtilizedProblemProperties;
 import de.manetmodel.generator.OverUtilzedProblemGenerator;
 import de.manetmodel.gui.LinkQualityScorePrinter;
+import de.manetmodel.gui.LinkUtilizationPrinter;
 import de.manetmodel.mobilitymodel.PedestrianMobilityModel;
 import de.manetmodel.network.Flow;
 import de.manetmodel.network.scalar.ScalarLinkQuality;
@@ -59,20 +64,21 @@ public abstract class App {
 	private Scenario scenario;
 	ExecutorService executor;
 	private RandomNumbers random;
-	private List<ScalarRadioFlow> list;
+	private List<Future<ScalarRadioMANET>> futureList;
 
-	public App(int runs, Scenario scenario,RandomNumbers random) {
+	public App(int runs, Scenario scenario, RandomNumbers random) {
 		this.runs = runs;
 		this.scenario = scenario;
 		this.random = random;
 		this.executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+		this.futureList = new ArrayList<Future<ScalarRadioMANET>>();
 	}
 
 	public abstract ExecutionCallable<ScalarRadioFlow, ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality> configureRun(
 			ScalarRadioMANET manet, MANETResultRecorder<RunResultParameter, AverageResultParameter> resultRecorder,
 			RunResultMapper<RunResultParameter, ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality> runResultMapper);
 
-	protected void execute() throws InvocationTargetException, InterruptedException, ExecutionException {
+	protected void execute() throws InvocationTargetException, InterruptedException, ExecutionException, IOException {
 
 		/* Result recording options for further evaluation */
 		MANETResultRecorder<RunResultParameter, AverageResultParameter> resultRecorder = new MANETResultRecorder<RunResultParameter, AverageResultParameter>(
@@ -130,7 +136,7 @@ public abstract class App {
 					manet, metric);
 
 			OverUtilizedProblemProperties problemProperties = new OverUtilizedProblemProperties();
-			problemProperties.pathCount = 1;
+			problemProperties.pathCount = 4;
 			problemProperties.minLength = 10;
 			problemProperties.maxLength = 20;
 			problemProperties.minDemand = new DataRate(100);
@@ -138,7 +144,7 @@ public abstract class App {
 			problemProperties.overUtilizationPercentage = 2;
 			problemProperties.uniqueSourceDestination = true;
 
-			List<ScalarRadioFlow> flowProblems = overUtilizedProblemGenerator.compute(problemProperties,random);
+			List<ScalarRadioFlow> flowProblems = overUtilizedProblemGenerator.compute(problemProperties, random);
 			manet.addFlows(flowProblems);
 //			ScalarRadioFlow f1 = new ScalarRadioFlow(manet.getVertex(0), manet.getVertex(99),
 //					new DataRate(1, Type.megabit));
@@ -150,7 +156,6 @@ public abstract class App {
 //			manet.addFlow(f1);
 //			manet.addFlow(f2);
 //			manet.addFlow(f3);
-			System.out.println("start");
 			// Define individual run result recorder
 			ColumnPositionMappingStrategy<RunResultParameter> individualMappingStrategy = new ColumnPositionMappingStrategy<RunResultParameter>() {
 				@Override
@@ -167,38 +172,29 @@ public abstract class App {
 			ExecutionCallable<ScalarRadioFlow, ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality> run = this
 					.configureRun(manet, resultRecorder, runResultMapper);
 
-			Future<List<ScalarRadioFlow>> futureFlows = executor.submit(run);
-			futureFlows.get();
-			boolean taskFinished = false;
-			while (!taskFinished) {
-				taskFinished = futureFlows.isDone();
-
-			}
-			
-			List<ScalarRadioFlow> list2 = futureFlows.get();
-			manet.deployFlows(list2);
-//			CplexOptimization op = new CplexOptimization(manet);
-//			ApproximationRun approximationRun = new ApproximationRun(op, resultRecorder, runResultMapper);
-//			approximationRun.call();
-
-			System.out.println(runs--);
-//
-//			VisualGraphApp<ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality> visualGraphApp = new VisualGraphApp<ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality>(
-//					manet, new LinkQualityScorePrinter<ScalarLinkQuality>());
-
-			SwingUtilities.invokeAndWait(new VisualGraphApp<ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality>(manet,
-					new LinkQualityScorePrinter<ScalarLinkQuality>()));
+			futureList.add(executor.submit(run));
+//			GeneticOptimization go = new GeneticOptimization(manet,200, 150, RandomNumbers.getInstance(0));
+//			 GeneticRun geneticRun = new GeneticRun(go, resultRecorder, runResultMapper);
+//			 geneticRun.call();
+			runs--;
 
 		}
 
-		executor.shutdown();
-		try {
-			executor.awaitTermination(1L, TimeUnit.DAYS);
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		executor.awaitTermination(20L, TimeUnit.SECONDS);
+
+		int i = 0;
+		for (Future<ScalarRadioMANET> future : futureList) {
+			ScalarRadioMANET scalarRadioMANET = future.get();
+				SwingUtilities.invokeAndWait(new VisualGraphApp<ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality>(
+						scalarRadioMANET, new LinkUtilizationPrinter<ScalarRadioLink, ScalarLinkQuality>()));
+
+			System.out.println(String.format("Finished with Setting %d, OverUtilization=%s", ++i,scalarRadioMANET.getOverUtilization().toString()));
 		}
 		resultRecorder.finish(totalResultMapper);
+		executor.shutdown();
+
+		System.in.read();
+		System.exit(0);
 	}
 
 }

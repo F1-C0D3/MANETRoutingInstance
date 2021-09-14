@@ -9,13 +9,16 @@ import de.terministic.serein.core.genome.ValueGenome;
 
 public class GraphGenome extends ValueGenome<List<Integer>> {
 
-	List<List<Tuple<Integer, Integer>>> adjacencyGenesList;
+	public List<List<Integer>> sourceTargetAdjacvencyGenes;
+	public List<List<Integer>> targetSourceAdjacencyGenes;
 	List<Tuple<Integer, Integer>> genesSourceTargets;
 
-	public GraphGenome(List<List<Integer>> genes, List<List<Tuple<Integer, Integer>>> adjacencyGenesList,
+	public GraphGenome(List<List<Integer>> genes, List<List<Integer>> sourceTargetAdjacvencyGenes,List<List<Integer>> targetSourceAdjacencyGenes
+			,
 			List<Tuple<Integer, Integer>> genesSourceTargets) {
 		super(genes);
-		this.adjacencyGenesList = adjacencyGenesList;
+		this.sourceTargetAdjacvencyGenes = sourceTargetAdjacvencyGenes;
+		this.targetSourceAdjacencyGenes = targetSourceAdjacencyGenes;
 		this.genesSourceTargets = genesSourceTargets;
 	}
 
@@ -27,7 +30,7 @@ public class GraphGenome extends ValueGenome<List<Integer>> {
 
 	@Override
 	public GraphGenome createInstance(List<List<Integer>> genes) {
-		return new GraphGenome(genes, adjacencyGenesList, genesSourceTargets);
+		return new GraphGenome(genes, sourceTargetAdjacvencyGenes,targetSourceAdjacencyGenes, genesSourceTargets);
 	}
 
 	@Override
@@ -45,21 +48,21 @@ public class GraphGenome extends ValueGenome<List<Integer>> {
 		return createInstance(chromosome);
 	}
 
-	private List<Integer> generateRandomPath(int sourceGene, int targetGene, Random random) {
+	public List<Integer> generateRandomPath(int sourceGene, int targetGene, Random random) {
 		List<Integer> pathChromosome = new ArrayList<Integer>();
 		List<Integer> visited = new ArrayList<Integer>();
-		
+
 		while (targetGene != sourceGene) {
-			List<Tuple<Integer, Integer>> sinkGenes = new ArrayList<Tuple<Integer, Integer>>();
-			sinkGenes.addAll(adjacencyGenesList.get(sourceGene));
-			sinkGenes.removeIf(l -> visited.contains(l.getSecond()));
+			List<Integer> sinkGenes = new ArrayList<Integer>();
+			sinkGenes.addAll(sourceTargetAdjacvencyGenes.get(sourceGene));
+			sinkGenes.removeIf(l -> visited.contains(l));
 
 			if (!sinkGenes.isEmpty()) {
-				Tuple<Integer, Integer> linkGene = sinkGenes.get(random.nextInt(sinkGenes.size()));
+				int newSource = sinkGenes.get(random.nextInt(sinkGenes.size()));
 
 				visited.add(sourceGene);
 				pathChromosome.add(sourceGene);
-				sourceGene = linkGene.getSecond();
+				sourceGene = newSource;
 			} else {
 				return null;
 			}
@@ -77,6 +80,34 @@ public class GraphGenome extends ValueGenome<List<Integer>> {
 
 	public int getPathSize() {
 		return this.getGenes().size();
+	}
+
+	public List<Integer> getOutgoingGenes(int index) {
+		
+		List<Integer> outgoingGenesList = new ArrayList<Integer>();
+		
+		for(Integer outgoingGenes : this.sourceTargetAdjacvencyGenes.get(index)){
+			outgoingGenesList.add(outgoingGenes);
+			
+		}
+		return outgoingGenesList;
+	}
+	
+	public List<Integer> getIncomingGenes(int index) {
+		
+		List<Integer> incomingGenesList = new ArrayList<Integer>();
+		
+		for(Integer incomingGenes : this.targetSourceAdjacencyGenes.get(index)){
+			incomingGenesList.add(incomingGenes);
+			
+		}
+		return incomingGenesList;
+	}
+	
+	@Override
+	public String toString() {
+		// TODO Auto-generated method stub
+		return this.getGenes().toString();
 	}
 
 }

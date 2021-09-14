@@ -7,7 +7,7 @@ import de.manetmodel.units.Timer;
 
 
 
-public abstract class Optimization<Q, M> implements EventListener {
+public abstract class Optimization<M> implements EventListener {
 	protected M manet;
 	protected Timer duration;
 
@@ -17,7 +17,7 @@ public abstract class Optimization<Q, M> implements EventListener {
 		duration.start();
 	}
 
-	public abstract Q execute();
+	public abstract M execute();
 
 	public Time stop() {
 		return duration.getTime();

@@ -5,6 +5,7 @@ import java.util.Random;
 
 import de.jgraphlib.util.RandomNumbers;
 import de.jgraphlib.util.Tuple;
+import de.manetmodel.network.scalar.ScalarRadioFlow;
 import de.manetmodel.network.scalar.ScalarRadioMANET;
 import de.parallelism.Optimization;
 import de.terministic.serein.api.EvolutionEnvironment;
@@ -18,7 +19,7 @@ import de.terministic.serein.core.StatsListener;
 import de.terministic.serein.core.selection.individual.TournamentSelection;
 import de.terministic.serein.core.termination.TerminationConditionGenerations;
 
-public class GeneticOptimization extends Optimization<PathComposition, ScalarRadioMANET> {
+public class GeneticOptimization extends Optimization<ScalarRadioMANET> {
 
 	private GenesManetGraphTranslator translator;
 
@@ -27,23 +28,20 @@ public class GeneticOptimization extends Optimization<PathComposition, ScalarRad
 
 	private RandomNumbers random;
 
-	public GeneticOptimization(
-			ScalarRadioMANET manet,
-			int populationSize, int generations,RandomNumbers random) {
+	public GeneticOptimization(ScalarRadioMANET manet,int populationSize, int generations, RandomNumbers random) {
 		super(manet);
 		this.generations = generations;
 		this.populationSize = populationSize;
-		this.random=random;
-		translator = new GenesManetGraphTranslator(manet);
-
+		this.random = random;
+		 translator = new GenesManetGraphTranslator(manet);
 	}
 
-	public PathComposition execute() {
+	public ScalarRadioMANET execute() {
 
-		List<List<Tuple<Integer, Integer>>> manetGraphPhenotoGeno = translator.manetGraphPhenotoGeno();
+		Tuple<List<List<Integer>>, List<List<Integer>>> graphGenoRepresentation = translator.manetGraphPhenotoGeno();
 		List<Tuple<Integer, Integer>> flowsPhenoToGeno = translator.flowsPhenoToGeno();
 		List<List<Integer>> manetVerticesPhenoToGeno = translator.manetVerticesPhenoToGeno();
-		Mutation<GraphGenome> mutation = new MultiplePathSingleMutation<GraphGenome>();
+		Mutation<GraphGenome> mutation = new SingleNodeMutation<GraphGenome>();
 
 		UniformCrossoverPathSeperator recombination = new UniformCrossoverPathSeperator();
 		FlowDistributionFitness<PathComposition> fitness = new FlowDistributionFitness<PathComposition>();
@@ -51,10 +49,10 @@ public class GeneticOptimization extends Optimization<PathComposition, ScalarRad
 				generations);
 
 		// Initial individual
-		GraphGenome genome = new GraphGenome(manetVerticesPhenoToGeno, manetGraphPhenotoGeno, flowsPhenoToGeno);
+		GraphGenome genome = new GraphGenome(manetVerticesPhenoToGeno, graphGenoRepresentation.getFirst(),graphGenoRepresentation.getSecond(), flowsPhenoToGeno);
 		BasicIndividual<PathComposition, GraphGenome> initialIndividual = new BasicIndividual<PathComposition, GraphGenome>(
 				genome, translator);
-		initialIndividual.<Double>setProperty("ProbabilityOfMutation", 0.2, true);
+		initialIndividual.<Double>setProperty("ProbabilityOfMutation", 0.4, true);
 		initialIndividual.setRecombination(recombination);
 		initialIndividual.setMutation(mutation);
 		initialIndividual.setMateSelection(new TournamentSelection<>(fitness, 3));
@@ -73,7 +71,12 @@ public class GeneticOptimization extends Optimization<PathComposition, ScalarRad
 		algo.evolve();
 
 		// result
-		return algo.getFittest().getPhenotype();
+		manet.undeployFlows();
+		manet.clearFlows();
+		
+		manet.addFlows(algo.getFittest().getPhenotype().getFlows());
+		manet.deployFlows(algo.getFittest().getPhenotype().getFlows());
+		return manet;
 
 	}
 

@@ -17,20 +17,19 @@ import ilog.concert.IloLinearNumExpr;
 import ilog.concert.IloNumExpr;
 import ilog.cplex.IloCplex;
 
-public class CplexOptimization extends Optimization<Void, ScalarRadioMANET> {
+public class CplexOptimization extends Optimization<ScalarRadioMANET> {
 
 	public CplexOptimization(ScalarRadioMANET manet) {
 		super(manet);
 	}
 
-	public Void execute() {
+	public ScalarRadioMANET execute() {
 
-		determinePaths();
+		return determinePaths();
 
-		return null;
 	}
 
-	private void determinePaths() {
+	private ScalarRadioMANET determinePaths() {
 
 		/*
 		 * path arc
@@ -157,8 +156,8 @@ public class CplexOptimization extends Optimization<Void, ScalarRadioMANET> {
 
 				for (int i = 0; i < individualLinkStabilityMatrix[k].length; i++) {
 
-					individualLinkStabilityMatrix[k][i] =  manet.getEdge(i).getWeight().getReceptionConfidence();
-//					individualLinkStabilityMatrix[k][i] = 1;
+//					individualLinkStabilityMatrix[k][i] = manet.getEdge(i).getWeight().getReceptionConfidence();
+					individualLinkStabilityMatrix[k][i] = 1;
 				}
 			}
 
@@ -221,12 +220,15 @@ public class CplexOptimization extends Optimization<Void, ScalarRadioMANET> {
 //						minHighUtilizedNearbyLinks[link.getID()]);
 			}
 
+//			cplex.addMinimize(
+//					cplex.sum(cplex.sum(cplex.sum(minHighUtilizedNearbyLinks), cplex.sum(minSpeedStabilityExpr)),
+//							cplex.sum(minLinkStabilityExpr)));
 //			cplex.addMinimize(cplex.sum(minPathInstabilityExpr, cplex.sum(minLinkStabilityExpr)));
-			cplex.addMinimize(cplex.sum(cplex.sum(minLinkStabilityExpr), cplex.sum(minSpeedStabilityExpr)));
-//			cplex.addMinimize(cplex.sum(minLinkStabilityExpr));
+//			cplex.addMinimize(cplex.sum(cplex.sum(minSpeedStabilityExpr), cplex.sum(minLinkStabilityExpr)));
+			cplex.addMinimize(cplex.sum(minLinkStabilityExpr));
 //			cplex.addMinimize(cplex.sum(cplex.sum(minSpeedStabilityExpr),cplex.sum(minLinkStabilityExpr)));
-//			cplex.setParam(IloCplex.Param.MIP.Limits.Solutions, 1);
-			cplex.setParam(IloCplex.Param.Threads, Runtime.getRuntime().availableProcessors());
+			cplex.setParam(IloCplex.Param.MIP.Limits.Solutions, 1);
+//			cplex.setParam(IloCplex.Param.Threads, 1);
 			cplex.setParam(IloCplex.Param.MIP.Display, 0);
 
 			if (cplex.solve()) {
@@ -254,11 +256,9 @@ public class CplexOptimization extends Optimization<Void, ScalarRadioMANET> {
 					manet.deployFlow(flow);
 
 				}
+
+				return manet;
 			}
-			// Write solution value and objective to the screen.
-//			System.out.println("Solution status: " + cplex.getStatus());
-//			System.out.println("Solution value  = " + cplex.getObjValue());
-//			System.out.println("Solution vector:");
 
 		} catch (
 
@@ -266,6 +266,7 @@ public class CplexOptimization extends Optimization<Void, ScalarRadioMANET> {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		return manet;
 
 	}
 

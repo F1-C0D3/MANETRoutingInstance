@@ -45,19 +45,33 @@ public class GenesManetGraphTranslator implements Translator<PathComposition, Gr
 		return new PathComposition(manet, flows);
 	}
 
-	public List<List<Tuple<Integer, Integer>>> manetGraphPhenotoGeno() {
-		List<List<Tuple<Integer, Integer>>> result = new ArrayList<List<Tuple<Integer, Integer>>>();
-		TreeMap<Integer,ArrayList<Tuple<Integer, Integer>>> vertexAdjacencies =  manet.getVertexAdjacencies();
-		for (List<Tuple<Integer, Integer>> vertexAdjacency : vertexAdjacencies.values()) {
-			List<Tuple<Integer, Integer>> tupleList = new ArrayList<Tuple<Integer, Integer>>();
+	public Tuple<List<List<Integer>>, List<List<Integer>>> manetGraphPhenotoGeno() {
+		List<List<Integer>> sourceTargetResult = new ArrayList<List<Integer>>();
+		List<List<Integer>> targetSourceResult = new ArrayList<List<Integer>>();
+		TreeMap<Integer, ArrayList<Tuple<Integer, Integer>>> sourceTargetAdjacencies = manet
+				.getSourceTargetAdjacencies();
+		for (List<Tuple<Integer, Integer>> tuples : sourceTargetAdjacencies.values()) {
+			List<Integer> adjacenies = new ArrayList<Integer>();
 
-			for (Tuple<Integer, Integer> mapping : vertexAdjacency) {
-				Tuple<Integer, Integer> t = new Tuple<Integer, Integer>(mapping.getFirst(), mapping.getSecond());
-				tupleList.add(t);
+			for (Tuple<Integer, Integer> mapping : tuples) {
+
+				adjacenies.add(mapping.getSecond());
 			}
-			result.add(tupleList);
+			sourceTargetResult.add(adjacenies);
 		}
-		return result;
+
+		TreeMap<Integer, ArrayList<Tuple<Integer, Integer>>> targetSourceAdjacencies = manet
+				.getTargetSourceAdjacencies();
+		for (List<Tuple<Integer, Integer>> tuples : targetSourceAdjacencies.values()) {
+			List<Integer> adjacenies = new ArrayList<Integer>();
+
+			for (Tuple<Integer, Integer> mapping : tuples) {
+
+				adjacenies.add(mapping.getSecond());
+			}
+			targetSourceResult.add(adjacenies);
+		}
+		return new Tuple<List<List<Integer>>, List<List<Integer>>>(sourceTargetResult, targetSourceResult);
 	}
 
 	public List<Tuple<Integer, Integer>> flowsPhenoToGeno() {
