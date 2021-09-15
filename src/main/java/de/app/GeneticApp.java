@@ -29,7 +29,7 @@ public class GeneticApp extends App {
 
 	public static void main(String[] args)
 			throws InterruptedException, ExecutionException, IloException, InvocationTargetException, IOException {
-		Scenario scenario = new Scenario("genetic", 2, 60, 1);
+		Scenario scenario = new Scenario("genetic", 2, 100, 1);
 		GeneticApp greedyApp = new GeneticApp(1, scenario, RandomNumbers.getInstance(0));
 
 		greedyApp.execute();
@@ -39,7 +39,7 @@ public class GeneticApp extends App {
 	public ExecutionCallable<ScalarRadioFlow, ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality> configureRun(
 			ScalarRadioMANET manet, MANETResultRecorder<RunResultParameter, AverageResultParameter> resultRecorder,
 			RunResultMapper<RunResultParameter, ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality> runResultMapper) {
-		GeneticOptimization go = new GeneticOptimization(manet,5000, 40, RandomNumbers.getInstance(0));
+		GeneticOptimization go = new GeneticOptimization(manet,2400, 30, RandomNumbers.getInstance(0));
 		return new GeneticRun(go, resultRecorder, runResultMapper);
 	}
 }

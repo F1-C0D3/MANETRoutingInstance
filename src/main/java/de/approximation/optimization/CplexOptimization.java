@@ -4,6 +4,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import de.jgraphlib.util.RandomNumbers;
 import de.jgraphlib.util.Tuple;
 import de.manetmodel.network.scalar.ScalarRadioFlow;
 import de.manetmodel.network.scalar.ScalarRadioLink;
@@ -156,8 +157,8 @@ public class CplexOptimization extends Optimization<ScalarRadioMANET> {
 
 				for (int i = 0; i < individualLinkStabilityMatrix[k].length; i++) {
 
-//					individualLinkStabilityMatrix[k][i] = manet.getEdge(i).getWeight().getReceptionConfidence();
-					individualLinkStabilityMatrix[k][i] = 1;
+					individualLinkStabilityMatrix[k][i] = manet.getEdge(i).getWeight().getReceptionConfidence();
+//					individualLinkStabilityMatrix[k][i] = 1;
 				}
 			}
 
@@ -220,14 +221,15 @@ public class CplexOptimization extends Optimization<ScalarRadioMANET> {
 //						minHighUtilizedNearbyLinks[link.getID()]);
 			}
 
-//			cplex.addMinimize(
-//					cplex.sum(cplex.sum(cplex.sum(minHighUtilizedNearbyLinks), cplex.sum(minSpeedStabilityExpr)),
-//							cplex.sum(minLinkStabilityExpr)));
+			cplex.addMinimize(
+					cplex.sum(cplex.sum(cplex.sum(minHighUtilizedNearbyLinks), cplex.sum(minSpeedStabilityExpr)),
+							cplex.sum(minLinkStabilityExpr)));
 //			cplex.addMinimize(cplex.sum(minPathInstabilityExpr, cplex.sum(minLinkStabilityExpr)));
 //			cplex.addMinimize(cplex.sum(cplex.sum(minSpeedStabilityExpr), cplex.sum(minLinkStabilityExpr)));
-			cplex.addMinimize(cplex.sum(minLinkStabilityExpr));
+//			cplex.addMinimize(cplex.sum(minLinkStabilityExpr));
+//			cplex.addMinimize(cplex.sum(minSpeedStabilityExpr));
 //			cplex.addMinimize(cplex.sum(cplex.sum(minSpeedStabilityExpr),cplex.sum(minLinkStabilityExpr)));
-			cplex.setParam(IloCplex.Param.MIP.Limits.Solutions, 1);
+//			cplex.setParam(IloCplex.Param.MIP.Limits.Solutions, 1);
 //			cplex.setParam(IloCplex.Param.Threads, 1);
 			cplex.setParam(IloCplex.Param.MIP.Display, 0);
 

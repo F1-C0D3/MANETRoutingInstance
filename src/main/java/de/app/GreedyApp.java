@@ -1,10 +1,12 @@
 package de.app;
 
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.concurrent.ExecutionException;
 
 import de.deterministic.app.DeterministicRun;
 import de.deterministic.optimization.GreedyCombinationOptimization;
+import de.jgraphlib.util.RandomNumbers;
 import de.manetmodel.network.scalar.ScalarLinkQuality;
 import de.manetmodel.network.scalar.ScalarRadioFlow;
 import de.manetmodel.network.scalar.ScalarRadioLink;
@@ -20,13 +22,13 @@ import ilog.concert.IloException;
 
 public class GreedyApp extends App {
 
-	public GreedyApp(int runs, HighUtilizedMANETSecenario scenario) {
-		super(runs, scenario);
+	public GreedyApp(int runs, HighUtilizedMANETSecenario scenario, RandomNumbers random) {
+		super(runs, scenario,random);
 	}
 
-	public static void main(String[] args) throws InterruptedException, ExecutionException, IloException, InvocationTargetException {
+	public static void main(String[] args) throws InterruptedException, ExecutionException, IloException, InvocationTargetException, IOException {
 		HighUtilizedMANETSecenario scenario = new HighUtilizedMANETSecenario("greedy", 7, 100, 1);
-		GreedyApp greedyApp = new GreedyApp(1, scenario);
+		GreedyApp greedyApp = new GreedyApp(1, scenario,RandomNumbers.getInstance(0));
 
 		greedyApp.execute();
 	}

@@ -9,7 +9,7 @@ import org.apache.commons.math3.stat.inference.GTest;
 import de.terministic.serein.api.Recombination;
 import de.terministic.serein.api.RecombinationException;
 
-public class MultiplePathSingleCrossover implements Recombination<GraphGenome> {
+public class OnePointMultiplePathCrossover implements Recombination<GraphGenome> {
 
 	@Override
 	public GraphGenome recombine(List<GraphGenome> genomes, Random random) throws RecombinationException {
@@ -26,46 +26,78 @@ public class MultiplePathSingleCrossover implements Recombination<GraphGenome> {
 		int initialCutIndex = random.nextInt(cutterGenome.size());
 		int currentCutIndex = initialCutIndex;
 
-		int elements = cutterGenome.size();
 		for (int i = 0; i < cutterGenome.size(); i++) {
+			
 			List<Integer> cutterGenesPart = cutterGenome.get(i);
-			List<Integer> cuttingGenesPart = cutterGenome.get(i);
+			List<Integer> cuttingGenesPart = cuttingGenome.get(i);
 
-			while (elements != 0) {
+			int attemps = 100;
+			List<Integer> newChromosomePart = null;
+			while (attemps >= 0) {
 
 				// get next potential cut index
-				int nextCutIndex = nextCutIndex(cutterGenesPart, random, initialCutIndex, currentCutIndex);
+				int nextCutIndex = random.nextInt(cutterGenesPart.size());
 
 				// Search after equal gene in cuttingGenesPart
-				Integer gene = cutterGenesPart.get(nextCutIndex);
-				if (cuttingGenesPart.contains(gene)) {
+				int cuttingIndex = cutIndex(cutterGenesPart, cuttingGenesPart, random, nextCutIndex);
+				if (cuttingIndex != -1) {
 
-					short counter = 2;
-					boolean containsDuplicate = false;
-					while (counter != 0) {
-						List<Integer> leftCutterSubList = new ArrayList<Integer>(
-								cutterGenesPart.subList(0, nextCutIndex));
-						List<Integer> rightCuttingSubList = new ArrayList<Integer>(
-								cuttingGenesPart.subList(cutterGenesPart.indexOf(gene), cutterGenesPart.size()));
-
-						leftCutterSubList.retainAll(rightCuttingSubList);
-
-						if (leftCutterSubList.size() > 2) {
-							containsDuplicate = true;
-						}
-					}
+					newChromosomePart = new ArrayList<Integer>(cutterGenesPart.subList(0, nextCutIndex));
+					newChromosomePart.addAll(cuttingGenesPart.subList(cuttingIndex, cuttingGenesPart.size()));
+					
+					attemps = 0;
 				}
 
-				elements--;
+				attemps--;
 			}
+			
+			if(newChromosomePart==null) {
+				newChromosomePart = new ArrayList<Integer>(cutterGenesPart);
+			}
+			
+			pathList.add(newChromosomePart);
 		}
 		return (GraphGenome) genomes.get(0).createInstance(pathList);
 
 	}
 
-	private int nextCutIndex(List<Integer> chromosomePart, Random random, int initialCutIndex, int currentCutIndex) {
+	/**
+	 * @param chromosomePartOne and chromosomePartTwo contain genes crossover
+	 *                          operation takes place.
+	 * @param random            object
+	 * @param index             that points to individual chromosome of
+	 *                          chromosomePartOne where desired crossover operation
+	 *                          takes place
+	 * @return Returns the index of {@code chromosomePartTwo} for crossover
+	 *         operation. Return -1 if crossover is not possible
+	 */
+	private int cutIndex(List<Integer> chromosomePartOne, List<Integer> chromosomePartTwo, Random random,
+			int initialCutIndex) {
 
-		return 0;
+		Integer gene = chromosomePartOne.get(initialCutIndex);
+
+		if (!chromosomePartTwo.contains(gene))
+			return -1;
+
+		if (initialCutIndex == 0)
+			return 0;
+
+		if (initialCutIndex == chromosomePartOne.size() - 1)
+			return chromosomePartTwo.size() - 1;
+
+		int cutIndexChromosomePartTwo = chromosomePartTwo.indexOf(gene);
+
+		List<Integer> partOneLeft = new ArrayList<Integer>(chromosomePartOne.subList(0, initialCutIndex));
+		partOneLeft.retainAll(chromosomePartTwo.subList(cutIndexChromosomePartTwo, chromosomePartTwo.size()));
+
+		List<Integer> partTwoLeft = new ArrayList<Integer>(chromosomePartTwo.subList(0, cutIndexChromosomePartTwo));
+		partTwoLeft.retainAll(chromosomePartOne.subList(initialCutIndex, chromosomePartOne.size()));
+
+		if (partOneLeft.size() <= 2 && partTwoLeft.size() <= 2) {
+			return cutIndexChromosomePartTwo;
+		}
+
+		return -1;
 	}
 
 	@Override

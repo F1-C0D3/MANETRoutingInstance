@@ -23,7 +23,7 @@ import ilog.concert.IloException;
 public class CplexApp extends App {
 
 	public static void main(String[] args) throws InterruptedException, ExecutionException, IloException, InvocationTargetException, IOException {
-		Scenario scenario = new Scenario("cplex_both",1 , 60,1);
+		Scenario scenario = new Scenario("cplex_both", 2, 100, 1);
 		CplexApp app = new CplexApp(1, scenario,RandomNumbers.getInstance(0));
 		app.execute();
 	}
