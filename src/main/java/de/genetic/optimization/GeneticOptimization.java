@@ -25,15 +25,17 @@ public class GeneticOptimization extends Optimization<ScalarRadioMANET> {
 
 	private final int populationSize;
 	private final int generations;
+	private final double mutationProbability;
 
 	private RandomNumbers random;
 
-	public GeneticOptimization(ScalarRadioMANET manet,int populationSize, int generations, RandomNumbers random) {
+	public GeneticOptimization(ScalarRadioMANET manet,int populationSize, int generations, double mutationProbability, RandomNumbers random) {
 		super(manet);
 		this.generations = generations;
 		this.populationSize = populationSize;
 		this.random = random;
-		 translator = new GenesManetGraphTranslator(manet);
+		this.mutationProbability = mutationProbability;
+		 this.translator = new GenesManetGraphTranslator(manet);
 	}
 
 	public ScalarRadioMANET execute() {
@@ -52,7 +54,7 @@ public class GeneticOptimization extends Optimization<ScalarRadioMANET> {
 		GraphGenome genome = new GraphGenome(manetVerticesPhenoToGeno, graphGenoRepresentation.getFirst(),graphGenoRepresentation.getSecond(), flowsPhenoToGeno);
 		BasicIndividual<PathComposition, GraphGenome> initialIndividual = new BasicIndividual<PathComposition, GraphGenome>(
 				genome, translator);
-		initialIndividual.<Double>setProperty("ProbabilityOfMutation", 0.4, true);
+		initialIndividual.<Double>setProperty("ProbabilityOfMutation", mutationProbability, true);
 		initialIndividual.setRecombination(recombination);
 		initialIndividual.setMutation(mutation);
 		initialIndividual.setMateSelection(new TournamentSelection<>(fitness, 3));

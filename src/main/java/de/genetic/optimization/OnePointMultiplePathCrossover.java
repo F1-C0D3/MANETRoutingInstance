@@ -44,7 +44,6 @@ public class OnePointMultiplePathCrossover implements Recombination<GraphGenome>
 
 					newChromosomePart = new ArrayList<Integer>(cutterGenesPart.subList(0, nextCutIndex));
 					newChromosomePart.addAll(cuttingGenesPart.subList(cuttingIndex, cuttingGenesPart.size()));
-					
 					attemps = 0;
 				}
 
@@ -93,7 +92,7 @@ public class OnePointMultiplePathCrossover implements Recombination<GraphGenome>
 		List<Integer> partTwoLeft = new ArrayList<Integer>(chromosomePartTwo.subList(0, cutIndexChromosomePartTwo));
 		partTwoLeft.retainAll(chromosomePartOne.subList(initialCutIndex, chromosomePartOne.size()));
 
-		if (partOneLeft.size() <= 2 && partTwoLeft.size() <= 2) {
+		if (partOneLeft.size()== 0 && partTwoLeft.size() == 0) {
 			return cutIndexChromosomePartTwo;
 		}
 

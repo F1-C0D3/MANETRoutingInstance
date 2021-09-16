@@ -13,9 +13,8 @@ public class GraphGenome extends ValueGenome<List<Integer>> {
 	public List<List<Integer>> targetSourceAdjacencyGenes;
 	List<Tuple<Integer, Integer>> genesSourceTargets;
 
-	public GraphGenome(List<List<Integer>> genes, List<List<Integer>> sourceTargetAdjacvencyGenes,List<List<Integer>> targetSourceAdjacencyGenes
-			,
-			List<Tuple<Integer, Integer>> genesSourceTargets) {
+	public GraphGenome(List<List<Integer>> genes, List<List<Integer>> sourceTargetAdjacvencyGenes,
+			List<List<Integer>> targetSourceAdjacencyGenes, List<Tuple<Integer, Integer>> genesSourceTargets) {
 		super(genes);
 		this.sourceTargetAdjacvencyGenes = sourceTargetAdjacvencyGenes;
 		this.targetSourceAdjacencyGenes = targetSourceAdjacencyGenes;
@@ -30,7 +29,7 @@ public class GraphGenome extends ValueGenome<List<Integer>> {
 
 	@Override
 	public GraphGenome createInstance(List<List<Integer>> genes) {
-		return new GraphGenome(genes, sourceTargetAdjacvencyGenes,targetSourceAdjacencyGenes, genesSourceTargets);
+		return new GraphGenome(genes, sourceTargetAdjacvencyGenes, targetSourceAdjacencyGenes, genesSourceTargets);
 	}
 
 	@Override
@@ -83,27 +82,27 @@ public class GraphGenome extends ValueGenome<List<Integer>> {
 	}
 
 	public List<Integer> getOutgoingGenes(int index) {
-		
+
 		List<Integer> outgoingGenesList = new ArrayList<Integer>();
-		
-		for(Integer outgoingGenes : this.sourceTargetAdjacvencyGenes.get(index)){
+
+		for (Integer outgoingGenes : this.sourceTargetAdjacvencyGenes.get(index)) {
 			outgoingGenesList.add(outgoingGenes);
-			
+
 		}
 		return outgoingGenesList;
 	}
-	
+
 	public List<Integer> getIncomingGenes(int index) {
-		
+
 		List<Integer> incomingGenesList = new ArrayList<Integer>();
-		
-		for(Integer incomingGenes : this.targetSourceAdjacencyGenes.get(index)){
+
+		for (Integer incomingGenes : this.targetSourceAdjacencyGenes.get(index)) {
 			incomingGenesList.add(incomingGenes);
-			
+
 		}
 		return incomingGenesList;
 	}
-	
+
 	@Override
 	public String toString() {
 		// TODO Auto-generated method stub

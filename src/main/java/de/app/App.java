@@ -64,14 +64,14 @@ public abstract class App {
 	private Scenario scenario;
 	ExecutorService executor;
 	private RandomNumbers random;
-	private List<Future<ScalarRadioMANET>> futureList;
+	private List<ExecutionCallable<ScalarRadioFlow, ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality>> executionList;
 
 	public App(int runs, Scenario scenario, RandomNumbers random) {
 		this.runs = runs;
 		this.scenario = scenario;
 		this.random = random;
 		this.executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
-		this.futureList = new ArrayList<Future<ScalarRadioMANET>>();
+		this.executionList = new ArrayList<ExecutionCallable<ScalarRadioFlow, ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality>>();
 	}
 
 	public abstract ExecutionCallable<ScalarRadioFlow, ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality> configureRun(
@@ -136,7 +136,7 @@ public abstract class App {
 					manet, metric);
 
 			OverUtilizedProblemProperties problemProperties = new OverUtilizedProblemProperties();
-			problemProperties.pathCount = 6;
+			problemProperties.pathCount = 12;
 			problemProperties.minLength = 10;
 			problemProperties.maxLength = 20;
 			problemProperties.minDemand = new DataRate(100);
@@ -172,13 +172,13 @@ public abstract class App {
 			ExecutionCallable<ScalarRadioFlow, ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality> run = this
 					.configureRun(manet, resultRecorder, runResultMapper);
 
-			futureList.add(executor.submit(run));
+			executionList.add(run);
 			runs--;
 
 		}
 
-		executor.awaitTermination(1L, TimeUnit.SECONDS);
-
+		List<Future<ScalarRadioMANET>> futureList = executor.invokeAll(executionList);
+		
 		int i = 0;
 		for (Future<ScalarRadioMANET> future : futureList) {
 			ScalarRadioMANET scalarRadioMANET = future.get();

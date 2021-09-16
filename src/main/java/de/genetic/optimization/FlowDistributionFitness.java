@@ -13,12 +13,12 @@ public class FlowDistributionFitness<W> extends AbstractFitnessFunction<PathComp
 	double ouW = 0.51;
 
 	// mobility weight
-	double mW = 0.12;
+	double mW = 0.07;
 
 	// reception power weight
-	double rcW = 0.18;
+	double rcW = 0.15;
 
-	double uW = 0.19;
+	double uW = 0.49;
 
 	private double maxOverUtilization = 0d;
 
@@ -53,13 +53,13 @@ public class FlowDistributionFitness<W> extends AbstractFitnessFunction<PathComp
 			overUtilizationNormalized = 1d * ouW;
 		}
 
-		double receptionPower = pc.meanReceptionConfidence() * rcW;
-
-		double mobilityQuality = pc.meanMobilityQuality() * mW;
-
-		double distance = (pc.getNumLinks() / (double) manet.getEdges().size()) * uW;
+//		double receptionPower = pc.meanReceptionConfidence() * rcW;
+//
+//		double mobilityQuality = pc.meanMobilityQuality() * mW;
+//
+//		double distance = (pc.getNumLinks() / (double) manet.getEdges().size()) * uW;
 		manet.undeployFlows();
-		return overUtilizationNormalized + receptionPower+mobilityQuality +utilizationNormalized;
+		return overUtilizationNormalized +utilizationNormalized;
 	}
 
 }
