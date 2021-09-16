@@ -39,7 +39,7 @@ public class GeneticApp extends App {
 	public ExecutionCallable<ScalarRadioFlow, ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality> configureRun(
 			ScalarRadioMANET manet, MANETResultRecorder<RunResultParameter, AverageResultParameter> resultRecorder,
 			RunResultMapper<RunResultParameter, ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality> runResultMapper) {
-		GeneticOptimization go = new GeneticOptimization(manet,2200, 40,0.5, RandomNumbers.getInstance(0));
+		GeneticOptimization go = new GeneticOptimization(manet,2200, 40,0.4, RandomNumbers.getInstance(0));
 		return new GeneticRun(go, resultRecorder, runResultMapper);
 	}
 }

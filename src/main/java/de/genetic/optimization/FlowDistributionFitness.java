@@ -57,9 +57,9 @@ public class FlowDistributionFitness<W> extends AbstractFitnessFunction<PathComp
 //
 //		double mobilityQuality = pc.meanMobilityQuality() * mW;
 //
-//		double distance = (pc.getNumLinks() / (double) manet.getEdges().size()) * uW;
+		double distance = (pc.getNumLinks() / (double) manet.getEdges().size()) * uW;
 		manet.undeployFlows();
-		return overUtilizationNormalized +utilizationNormalized;
+		return overUtilizationNormalized +distance;
 	}
 
 }

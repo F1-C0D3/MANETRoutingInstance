@@ -46,9 +46,10 @@ public class TwoPointMultiplePathCrossover implements Recombination<GraphGenome>
 				// Search after equal gene in cuttingGenesPart
 				int[] cuttingIndices = cutIndex(cutterGenesPart, cuttingGenesPart,cutIndicesChromosomeOne);
 				if (cuttingIndices[0] != -1) {
-List<Integer> partToIncludeInCutterGenesPart = new ArrayList<Integer>();
-					newChromosomePart = new ArrayList<Integer>(cutterGenesPart.subList(0, nextCutIndex));
-					newChromosomePart.addAll(cuttingGenesPart.subList(cuttingIndex, cuttingGenesPart.size()));
+					newChromosomePart = new ArrayList<Integer>(cutterGenesPart.subList(0, cutIndicesChromosomeOne[0]));
+					
+					newChromosomePart.addAll(new ArrayList<Integer>(cuttingGenesPart.subList(cuttingIndices[0], cuttingIndices[1])));
+					newChromosomePart.addAll(new ArrayList<Integer>(cutterGenesPart.subList(cutIndicesChromosomeOne[1], cutterGenesPart.size())));
 					attemps = 0;
 				}
 
@@ -82,7 +83,7 @@ List<Integer> partToIncludeInCutterGenesPart = new ArrayList<Integer>();
 		Arrays.sort(cutIndicesChromosomeOne);
 
 		Integer geneOne = chromosomePartOne.get(cutIndicesChromosomeOne[0]);
-		Integer geneTwo = chromosomePartTwo.get(cutIndicesChromosomeOne[1]);
+		Integer geneTwo = chromosomePartOne.get(cutIndicesChromosomeOne[1]);
 		if (!chromosomePartTwo.contains(geneOne) || !chromosomePartTwo.contains(geneTwo))
 			return cutIndicesChromosomeTwo;
 
@@ -90,23 +91,23 @@ List<Integer> partToIncludeInCutterGenesPart = new ArrayList<Integer>();
 		cutIndicesChromosomeTwo[1] = chromosomePartTwo.indexOf(geneTwo);
 		Arrays.sort(cutIndicesChromosomeTwo);
 		
-		ArrayList<Integer> cutPartChromosomeOne = new ArrayList<Integer>(chromosomePartOne.subList(cutIndicesChromosomeOne[0], cutIndicesChromosomeOne[1] + 1));
-		ArrayList<Integer> cutPartChromosomeTwo = new ArrayList<Integer>(chromosomePartOne.subList(cutIndicesChromosomeTwo[0], cutIndicesChromosomeTwo[1] + 1));
+		ArrayList<Integer> cutPartChromosomeOne = new ArrayList<Integer>(chromosomePartOne.subList(cutIndicesChromosomeOne[0], cutIndicesChromosomeOne[1] ));
+		ArrayList<Integer> cutPartChromosomeTwo = new ArrayList<Integer>(chromosomePartTwo.subList(cutIndicesChromosomeTwo[0], cutIndicesChromosomeTwo[1] ));
 		
-		ArrayList<Integer> cutComplementChromosomeOne = new ArrayList<Integer>(cutPartChromosomeOne);
+		ArrayList<Integer> cutComplementChromosomeOne = new ArrayList<Integer>(chromosomePartOne);
 		cutComplementChromosomeOne.removeAll(cutPartChromosomeOne);
 		
-		ArrayList<Integer> cutComplementChromosomeTwo = new ArrayList<Integer>(cutPartChromosomeTwo);
+		ArrayList<Integer> cutComplementChromosomeTwo = new ArrayList<Integer>(chromosomePartTwo);
 		cutComplementChromosomeTwo.removeAll(cutPartChromosomeTwo);
 		
 		cutComplementChromosomeOne.retainAll(cutPartChromosomeTwo);
-		cutComplementChromosomeTwo.retainAll(cutComplementChromosomeOne);
+		cutComplementChromosomeTwo.retainAll(cutPartChromosomeOne);
 		
-		if(cutComplementChromosomeOne.size()==0 && cutComplementChromosomeTwo.size()==0)
+		if(cutComplementChromosomeOne.size()==0 &&cutComplementChromosomeTwo.size()==0)
 		return cutIndicesChromosomeTwo;
 		
 
-		return cutIndicesChromosomeTwo;
+		return new int[] {-1,-1};
 	}
 	
 	private int getRandomNotInE(Random randomInstance,int min, int max, List<Integer> e) {
