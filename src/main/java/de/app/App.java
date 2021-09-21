@@ -136,7 +136,7 @@ public abstract class App {
 					manet, metric);
 
 			OverUtilizedProblemProperties problemProperties = new OverUtilizedProblemProperties();
-			problemProperties.pathCount = 12;
+			problemProperties.pathCount = 5;
 			problemProperties.minLength = 10;
 			problemProperties.maxLength = 20;
 			problemProperties.minDemand = new DataRate(100);
@@ -168,11 +168,16 @@ public abstract class App {
 			ScalarRadioRunResultMapper runResultMapper = new ScalarRadioRunResultMapper(individualMappingStrategy,
 					scenario, mobilityModel);
 			runResultMapper.getMappingStrategy().setType(RunResultParameter.class);
+//
+//			ExecutionCallable<ScalarRadioFlow, ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality> run = this
+//					.configureRun(manet, resultRecorder, runResultMapper);
+			
+			GeneticOptimization go = new GeneticOptimization(manet,2500, 20,0.2, RandomNumbers.getInstance(0));
+			 GeneticRun geneticRun = new GeneticRun(go, resultRecorder, runResultMapper);
+			 geneticRun.call();
+			
 
-			ExecutionCallable<ScalarRadioFlow, ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality> run = this
-					.configureRun(manet, resultRecorder, runResultMapper);
-
-			executionList.add(run);
+//			executionList.add(run);
 			runs--;
 
 		}

@@ -81,7 +81,7 @@ public class OnePointMultiplePathCrossoverTest {
 
 		// Initial individual
 		GraphGenome genome = new GraphGenome(manetVerticesPhenoToGeno, graphGenoRepresentation.getFirst(),
-				graphGenoRepresentation.getSecond(), flowsPhenoToGeno);
+				graphGenoRepresentation.getSecond(), flowsPhenoToGeno,0.5d);
 
 		List<List<Integer>> graphGenomeListRepresentationOne = new ArrayList<List<Integer>>();
 		List<Integer> graphGenomePart = new ArrayList<Integer>();

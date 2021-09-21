@@ -43,15 +43,15 @@ public class GeneticOptimization extends Optimization<ScalarRadioMANET> {
 		Tuple<List<List<Integer>>, List<List<Integer>>> graphGenoRepresentation = translator.manetGraphPhenotoGeno();
 		List<Tuple<Integer, Integer>> flowsPhenoToGeno = translator.flowsPhenoToGeno();
 		List<List<Integer>> manetVerticesPhenoToGeno = translator.manetVerticesPhenoToGeno();
-		Mutation<GraphGenome> mutation = new SingleNodeMutation<GraphGenome>();
+		Mutation<GraphGenome> mutation = new CompletePathsMutation<GraphGenome>();
 
-		OnePointMultiplePathCrossover recombination = new OnePointMultiplePathCrossover();
+		TwoPointMultiplePathCrossover recombination = new TwoPointMultiplePathCrossover();
 		FlowDistributionFitness<PathComposition> fitness = new FlowDistributionFitness<PathComposition>();
 		TerminationCondition<PathComposition> termination = new TerminationConditionGenerations<PathComposition>(
 				generations);
 
 		// Initial individual
-		GraphGenome genome = new GraphGenome(manetVerticesPhenoToGeno, graphGenoRepresentation.getFirst(),graphGenoRepresentation.getSecond(), flowsPhenoToGeno);
+		GraphGenome genome = new GraphGenome(manetVerticesPhenoToGeno, graphGenoRepresentation.getFirst(),graphGenoRepresentation.getSecond(), flowsPhenoToGeno,1.0d);
 		BasicIndividual<PathComposition, GraphGenome> initialIndividual = new BasicIndividual<PathComposition, GraphGenome>(
 				genome, translator);
 		initialIndividual.<Double>setProperty("ProbabilityOfMutation", mutationProbability, true);

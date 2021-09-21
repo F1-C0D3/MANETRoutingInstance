@@ -104,7 +104,7 @@ public class TwoPointMultiplePathCrossover implements Recombination<GraphGenome>
 		cutComplementChromosomeTwo.retainAll(cutPartChromosomeOne);
 		
 		if(cutComplementChromosomeOne.size()==0 &&cutComplementChromosomeTwo.size()==0)
-		return cutIndicesChromosomeTwo;
+			return cutIndicesChromosomeTwo;
 		
 
 		return new int[] {-1,-1};

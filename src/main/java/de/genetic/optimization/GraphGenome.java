@@ -1,9 +1,14 @@
 package de.genetic.optimization;
 
 import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.ListIterator;
+import java.util.PriorityQueue;
 import java.util.Random;
 
+import de.jgraphlib.graph.elements.Path;
 import de.jgraphlib.util.Tuple;
 import de.terministic.serein.core.genome.ValueGenome;
 
@@ -13,12 +18,37 @@ public class GraphGenome extends ValueGenome<List<Integer>> {
 	public List<List<Integer>> targetSourceAdjacencyGenes;
 	List<Tuple<Integer, Integer>> genesSourceTargets;
 
+	private List<InstructedIndividualPathGeneration> instructedIndividualGenerations;
+	private double instructFactor;
+
 	public GraphGenome(List<List<Integer>> genes, List<List<Integer>> sourceTargetAdjacvencyGenes,
-			List<List<Integer>> targetSourceAdjacencyGenes, List<Tuple<Integer, Integer>> genesSourceTargets) {
+			List<List<Integer>> targetSourceAdjacencyGenes, List<Tuple<Integer, Integer>> genesSourceTargets,
+			double instructFactor) {
 		super(genes);
-		this.sourceTargetAdjacvencyGenes = sourceTargetAdjacvencyGenes;
+
 		this.targetSourceAdjacencyGenes = targetSourceAdjacencyGenes;
 		this.genesSourceTargets = genesSourceTargets;
+		this.instructFactor = instructFactor;
+		this.sourceTargetAdjacvencyGenes = sourceTargetAdjacvencyGenes;
+		this.instructedIndividualGenerations = new ArrayList<InstructedIndividualPathGeneration>();
+
+		for (Tuple<Integer, Integer> sourceTargetGenes : genesSourceTargets) {
+
+			List<List<Tuple<Integer, Integer>>> sourceTargetAdjacvencyGenesCopy = new ArrayList<List<Tuple<Integer, Integer>>>();
+			for (List<Integer> individualSourceTargetGenes : sourceTargetAdjacvencyGenes) {
+
+				List<Tuple<Integer, Integer>> neighborGenes = new ArrayList<Tuple<Integer, Integer>>();
+
+				for (Integer gene : individualSourceTargetGenes) {
+					neighborGenes.add(new Tuple<Integer, Integer>(gene, 1));
+				}
+
+				sourceTargetAdjacvencyGenesCopy.add(neighborGenes);
+			}
+			instructedIndividualGenerations.add(new InstructedIndividualPathGeneration(sourceTargetAdjacvencyGenesCopy,
+					sourceTargetGenes.getFirst(), sourceTargetGenes.getSecond()));
+		}
+
 	}
 
 	@Override
@@ -29,7 +59,8 @@ public class GraphGenome extends ValueGenome<List<Integer>> {
 
 	@Override
 	public GraphGenome createInstance(List<List<Integer>> genes) {
-		return new GraphGenome(genes, sourceTargetAdjacvencyGenes, targetSourceAdjacencyGenes, genesSourceTargets);
+		return new GraphGenome(genes, this.sourceTargetAdjacvencyGenes, this.targetSourceAdjacencyGenes,
+				this.genesSourceTargets, this.instructFactor);
 	}
 
 	@Override
@@ -40,14 +71,34 @@ public class GraphGenome extends ValueGenome<List<Integer>> {
 			List<Integer> chromosomePart = null;
 
 			while (chromosomePart == null) {
-				chromosomePart = generateRandomPath(sourceTargetGene.getFirst(), sourceTargetGene.getSecond(), random);
+				chromosomePart = generateIndividual(sourceTargetGene.getFirst(), sourceTargetGene.getSecond(), random);
 			}
 			chromosome.add(chromosomePart);
 		}
 		return createInstance(chromosome);
 	}
 
-	public List<Integer> generateRandomPath(int sourceGene, int targetGene, Random random) {
+	public List<Integer> generateIndividual(int sourceGene, int targetGene, Random random) {
+
+		if (random.nextDouble() > instructFactor)
+			return generateRandomIndividual(sourceGene, targetGene, random);
+		else {
+			for (InstructedIndividualPathGeneration instructedPathGeneration : this.instructedIndividualGenerations) {
+				if (instructedPathGeneration.getSourceGene() == sourceGene
+						&& instructedPathGeneration.getTargetGene() == targetGene) {
+					return instructedPathGeneration.generateNewIndividual();
+				}else {
+					return null;
+				}
+			}
+		}
+		return null;
+
+	}
+
+	
+
+	private List<Integer> generateRandomIndividual(int sourceGene, int targetGene, Random random) {
 		List<Integer> pathChromosome = new ArrayList<Integer>();
 		List<Integer> visited = new ArrayList<Integer>();
 

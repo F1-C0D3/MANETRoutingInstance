@@ -13,14 +13,15 @@ public class FlowDistributionFitness<W> extends AbstractFitnessFunction<PathComp
 	double ouW = 0.51;
 
 	// mobility weight
-	double mW = 0.07;
+	double mW = 0.10;
 
 	// reception power weight
 	double rcW = 0.15;
 
-	double uW = 0.49;
+	double uW = 0.24;
 
 	private double maxOverUtilization = 0d;
+	private double maxMeasuredUtilization=0d;
 
 	@Override
 	public boolean isNaturalOrder() {
@@ -39,8 +40,12 @@ public class FlowDistributionFitness<W> extends AbstractFitnessFunction<PathComp
 //		/* Compute entire manet capacity */
 		DataRate manetCapacity = manet.getCapacity();
 
-		DataRate networkUtilization = manet.getUtilization();
-		double utilizationNormalized = ((1d / manetCapacity.get()) * networkUtilization.get()) * uW;
+		double networkUtilization = manet.getUtilization().get();
+		if(networkUtilization>maxMeasuredUtilization)
+			maxMeasuredUtilization = networkUtilization;
+		
+		double utilizationNormalized=(networkUtilization/maxMeasuredUtilization)*uW;
+		
 
 //		/* Data rate over utilized */
 		DataRate overUtilization = manet.getOverUtilization();
@@ -53,13 +58,13 @@ public class FlowDistributionFitness<W> extends AbstractFitnessFunction<PathComp
 			overUtilizationNormalized = 1d * ouW;
 		}
 
-//		double receptionPower = pc.meanReceptionConfidence() * rcW;
+		double receptionPower = pc.meanReceptionConfidence() * rcW;
 //
-//		double mobilityQuality = pc.meanMobilityQuality() * mW;
+		double mobilityQuality = pc.meanMobilityQuality() * mW;
 //
-		double distance = (pc.getNumLinks() / (double) manet.getEdges().size()) * uW;
+//		double distance = (pc.getNumLinks() / (double) manet.getEdges().size()) * dW;
 		manet.undeployFlows();
-		return overUtilizationNormalized +distance;
+		return overUtilizationNormalized +utilizationNormalized+receptionPower+mobilityQuality;
 	}
 
 }
