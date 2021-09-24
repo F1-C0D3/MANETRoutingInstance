@@ -32,26 +32,29 @@
 package de.genetic.optimization;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.Map;
 import java.util.PriorityQueue;
+import java.util.Set;
 
 import de.jgraphlib.util.Tuple;
 
 public class InstructedIndividualPathGeneration {
-	private List<List<Tuple<Integer, Integer>>> graphGenes;
+	private List<List<Integer>> graphGenes;
 	private List<List<Integer>> candidates;
 	ArrayList<List<Integer>> ksp;
-	List<Tuple<Integer, Integer>> removedEdges;
+	List<Set<Integer>> removedEdges;
 	private int sourceGene;
 	private int targetGene;
 
 	private int spurPos;
 	private int round;
 
-	public InstructedIndividualPathGeneration(List<List<Tuple<Integer, Integer>>> graphGenes, int sourceGene,
-			int targetGene) {
+	public InstructedIndividualPathGeneration(List<List<Integer>> graphGenes, int sourceGene, int targetGene) {
 		this.graphGenes = graphGenes;
 		this.sourceGene = sourceGene;
 		this.targetGene = targetGene;
@@ -66,7 +69,11 @@ public class InstructedIndividualPathGeneration {
 		this.ksp = new ArrayList<List<Integer>>();
 		List<Integer> individuals = instructedIndividual(sourceGene, targetGene);
 		ksp.add(individuals);
-		this.removedEdges = new ArrayList<Tuple<Integer, Integer>>();
+
+		this.removedEdges = new ArrayList<Set<Integer>>();
+		for (int i = 0; i < graphGenes.size(); i++) {
+			removedEdges.add(new HashSet<Integer>());
+		}
 	}
 
 	public int getSourceGene() {
@@ -86,7 +93,7 @@ public class InstructedIndividualPathGeneration {
 	}
 
 	private List<Integer> instructedIndividual(int sourceGene, int targetGene) {
-		/* Initializaton */
+
 		int currentGene = sourceGene;
 		List<Integer> genes = new ArrayList<Integer>();
 		List<Tuple<Integer, Integer>> predDist = new ArrayList<Tuple<Integer, Integer>>();
@@ -110,11 +117,10 @@ public class InstructedIndividualPathGeneration {
 			}
 
 			for (int i = 0; i < graphGenes.get(currentGene).size(); i++) {
-				int neighborGene = graphGenes.get(currentGene).get(i).getFirst();
-				int dynamicDistance = graphGenes.get(currentGene).get(i).getSecond();
+				int neighborGene = graphGenes.get(currentGene).get(i);
 
 				int oldPahtDist = predDist.get(neighborGene).getSecond();
-				int altPathDist = dynamicDistance + predDist.get(currentGene).getSecond();
+				int altPathDist = 1 + predDist.get(currentGene).getSecond();
 
 				if (altPathDist < oldPahtDist) {
 					predDist.get(neighborGene).setFirst(currentGene);
@@ -180,53 +186,65 @@ public class InstructedIndividualPathGeneration {
 					int sourceGene = p.get(spurPos);
 					int sinkGene = p.get(spurPos + 1);
 
-					List<Tuple<Integer, Integer>> sourceNeighborGenes = this.graphGenes.get(sourceGene);
+					List<Integer> sourceNeighborGenes = this.graphGenes.get(sourceGene);
 
 					for (int l = 0; l < sourceNeighborGenes.size(); l++) {
-						if (sourceNeighborGenes.get(l).getFirst() == sinkGene) {
+						if (sourceNeighborGenes.get(l) == sinkGene) {
 							sourceNeighborGenes.remove(l);
-							removedEdges.add(new Tuple<Integer, Integer>(sourceGene, sinkGene));
+							removedEdges.get(sourceGene).add(sinkGene);
 							break;
 						}
 					}
 
 				}
-			}
-		}
 
-		/*
-		 * Temporarily remove all of the nodes in the root path, other than the spur
-		 * node, from the graph
-		 */
-		for (int node : rootPath) {
-			if (node != spurNode) {
-				removedEdges.addAll(new ArrayList<Tuple<Integer, Integer>>(graphGenes.get(node)));
-				Iterator<Tuple<Integer, Integer>> iterator = graphGenes.get(node).iterator();
+				for (Integer rootPathGene : rootPath) {
 
-				while (iterator.hasNext()) {
-					iterator.remove();
+					if (rootPathGene != spurNode) {
+						removedEdges.get(rootPathGene)
+								.addAll(new ArrayList<Integer>(this.graphGenes.get(rootPathGene)));
+						this.graphGenes.get(rootPathGene).clear();
+					}
 				}
 			}
 		}
 
-		// Spur path = shortest path from spur node to target node in the reduced graph
-		List<Integer> spurPath = instructedIndividual(spurNode, targetGene);
+
 		spurPos++;
-		// If a new spur path was identified...
-		if (spurPath != null) {
-			// Concatenate the root and spur paths to form the new candidate path
-			List<Integer> totalPath = new ArrayList<Integer>(rootPath);
-			totalPath.addAll(spurPath);
+		if (this.graphGenes.get(spurNode).size() != 0) {
+			List<Integer> spurPath = instructedIndividual(spurNode, targetGene);
 
-			// If candidate path has not been generated previously, add it
-			if (!ksp.contains(totalPath)) {
-				round++;
-				ksp.add(totalPath);
-				return totalPath;
+			// If a new spur path was identified...
+			if (spurPath != null) {
+				// Concatenate the root and spur paths to form the new candidate path
+				List<Integer> totalPath = new ArrayList<Integer>(rootPath);
+				totalPath.addAll(spurPath);
+
+				for (int i = 0; i < removedEdges.size(); i++) {
+					for (Integer neighborGene : removedEdges.get(i)) {
+
+						List<Integer> neighborGeneList = this.graphGenes.get(i);
+
+						if (!neighborGeneList.contains(neighborGene))
+							neighborGeneList.add(neighborGene);
+					}
+				}
+				// If candidate path has not been generated previously, add it
+				if (!candidates.contains(totalPath)) {
+					candidates.add(totalPath);
+
+					if (ksp.get(round).size() - 1 == spurPos) {
+
+						candidates.sort((a, b) -> a.size() - b.size());
+						ksp.add(++round, candidates.get(0));
+						candidates.remove(0);
+						spurPos = 0;
+					}
+					return totalPath;
+				}
+
 			}
-
 		}
-
 		return null;
 
 	}

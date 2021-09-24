@@ -148,16 +148,12 @@ public class RandomGraphGenomePathTest {
 				new ScalarRadioMANETSupplier().getLinkPropertySupplier(),
 				new ScalarRadioMANETSupplier().getFlowSupplier(), radioModel, mobilityModel, evaluator);
 
-		NetworkGraphGenerator<ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality> generator = new NetworkGraphGenerator<ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality>(
-				manet, new ScalarRadioMANETSupplier().getLinkPropertySupplier(), new RandomNumbers());
+		GridGraphProperties properties = new GridGraphProperties(200, 100, 100, 100);
 
-		NetworkGraphProperties graphProperties = new NetworkGraphProperties(/* playground width */ 1024,
-				/* playground height */ 768, /* number of vertices */ new IntRange(100, 100),
-				/* distance between vertices */ new DoubleRange(50d, 100d),
-				/* edge distance */ new DoubleRange(100d, 100d));
+		GridGraphGenerator<ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality> generator = new GridGraphGenerator<ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality>(
+				manet, RandomNumbers.getInstance(-1));
 
-		generator.generate(graphProperties);
-		manet.initialize();
+		generator.generate(properties);
 
 		Function<ScalarLinkQuality, Double> metric = (ScalarLinkQuality w) -> {
 			return w.getDistance();
@@ -165,8 +161,11 @@ public class RandomGraphGenomePathTest {
 
 		DijkstraShortestPath<ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality> sp = new DijkstraShortestPath<ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality>(
 				manet);
-		int sourceId = randomInstance.getRandom(0, manet.getVertices().size());
-		int targetId = randomInstance.getRandom(0, manet.getVertices().size());
+//		int sourceId = randomInstance.getRandom(0, manet.getVertices().size());
+//		int targetId = randomInstance.getRandom(0, manet.getVertices().size());
+		
+		int sourceId = 0;
+		int targetId = 3;
 		ScalarRadioFlow scalarRadioFlow = new ScalarRadioFlow(manet.getVertex(sourceId),manet.getVertex(targetId),new DataRate());
 		manet.addFlow(scalarRadioFlow);
 		GenesManetGraphTranslator translator = new GenesManetGraphTranslator(manet);
@@ -191,14 +190,14 @@ public class RandomGraphGenomePathTest {
 		GraphGenome genome = new GraphGenome(manetVerticesPhenoToGeno, graphGenoRepresentation.getFirst(),
 				graphGenoRepresentation.getSecond(), flowsPhenoToGeno, 1d);
 		while (numTestRuns != 0) {
-			if (sourceId != targetId && !manet.getVerticesInRadius(manet.getVertex(sourceId), 100d)
-					.contains(manet.getVertex(targetId))) {
-				List<Integer> instructedPath = genome.generateIndividual(sourceId, targetId, randomInstance.getDoubleRandom());
+//			if (sourceId != targetId && !manet.getVerticesInRadius(manet.getVertex(sourceId), 100d)
+//					.contains(manet.getVertex(targetId))) {
+				List<Integer> instructedPath = genome.createRandomInstance(randomInstance.getDoubleRandom()).getGenes().get(0);
 				foundPaths.add(instructedPath);
 
 		
 
-			}
+//			}
 			numTestRuns--;
 		}
 		Set<List<Integer>> uniquePaths = new HashSet<List<Integer>>(foundPaths);

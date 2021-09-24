@@ -34,13 +34,13 @@ public class GraphGenome extends ValueGenome<List<Integer>> {
 
 		for (Tuple<Integer, Integer> sourceTargetGenes : genesSourceTargets) {
 
-			List<List<Tuple<Integer, Integer>>> sourceTargetAdjacvencyGenesCopy = new ArrayList<List<Tuple<Integer, Integer>>>();
+			List<List<Integer>> sourceTargetAdjacvencyGenesCopy = new ArrayList<List<Integer>>();
 			for (List<Integer> individualSourceTargetGenes : sourceTargetAdjacvencyGenes) {
 
-				List<Tuple<Integer, Integer>> neighborGenes = new ArrayList<Tuple<Integer, Integer>>();
+				List<Integer> neighborGenes = new ArrayList<Integer>();
 
 				for (Integer gene : individualSourceTargetGenes) {
-					neighborGenes.add(new Tuple<Integer, Integer>(gene, 1));
+					neighborGenes.add(gene);
 				}
 
 				sourceTargetAdjacvencyGenesCopy.add(neighborGenes);
