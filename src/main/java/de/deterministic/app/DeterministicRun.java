@@ -15,11 +15,11 @@ import de.parallelism.Optimization;
 
 public class DeterministicRun
 		extends ExecutionCallable<ScalarRadioFlow, ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality> {
-	private Optimization<Void, ScalarRadioMANET> op;
+	private Optimization<ScalarRadioMANET> op;
 	private MANETResultRecorder<RunResultParameter, AverageResultParameter> resultRecorder;
 	private RunResultMapper<RunResultParameter, ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality> runResultMapper;
 
-	public DeterministicRun(Optimization<Void, ScalarRadioMANET> op,
+	public DeterministicRun(Optimization<ScalarRadioMANET> op,
 			MANETResultRecorder<RunResultParameter, AverageResultParameter> resultRecorder,
 			RunResultMapper<RunResultParameter, ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality> runResultMapper) {
 		this.op = op;
@@ -28,7 +28,7 @@ public class DeterministicRun
 	}
 
 	@Override
-	public Void call() {
+	public ScalarRadioMANET call() {
 		this.op.execute();
 		Time duration = this.op.stop();
 		this.resultRecorder.recordRun(op.getManet(), runResultMapper, duration);

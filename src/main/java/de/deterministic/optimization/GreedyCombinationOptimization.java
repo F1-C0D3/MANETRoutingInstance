@@ -6,22 +6,18 @@ import java.util.Random;
 import java.util.function.Function;
 
 import de.deterministic.algorithm.DijkstraShortesFlow;
-import de.jgraphlib.util.Tuple;
-import de.manetmodel.network.LinkQuality;
 import de.manetmodel.network.scalar.ScalarLinkQuality;
 import de.manetmodel.network.scalar.ScalarRadioFlow;
 import de.manetmodel.network.scalar.ScalarRadioMANET;
 import de.parallelism.Optimization;
 
-public class GreedyCombinationOptimization extends Optimization<Void, ScalarRadioMANET> {
+public class GreedyCombinationOptimization extends Optimization<ScalarRadioMANET> {
 
-	private Random random;
 	protected DijkstraShortesFlow sp;
 
 	public GreedyCombinationOptimization(ScalarRadioMANET manet) {
 		super(manet);
 		this.sp = new DijkstraShortesFlow(manet);
-		this.random = new Random();
 	}
 
 	Function<ScalarLinkQuality, Double> metric = (linkQuality) -> {
@@ -30,7 +26,7 @@ public class GreedyCombinationOptimization extends Optimization<Void, ScalarRadi
 
 	};
 
-	public Void execute() {
+	public ScalarRadioMANET execute() {
 		List<Integer> flowIds = manet.getFlowIDs();
 		List<Integer> visitedIds = new ArrayList<Integer>(flowIds.size());
 

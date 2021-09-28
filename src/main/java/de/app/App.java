@@ -8,7 +8,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
 import javax.swing.SwingUtilities;
@@ -18,23 +17,18 @@ import com.opencsv.exceptions.CsvRequiredFieldEmptyException;
 
 import de.jgraphlib.graph.generator.GraphProperties.DoubleRange;
 import de.jgraphlib.graph.generator.GraphProperties.IntRange;
-import de.approximation.app.ApproximationRun;
-import de.approximation.optimization.CplexOptimization;
 import de.genetic.app.GeneticRun;
 import de.genetic.optimization.GeneticOptimization;
 import de.jgraphlib.graph.generator.NetworkGraphGenerator;
 import de.jgraphlib.graph.generator.NetworkGraphProperties;
 import de.jgraphlib.gui.VisualGraphApp;
-import de.jgraphlib.gui.printer.WeightedEdgeIDPrinter;
 import de.jgraphlib.util.RandomNumbers;
 import de.manetmodel.evaluator.DoubleScope;
 import de.manetmodel.evaluator.ScalarLinkQualityEvaluator;
 import de.manetmodel.generator.OverUtilizedProblemProperties;
 import de.manetmodel.generator.OverUtilzedProblemGenerator;
-import de.manetmodel.gui.LinkQualityScorePrinter;
 import de.manetmodel.gui.LinkUtilizationPrinter;
 import de.manetmodel.mobilitymodel.PedestrianMobilityModel;
-import de.manetmodel.network.Flow;
 import de.manetmodel.network.scalar.ScalarLinkQuality;
 import de.manetmodel.network.scalar.ScalarRadioFlow;
 import de.manetmodel.network.scalar.ScalarRadioLink;
@@ -49,7 +43,6 @@ import de.manetmodel.results.RunResultMapper;
 import de.manetmodel.results.RunResultParameter;
 import de.manetmodel.scenarios.Scenario;
 import de.manetmodel.units.DataRate;
-import de.manetmodel.units.DataUnit.Type;
 import de.manetmodel.units.Speed;
 import de.manetmodel.units.Speed.SpeedRange;
 import de.manetmodel.units.Time;
@@ -57,7 +50,6 @@ import de.manetmodel.units.Unit;
 import de.manetmodel.units.Watt;
 import de.parallelism.ExecutionCallable;
 import de.results.ScalarRadioRunResultMapper;
-import ilog.concert.IloException;
 
 public abstract class App {
 	private int runs;

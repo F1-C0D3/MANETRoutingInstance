@@ -153,7 +153,7 @@ public class OnePointMultiplePathCrossoverTest {
 
 		// Initial individual
 		GraphGenome genome = new GraphGenome(manetVerticesPhenoToGeno, graphGenoRepresentation.getFirst(),
-				graphGenoRepresentation.getSecond(), flowsPhenoToGeno);
+				graphGenoRepresentation.getSecond(), flowsPhenoToGeno,0d);
 
 		GraphGenome createRandomInstance = genome.createRandomInstance(randomInstance.getDoubleRandom());
 

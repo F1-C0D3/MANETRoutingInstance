@@ -86,7 +86,7 @@ public class SingleNodeMutationTest {
 
 		// Initial individual
 		GraphGenome genome = new GraphGenome(manetVerticesPhenoToGeno, graphGenoRepresentation.getFirst(),
-				graphGenoRepresentation.getSecond(), flowsPhenoToGeno);
+				graphGenoRepresentation.getSecond(), flowsPhenoToGeno,0d);
 
 		List<List<Integer>> singlePathList = new ArrayList<List<Integer>>();
 		List<Integer> singlePath = new ArrayList<Integer>();
@@ -159,7 +159,7 @@ public class SingleNodeMutationTest {
 						manet.getVertex(targetId), metric);
 				// Initial individual
 				GraphGenome genome = new GraphGenome(manetVerticesPhenoToGeno, graphGenoRepresentation.getFirst(),
-						graphGenoRepresentation.getSecond(), flowsPhenoToGeno);
+						graphGenoRepresentation.getSecond(), flowsPhenoToGeno,0d);
 
 				// Path to genotype
 				List<List<Integer>> singlePathList = new ArrayList<List<Integer>>();
@@ -251,7 +251,7 @@ public class SingleNodeMutationTest {
 
 			// Initial individual
 			GraphGenome genome = new GraphGenome(manetVerticesPhenoToGeno, graphGenoRepresentation.getFirst(),
-					graphGenoRepresentation.getSecond(), flowsPhenoToGeno);
+					graphGenoRepresentation.getSecond(), flowsPhenoToGeno,0d);
 
 			// Path to genotype
 			List<List<Integer>> singlePathList = new ArrayList<List<Integer>>();
@@ -358,7 +358,7 @@ public class SingleNodeMutationTest {
 
 			// Initial individual
 			GraphGenome genome = new GraphGenome(manetVerticesPhenoToGeno, graphGenoRepresentation.getFirst(),
-					graphGenoRepresentation.getSecond(), flowsPhenoToGeno);
+					graphGenoRepresentation.getSecond(), flowsPhenoToGeno,0d);
 
 			// Path to genotype
 			List<List<Integer>> singlePathList = new ArrayList<List<Integer>>();

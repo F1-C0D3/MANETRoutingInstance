@@ -13,7 +13,7 @@ import de.manetmodel.network.scalar.ScalarRadioNode;
 import de.manetmodel.util.Selection;
 import de.parallelism.Optimization;
 
-public class AllCombinationOptimization extends Optimization<Void, ScalarRadioMANET> {
+public class AllCombinationOptimization extends Optimization<ScalarRadioMANET> {
 
 	protected DijkstraShortesFlow sp;
 
@@ -27,7 +27,7 @@ public class AllCombinationOptimization extends Optimization<Void, ScalarRadioMA
 	};
 
 	@Override
-	public Void execute() {
+	public ScalarRadioMANET execute() {
 		List<Integer> flowIds = manet.getFlowIDs();
 		int[] flowIdArray = new int[flowIds.size()];
 		for (int i = 0; i < flowIdArray.length; i++) {

@@ -5,7 +5,6 @@ import java.util.Random;
 
 import de.jgraphlib.util.RandomNumbers;
 import de.jgraphlib.util.Tuple;
-import de.manetmodel.network.scalar.ScalarRadioFlow;
 import de.manetmodel.network.scalar.ScalarRadioMANET;
 import de.parallelism.Optimization;
 import de.terministic.serein.api.EvolutionEnvironment;
@@ -38,6 +37,7 @@ public class GeneticOptimization extends Optimization<ScalarRadioMANET> {
 		 this.translator = new GenesManetGraphTranslator(manet);
 	}
 
+	@Override
 	public ScalarRadioMANET execute() {
 
 		Tuple<List<List<Integer>>, List<List<Integer>>> graphGenoRepresentation = translator.manetGraphPhenotoGeno();

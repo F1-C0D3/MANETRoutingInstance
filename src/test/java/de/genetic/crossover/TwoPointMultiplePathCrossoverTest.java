@@ -82,7 +82,7 @@ public class TwoPointMultiplePathCrossoverTest {
 
 		// Initial individual
 		GraphGenome genome = new GraphGenome(manetVerticesPhenoToGeno, graphGenoRepresentation.getFirst(),
-				graphGenoRepresentation.getSecond(), flowsPhenoToGeno);
+				graphGenoRepresentation.getSecond(), flowsPhenoToGeno,0d);
 
 		List<List<Integer>> graphGenomeListRepresentationOne = new ArrayList<List<Integer>>();
 		List<Integer> graphGenomePart = new ArrayList<Integer>();
@@ -154,7 +154,7 @@ public class TwoPointMultiplePathCrossoverTest {
 
 		// Initial individual
 		GraphGenome genome = new GraphGenome(manetVerticesPhenoToGeno, graphGenoRepresentation.getFirst(),
-				graphGenoRepresentation.getSecond(), flowsPhenoToGeno);
+				graphGenoRepresentation.getSecond(), flowsPhenoToGeno,0d);
 
 		GraphGenome createRandomInstance = genome.createRandomInstance(randomInstance.getDoubleRandom());
 		SwingUtilities.invokeAndWait(new VisualGraphApp<ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality>(manet,

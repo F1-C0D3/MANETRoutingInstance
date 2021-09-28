@@ -1,14 +1,9 @@
 package de.genetic.optimization;
 
 import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.ListIterator;
-import java.util.PriorityQueue;
 import java.util.Random;
 
-import de.jgraphlib.graph.elements.Path;
 import de.jgraphlib.util.Tuple;
 import de.terministic.serein.core.genome.ValueGenome;
 
@@ -83,20 +78,21 @@ public class GraphGenome extends ValueGenome<List<Integer>> {
 		if (random.nextDouble() > instructFactor)
 			return generateRandomIndividual(sourceGene, targetGene, random);
 		else {
-			for (InstructedIndividualPathGeneration instructedPathGeneration : this.instructedIndividualGenerations) {
-				if (instructedPathGeneration.getSourceGene() == sourceGene
-						&& instructedPathGeneration.getTargetGene() == targetGene) {
-					return instructedPathGeneration.generateNewIndividual();
-				}else {
-					return null;
+			
+			InstructedIndividualPathGeneration instructedPathGeneration = null;
+			
+			for (InstructedIndividualPathGeneration element : this.instructedIndividualGenerations) {
+				
+				if (element.getSourceGene() == sourceGene && element.getTargetGene() == targetGene) {
+					instructedPathGeneration = element;
+					break;
 				}
+
 			}
+			return instructedPathGeneration.generateNewIndividual();
 		}
-		return null;
 
 	}
-
-	
 
 	private List<Integer> generateRandomIndividual(int sourceGene, int targetGene, Random random) {
 		List<Integer> pathChromosome = new ArrayList<Integer>();

@@ -1,7 +1,6 @@
 package de.genetic.app;
 
 import de.genetic.optimization.GeneticOptimization;
-import de.genetic.optimization.PathComposition;
 import de.manetmodel.network.scalar.ScalarLinkQuality;
 import de.manetmodel.network.scalar.ScalarRadioFlow;
 import de.manetmodel.network.scalar.ScalarRadioLink;

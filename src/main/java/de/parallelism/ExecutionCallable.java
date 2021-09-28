@@ -1,6 +1,5 @@
 package de.parallelism;
 
-import java.util.List;
 import java.util.concurrent.Callable;
 
 import de.manetmodel.network.scalar.ScalarRadioMANET;

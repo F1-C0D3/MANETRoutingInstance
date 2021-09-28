@@ -1,7 +1,7 @@
 package de.app;
 
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
-import java.util.Random;
 import java.util.concurrent.ExecutionException;
 
 import de.deterministic.app.DeterministicRun;
@@ -22,29 +22,33 @@ import ilog.concert.IloException;
 
 public class AllCompApp extends App {
 
-	public static void main(String[] args) throws InterruptedException, ExecutionException, IloException, InvocationTargetException {
+	public static void main(String[] args)
+			throws InterruptedException, ExecutionException, IloException, InvocationTargetException {
 
 		Scenario scenario = new Scenario("allCombination", 7, 100, 1);
 
 		AllCompApp allComp = new AllCompApp(5, scenario, RandomNumbers.getInstance(0));
 
-		allComp.execute();
+		try {
+			allComp.execute();
+		} catch (InvocationTargetException | InterruptedException | ExecutionException | IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 
 //	System.exit(0);
 	}
 
-	public AllCompApp(int runs, Scenario scenario,RandomNumbers random) {
-		super(runs, scenario,random);
+	public AllCompApp(int runs, Scenario scenario, RandomNumbers random) {
+		super(runs, scenario, random);
 	}
 
 	@Override
 	public ExecutionCallable<ScalarRadioFlow, ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality> configureRun(
-			ScalarRadioMANET manet,
-			MANETResultRecorder<RunResultParameter, AverageResultParameter> resultRecorder,
+			ScalarRadioMANET manet, MANETResultRecorder<RunResultParameter, AverageResultParameter> resultRecorder,
 			RunResultMapper<RunResultParameter, ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality> runResultMapper) {
 
-		AllCombinationOptimization aco = new AllCombinationOptimization(
-				manet);
+		AllCombinationOptimization aco = new AllCombinationOptimization(manet);
 		return new DeterministicRun(aco, resultRecorder, runResultMapper);
 	}
 

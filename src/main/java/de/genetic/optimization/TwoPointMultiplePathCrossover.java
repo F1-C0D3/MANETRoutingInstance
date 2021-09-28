@@ -2,16 +2,11 @@ package de.genetic.optimization;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 
-import org.apache.commons.math3.stat.inference.GTest;
-
-import de.jgraphlib.util.RandomNumbers;
 import de.terministic.serein.api.Recombination;
 import de.terministic.serein.api.RecombinationException;
-import de.terministic.serein.core.util.Lists;
 
 public class TwoPointMultiplePathCrossover implements Recombination<GraphGenome> {
 
@@ -62,7 +57,7 @@ public class TwoPointMultiplePathCrossover implements Recombination<GraphGenome>
 
 			pathList.add(newChromosomePart);
 		}
-		return (GraphGenome) genomes.get(0).createInstance(pathList);
+		return genomes.get(0).createInstance(pathList);
 
 	}
 

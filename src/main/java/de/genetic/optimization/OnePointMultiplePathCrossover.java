@@ -4,8 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-import org.apache.commons.math3.stat.inference.GTest;
-
 import de.terministic.serein.api.Recombination;
 import de.terministic.serein.api.RecombinationException;
 
@@ -56,7 +54,7 @@ public class OnePointMultiplePathCrossover implements Recombination<GraphGenome>
 			
 			pathList.add(newChromosomePart);
 		}
-		return (GraphGenome) genomes.get(0).createInstance(pathList);
+		return genomes.get(0).createInstance(pathList);
 
 	}
 

@@ -1,8 +1,6 @@
 
 package de.approximation.app;
 
-import java.util.List;
-
 import de.approximation.optimization.CplexOptimization;
 import de.manetmodel.network.scalar.ScalarLinkQuality;
 import de.manetmodel.network.scalar.ScalarRadioFlow;
@@ -15,7 +13,6 @@ import de.manetmodel.results.RunResultMapper;
 import de.manetmodel.results.RunResultParameter;
 import de.manetmodel.units.Time;
 import de.parallelism.ExecutionCallable;
-import de.parallelism.Optimization;
 
 public class ApproximationRun
 		extends ExecutionCallable<ScalarRadioFlow, ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality> {

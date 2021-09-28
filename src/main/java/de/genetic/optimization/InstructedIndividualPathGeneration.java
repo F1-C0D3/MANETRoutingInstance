@@ -32,13 +32,9 @@
 package de.genetic.optimization;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
-import java.util.Map;
-import java.util.PriorityQueue;
 import java.util.Set;
 
 import de.jgraphlib.util.Tuple;
@@ -53,22 +49,23 @@ public class InstructedIndividualPathGeneration {
 
 	private int spurPos;
 	private int round;
+	private boolean initialRun;
 
 	public InstructedIndividualPathGeneration(List<List<Integer>> graphGenes, int sourceGene, int targetGene) {
 		this.graphGenes = graphGenes;
 		this.sourceGene = sourceGene;
 		this.targetGene = targetGene;
-		_init();
+		init();
 	}
 
-	private void _init() {
+	private void init() {
 
+		this.initialRun=true;
 		this.spurPos = 0;
 		this.round = 0;
 		this.candidates = new ArrayList<List<Integer>>();
 		this.ksp = new ArrayList<List<Integer>>();
-		List<Integer> individuals = instructedIndividual(sourceGene, targetGene);
-		ksp.add(individuals);
+
 
 		this.removedEdges = new ArrayList<Set<Integer>>();
 		for (int i = 0; i < graphGenes.size(); i++) {
@@ -109,6 +106,9 @@ public class InstructedIndividualPathGeneration {
 
 		while (!genes.isEmpty()) {
 			Integer nId = minDistance(predDist, genes);
+			if (nId == -1)
+				return null;
+
 			genes.remove(nId);
 			currentGene = nId;
 
@@ -164,55 +164,70 @@ public class InstructedIndividualPathGeneration {
 
 	public List<Integer> generateNewIndividual() {
 
+		if(initialRun) {
+			initialRun=false;
+			ksp.add(instructedIndividual(sourceGene, targetGene));
+			return ksp.get(0);
+		}
+		
 		List<Integer> previousPath = ksp.get(round);
 
-		int spurNode = previousPath.get(spurPos);
+		while (spurPos != previousPath.size() - 1) {
 
-		// Root path = prefix portion of the (k-1)st path up to the spur node
-		List<Integer> rootPath = new ArrayList<Integer>(previousPath.subList(0, spurPos));
+			int spurNode = previousPath.get(spurPos);
 
-		/* Iterate over all of the (k-1) shortest paths */
-		for (List<Integer> p : ksp) {
+			// Root path = prefix portion of the (k-1)st path up to the spur node
+			List<Integer> rootPath = new ArrayList<Integer>(previousPath.subList(0, spurPos));
 
-			List<Integer> stub = new ArrayList<Integer>(p.subList(0, spurPos));
-			// Check to see if this path has the same prefix/root as the (k-1)st shortest
-			// path
-			if (rootPath.equals(stub)) {
-				/*
-				 * If so, eliminate the next edge in the path from the graph (later on, this
-				 * forces the spur node to connect the root path with an un-found suffix path)
-				 */
-				if (p.size() - 1 != spurPos) {
-					int sourceGene = p.get(spurPos);
-					int sinkGene = p.get(spurPos + 1);
+			/* Iterate over all of the (k-1) shortest paths */
+			for (List<Integer> p : ksp) {
 
-					List<Integer> sourceNeighborGenes = this.graphGenes.get(sourceGene);
+				List<Integer> stub = new ArrayList<Integer>(p.subList(0, spurPos > p.size() ? p.size() : spurPos));
+				// Check to see if this path has the same prefix/root as the (k-1)st shortest
+				// path
+				if (rootPath.equals(stub)) {
+					/*
+					 * If so, eliminate the next edge in the path from the graph (later on, this
+					 * forces the spur node to connect the root path with an un-found suffix path)
+					 */
+					if (p.size() - 1 != spurPos) {
+						int sourceGene = p.get(spurPos);
+						int sinkGene = p.get(spurPos + 1);
 
-					for (int l = 0; l < sourceNeighborGenes.size(); l++) {
-						if (sourceNeighborGenes.get(l) == sinkGene) {
-							sourceNeighborGenes.remove(l);
-							removedEdges.get(sourceGene).add(sinkGene);
-							break;
+						List<Integer> sourceNeighborGenes = this.graphGenes.get(sourceGene);
+
+						for (int l = 0; l < sourceNeighborGenes.size(); l++) {
+							if (sourceNeighborGenes.get(l) == sinkGene) {
+								sourceNeighborGenes.remove(l);
+								removedEdges.get(sourceGene).add(sinkGene);
+								break;
+							}
 						}
+
 					}
 
-				}
+					for (Integer rootPathGene : rootPath) {
 
-				for (Integer rootPathGene : rootPath) {
-
-					if (rootPathGene != spurNode) {
-						removedEdges.get(rootPathGene)
-								.addAll(new ArrayList<Integer>(this.graphGenes.get(rootPathGene)));
-						this.graphGenes.get(rootPathGene).clear();
+						if (rootPathGene != spurNode) {
+							removedEdges.get(rootPathGene)
+									.addAll(new ArrayList<Integer>(this.graphGenes.get(rootPathGene)));
+							this.graphGenes.get(rootPathGene).clear();
+						}
 					}
 				}
 			}
-		}
 
-
-		spurPos++;
-		if (this.graphGenes.get(spurNode).size() != 0) {
 			List<Integer> spurPath = instructedIndividual(spurNode, targetGene);
+
+			for (int i = 0; i < removedEdges.size(); i++) {
+				for (Integer neighborGene : removedEdges.get(i)) {
+
+					List<Integer> neighborGeneList = this.graphGenes.get(i);
+
+					if (!neighborGeneList.contains(neighborGene))
+						neighborGeneList.add(neighborGene);
+				}
+			}
 
 			// If a new spur path was identified...
 			if (spurPath != null) {
@@ -220,33 +235,25 @@ public class InstructedIndividualPathGeneration {
 				List<Integer> totalPath = new ArrayList<Integer>(rootPath);
 				totalPath.addAll(spurPath);
 
-				for (int i = 0; i < removedEdges.size(); i++) {
-					for (Integer neighborGene : removedEdges.get(i)) {
-
-						List<Integer> neighborGeneList = this.graphGenes.get(i);
-
-						if (!neighborGeneList.contains(neighborGene))
-							neighborGeneList.add(neighborGene);
-					}
-				}
 				// If candidate path has not been generated previously, add it
 				if (!candidates.contains(totalPath)) {
 					candidates.add(totalPath);
-
-					if (ksp.get(round).size() - 1 == spurPos) {
-
-						candidates.sort((a, b) -> a.size() - b.size());
-						ksp.add(++round, candidates.get(0));
-						candidates.remove(0);
-						spurPos = 0;
-					}
-					return totalPath;
 				}
 
 			}
-		}
-		return null;
+			spurPos++;
 
+		}
+
+		spurPos = 0;
+		if (candidates.isEmpty()) {
+			init();
+			return null;
+		}
+
+		candidates.sort((a, b) -> a.size() - b.size());
+		ksp.add(++round, candidates.get(0));
+		return candidates.remove(0);
 	}
 
 }
