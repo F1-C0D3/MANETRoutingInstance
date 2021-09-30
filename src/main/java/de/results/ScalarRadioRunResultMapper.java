@@ -17,16 +17,18 @@ import de.manetmodel.units.Watt;
 public class ScalarRadioRunResultMapper
 		extends RunResultMapper<RunResultParameter, ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality> {
 
+	MobilityModel mobilityModel;
+
 	public ScalarRadioRunResultMapper(ColumnPositionMappingStrategy<RunResultParameter> mappingStrategy,
 			Scenario scenario, MobilityModel mobilityModel) {
-		super(mappingStrategy, scenario, mobilityModel);
-
+		super(scenario, mappingStrategy);
+		this.mobilityModel = mobilityModel;
 	}
 
 	private int getLinkStability(ScalarRadioNode source, ScalarRadioNode sink, ScalarRadioLink link) {
 
-		MovementPattern nodeOneMobilityPattern = source.getPrevMobility().get(0);
-		MovementPattern nodeTwoMobilityPattern = sink.getPrevMobility().get(0);
+		MovementPattern nodeOneMobilityPattern = source.getPreviousMobilityPattern();
+		MovementPattern nodeTwoMobilityPattern = sink.getPreviousMobilityPattern();
 		double currentDistance = nodeDistance(nodeOneMobilityPattern.getPostion(), nodeTwoMobilityPattern.getPostion());
 		Watt requiredReceptionPower = sink.getReceptionThreshold();
 
@@ -60,7 +62,8 @@ public class ScalarRadioRunResultMapper
 	}
 
 	@Override
-	public RunResultParameter individualRunResultMapper(ScalarRadioNode source, ScalarRadioNode sink, ScalarRadioLink link) {
+	public RunResultParameter individualRunResultMapper(ScalarRadioNode source, ScalarRadioNode sink,
+			ScalarRadioLink link) {
 		RunResultParameter runResultParameter = new RunResultParameter();
 		runResultParameter.setlId(link.getID());
 		runResultParameter.setN1Id(source.getID());
@@ -82,17 +85,6 @@ public class ScalarRadioRunResultMapper
 		runResultParameter.setUtilization(link.getUtilization().get());
 
 		return runResultParameter;
-	}
-
-	@Override
-	public ColumnPositionMappingStrategy<RunResultParameter> getMappingStrategy() {
-		return this.mappingStrategy;
-	}
-
-	@Override
-	public void setMappingStrategy(ColumnPositionMappingStrategy<RunResultParameter> mappingStrategy) {
-		this.mappingStrategy = mappingStrategy;
-
 	}
 
 }

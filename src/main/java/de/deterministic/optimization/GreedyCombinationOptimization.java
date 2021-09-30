@@ -72,7 +72,7 @@ public class GreedyCombinationOptimization extends Optimization<ScalarRadioMANET
 
 			}
 		}
-		return null;
+		return manet;
 	}
 
 }

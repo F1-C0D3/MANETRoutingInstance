@@ -23,7 +23,7 @@ public class AllCombinationOptimization extends Optimization<ScalarRadioMANET> {
 	}
 
 	Function<ScalarLinkQuality, Double> metric = (linkQuality) -> {
-		return  1d;
+		return 1d;
 	};
 
 	@Override
@@ -67,8 +67,7 @@ public class AllCombinationOptimization extends Optimization<ScalarRadioMANET> {
 		}
 
 		deploySolution(flowCombinations.get(bestCombination));
-
-		return null;
+		return manet;
 	}
 
 	private void deploySolution(List<Integer> flowIds) {

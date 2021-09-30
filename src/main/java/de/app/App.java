@@ -17,6 +17,8 @@ import com.opencsv.exceptions.CsvRequiredFieldEmptyException;
 
 import de.jgraphlib.graph.generator.GraphProperties.DoubleRange;
 import de.jgraphlib.graph.generator.GraphProperties.IntRange;
+import de.deterministic.app.DeterministicRun;
+import de.deterministic.optimization.AllCombinationOptimization;
 import de.genetic.app.GeneticRun;
 import de.genetic.optimization.GeneticOptimization;
 import de.jgraphlib.graph.generator.NetworkGraphGenerator;
@@ -25,6 +27,7 @@ import de.jgraphlib.gui.VisualGraphApp;
 import de.jgraphlib.util.RandomNumbers;
 import de.manetmodel.evaluator.DoubleScope;
 import de.manetmodel.evaluator.ScalarLinkQualityEvaluator;
+import de.manetmodel.evaluator.SimpleLinkQualityEvaluator;
 import de.manetmodel.generator.OverUtilizedProblemProperties;
 import de.manetmodel.generator.OverUtilzedProblemGenerator;
 import de.manetmodel.gui.LinkUtilizationPrinter;
@@ -43,6 +46,7 @@ import de.manetmodel.results.RunResultMapper;
 import de.manetmodel.results.RunResultParameter;
 import de.manetmodel.scenarios.Scenario;
 import de.manetmodel.units.DataRate;
+import de.manetmodel.units.DataUnit.Type;
 import de.manetmodel.units.Speed;
 import de.manetmodel.units.Speed.SpeedRange;
 import de.manetmodel.units.Time;
@@ -92,7 +96,7 @@ public abstract class App {
 
 			// Define Mobility Model
 			PedestrianMobilityModel mobilityModel = new PedestrianMobilityModel(random,
-					new SpeedRange(2d, 10d, Unit.TimeSteps.hour, Unit.Distance.kilometer),
+					new SpeedRange(2d, 7d, Unit.TimeSteps.hour, Unit.Distance.kilometer),
 					new Time(Unit.TimeSteps.second, 30l), new Speed(1.2d, Unit.Distance.kilometer, Unit.TimeSteps.hour),
 					10);
 
@@ -102,7 +106,7 @@ public abstract class App {
 					maxCommunicationRange);
 
 			// ScalLinkQualityEvaluator
-			ScalarLinkQualityEvaluator evaluator = new ScalarLinkQualityEvaluator(new DoubleScope(0d, 1d), radioModel,
+			SimpleLinkQualityEvaluator evaluator = new SimpleLinkQualityEvaluator(new DoubleScope(0d, 1d), radioModel,
 					mobilityModel);
 			// Create MANET with scalar radio properties
 			ScalarRadioMANET manet = new ScalarRadioMANET(new ScalarRadioMANETSupplier.ScalarRadioNodeSupplier(),
@@ -128,16 +132,17 @@ public abstract class App {
 					manet, metric);
 
 			OverUtilizedProblemProperties problemProperties = new OverUtilizedProblemProperties();
-			problemProperties.pathCount = 5;
+			problemProperties.pathCount =3;
 			problemProperties.minLength = 10;
 			problemProperties.maxLength = 20;
 			problemProperties.minDemand = new DataRate(100);
 			problemProperties.maxDemand = new DataRate(200);
-			problemProperties.overUtilizationPercentage = 2;
+			problemProperties.overUtilizationPercentage =10;
 			problemProperties.uniqueSourceDestination = true;
 
 			List<ScalarRadioFlow> flowProblems = overUtilizedProblemGenerator.compute(problemProperties, random);
 			manet.addFlows(flowProblems);
+//			System.out.println(manet.getUtilization());
 //			ScalarRadioFlow f1 = new ScalarRadioFlow(manet.getVertex(0), manet.getVertex(99),
 //					new DataRate(1, Type.megabit));
 //			ScalarRadioFlow f2 = new ScalarRadioFlow(manet.getVertex(10), manet.getVertex(89),
@@ -161,15 +166,17 @@ public abstract class App {
 					scenario, mobilityModel);
 			runResultMapper.getMappingStrategy().setType(RunResultParameter.class);
 //
-//			ExecutionCallable<ScalarRadioFlow, ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality> run = this
-//					.configureRun(manet, resultRecorder, runResultMapper);
+			ExecutionCallable<ScalarRadioFlow, ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality> run = this
+					.configureRun(manet, resultRecorder, runResultMapper);
 			
-			GeneticOptimization go = new GeneticOptimization(manet,2500, 20,0.2, RandomNumbers.getInstance(0));
-			 GeneticRun geneticRun = new GeneticRun(go, resultRecorder, runResultMapper);
-			 geneticRun.call();
-			
-
-//			executionList.add(run);
+//			AllCombinationOptimization aco = new AllCombinationOptimization(manet);
+//			DeterministicRun dr= new DeterministicRun(aco, resultRecorder, runResultMapper);
+//			dr.call();
+//			System.out.println(String.format("Finished with Setting %d, OverUtilization=%s", 1,manet.getOverUtilization().toString()));
+//			ScalarRadioMANET scalarRadioMANET = future.get();
+//			SwingUtilities.invokeAndWait(new VisualGraphApp<ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality>(
+//					manet, new LinkUtilizationPrinter<ScalarRadioLink, ScalarLinkQuality>()));
+			executionList.add(run);
 			runs--;
 
 		}

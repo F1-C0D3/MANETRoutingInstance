@@ -29,11 +29,11 @@ public class DeterministicRun
 
 	@Override
 	public ScalarRadioMANET call() {
-		this.op.execute();
+		ScalarRadioMANET manet = this.op.execute();
 		Time duration = this.op.stop();
 		this.resultRecorder.recordRun(op.getManet(), runResultMapper, duration);
 
-		return null;
+		return manet;
 	}
 
 }

@@ -27,7 +27,7 @@ public class AllCompApp extends App {
 
 		Scenario scenario = new Scenario("allCombination", 7, 100, 1);
 
-		AllCompApp allComp = new AllCompApp(5, scenario, RandomNumbers.getInstance(0));
+		AllCompApp allComp = new AllCompApp(1, scenario, RandomNumbers.getInstance(0));
 
 		try {
 			allComp.execute();
