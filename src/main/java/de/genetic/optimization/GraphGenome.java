@@ -14,16 +14,16 @@ public class GraphGenome extends ValueGenome<List<Integer>> {
 	List<Tuple<Integer, Integer>> genesSourceTargets;
 
 	private List<InstructedIndividualPathGeneration> instructedIndividualGenerations;
-	private double instructFactor;
+	private double instructionFactor;
 
 	public GraphGenome(List<List<Integer>> genes, List<List<Integer>> sourceTargetAdjacvencyGenes,
 			List<List<Integer>> targetSourceAdjacencyGenes, List<Tuple<Integer, Integer>> genesSourceTargets,
-			double instructFactor) {
+			double instructionFactor) {
 		super(genes);
 
 		this.targetSourceAdjacencyGenes = targetSourceAdjacencyGenes;
 		this.genesSourceTargets = genesSourceTargets;
-		this.instructFactor = instructFactor;
+		this.instructionFactor = instructionFactor;
 		this.sourceTargetAdjacvencyGenes = sourceTargetAdjacvencyGenes;
 		this.instructedIndividualGenerations = new ArrayList<InstructedIndividualPathGeneration>();
 
@@ -55,7 +55,7 @@ public class GraphGenome extends ValueGenome<List<Integer>> {
 	@Override
 	public GraphGenome createInstance(List<List<Integer>> genes) {
 		return new GraphGenome(genes, this.sourceTargetAdjacvencyGenes, this.targetSourceAdjacencyGenes,
-				this.genesSourceTargets, this.instructFactor);
+				this.genesSourceTargets, this.instructionFactor);
 	}
 
 	@Override
@@ -75,7 +75,7 @@ public class GraphGenome extends ValueGenome<List<Integer>> {
 
 	public List<Integer> generateIndividual(int sourceGene, int targetGene, Random random) {
 
-		if (random.nextDouble() > instructFactor)
+		if (random.nextDouble() > instructionFactor)
 			return generateRandomIndividual(sourceGene, targetGene, random);
 		else {
 			
