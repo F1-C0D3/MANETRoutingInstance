@@ -1,4 +1,4 @@
-package de.results;
+package de.result;
 
 import com.opencsv.bean.ColumnPositionMappingStrategy;
 

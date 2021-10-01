@@ -53,7 +53,7 @@ import de.manetmodel.units.Time;
 import de.manetmodel.units.Unit;
 import de.manetmodel.units.Watt;
 import de.parallelism.ExecutionCallable;
-import de.results.ScalarRadioRunResultMapper;
+import de.result.ScalarRadioRunResultMapper;
 
 public abstract class App {
 	private int runs;
