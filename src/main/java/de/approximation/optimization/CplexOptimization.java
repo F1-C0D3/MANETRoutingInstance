@@ -232,7 +232,8 @@ public class CplexOptimization extends Optimization<ScalarRadioMANET> {
 //			cplex.addMinimize(cplex.sum(cplex.sum(minSpeedStabilityExpr),cplex.sum(minLinkStabilityExpr)));
 			cplex.setParam(IloCplex.Param.MIP.Limits.Solutions, 1);
 			cplex.setParam(IloCplex.Param.Threads, 1);
-//			cplex.setParam(IloCplex.Param.MIP.Display, 0);
+			cplex.setParam(IloCplex.Param.MIP.Display, 0);
+			cplex.setParam(IloCplex.Param.TimeLimit, 360);
 
 			if (cplex.solve()) {
 
