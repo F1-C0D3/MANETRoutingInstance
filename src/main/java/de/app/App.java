@@ -194,7 +194,6 @@ public abstract class App {
 		resultRecorder.finish(totalResultMapper);
 		executor.shutdown();
 
-		System.in.read();
 		System.exit(0);
 	}
 
