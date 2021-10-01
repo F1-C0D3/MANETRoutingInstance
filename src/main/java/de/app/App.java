@@ -186,8 +186,8 @@ public abstract class App {
 		int i = 0;
 		for (Future<ScalarRadioMANET> future : futureList) {
 			ScalarRadioMANET scalarRadioMANET = future.get();
-				SwingUtilities.invokeAndWait(new VisualGraphApp<ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality>(
-						scalarRadioMANET, new LinkUtilizationPrinter<ScalarRadioLink, ScalarLinkQuality>()));
+//				SwingUtilities.invokeAndWait(new VisualGraphApp<ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality>(
+//						scalarRadioMANET, new LinkUtilizationPrinter<ScalarRadioLink, ScalarLinkQuality>()));
 
 			System.out.println(String.format("Finished with Setting %d, OverUtilization=%s", ++i,scalarRadioMANET.getOverUtilization().toString()));
 		}

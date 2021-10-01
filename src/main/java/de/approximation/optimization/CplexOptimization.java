@@ -222,16 +222,16 @@ public class CplexOptimization extends Optimization<ScalarRadioMANET> {
 //						minHighUtilizedNearbyLinks[link.getID()]);
 			}
 
-			cplex.addMinimize(
-					cplex.sum(cplex.sum(minPathInstabilityExpr, cplex.sum(minSpeedStabilityExpr)),
-							cplex.sum(minLinkStabilityExpr)));
+//			cplex.addMinimize(
+//					cplex.sum(cplex.sum(minPathInstabilityExpr, cplex.sum(minSpeedStabilityExpr)),
+//							cplex.sum(minLinkStabilityExpr)));
 //			cplex.addMinimize(cplex.sum(minPathInstabilityExpr, cplex.sum(minLinkStabilityExpr)));
 //			cplex.addMinimize(cplex.sum(cplex.sum(minSpeedStabilityExpr), cplex.sum(minLinkStabilityExpr)));
-//			cplex.addMinimize(cplex.sum(minLinkStabilityExpr));
+			cplex.addMinimize(cplex.sum(minLinkStabilityExpr));
 //			cplex.addMinimize(cplex.sum(minSpeedStabilityExpr));
 //			cplex.addMinimize(cplex.sum(cplex.sum(minSpeedStabilityExpr),cplex.sum(minLinkStabilityExpr)));
-//			cplex.setParam(IloCplex.Param.MIP.Limits.Solutions, 2);
-//			cplex.setParam(IloCplex.Param.Threads, 1);
+			cplex.setParam(IloCplex.Param.MIP.Limits.Solutions, 1);
+			cplex.setParam(IloCplex.Param.Threads, 1);
 //			cplex.setParam(IloCplex.Param.MIP.Display, 0);
 
 			if (cplex.solve()) {
