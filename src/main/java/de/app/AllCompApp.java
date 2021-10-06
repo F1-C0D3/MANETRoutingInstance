@@ -25,9 +25,9 @@ public class AllCompApp extends App {
 	public static void main(String[] args)
 			throws InterruptedException, ExecutionException, IloException, InvocationTargetException {
 
-		Scenario scenario = new Scenario("allCombination", 7, 100, 1);
+		Scenario scenario = new Scenario("allCombination", 7, 100, 2);
 
-		AllCompApp allComp = new AllCompApp(1, scenario, RandomNumbers.getInstance(0));
+		AllCompApp allComp = new AllCompApp(2, scenario, RandomNumbers.getInstance(0));
 
 		try {
 			allComp.execute();

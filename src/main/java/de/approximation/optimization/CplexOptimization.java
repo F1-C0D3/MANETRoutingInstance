@@ -32,7 +32,6 @@ public class CplexOptimization extends Optimization<ScalarRadioMANET> {
 
 	private ScalarRadioMANET determinePaths() {
 
-		System.out.println(manet.getEdge(267).isOverutilized());
 		/*
 		 * path arc
 		 */
@@ -229,10 +228,10 @@ public class CplexOptimization extends Optimization<ScalarRadioMANET> {
 			cplex.addMinimize(cplex.sum(minLinkStabilityExpr));
 //			cplex.addMinimize(cplex.sum(minSpeedStabilityExpr));
 //			cplex.addMinimize(cplex.sum(cplex.sum(minSpeedStabilityExpr),cplex.sum(minLinkStabilityExpr)));
-			cplex.setParam(IloCplex.Param.MIP.Limits.Solutions, 1);
-//			cplex.setParam(IloCplex.Param.Threads, 1);
+//			cplex.setParam(IloCplex.Param.MIP.Limits.Solutions, 1);
+			cplex.setParam(IloCplex.Param.Threads, 1);
 //			cplex.setParam(IloCplex.Param.MIP.Display, 0);
-			cplex.setParam(IloCplex.Param.TimeLimit, 360);
+			cplex.setParam(IloCplex.Param.TimeLimit, 30);
 
 			if (cplex.solve()) {
 
