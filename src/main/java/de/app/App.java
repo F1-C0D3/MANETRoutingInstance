@@ -117,7 +117,7 @@ public abstract class App {
 			NetworkGraphProperties properties = new NetworkGraphProperties( /* playground width */ 1024,
 					/* playground height */ 768,
 					/* number of vertices */ new IntRange(scenario.getNumNodes(), scenario.getNumNodes()),
-					/* distance between vertices */ new DoubleRange(45d, maxCommunicationRange),
+					/* distance between vertices */ new DoubleRange(25d, maxCommunicationRange),
 					/* edge distance */ new DoubleRange(100, 100));
 			NetworkGraphGenerator<ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality> networkGraphGenerator = new NetworkGraphGenerator<ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality>(
 					manet, random);
@@ -132,12 +132,13 @@ public abstract class App {
 					manet, metric);
 
 			OverUtilizedProblemProperties problemProperties = new OverUtilizedProblemProperties();
-			problemProperties.pathCount =3;
+			problemProperties.pathCount =5;
 			problemProperties.minLength = 10;
 			problemProperties.maxLength = 20;
-			problemProperties.minDemand = new DataRate(100);
-			problemProperties.maxDemand = new DataRate(200);
-			problemProperties.overUtilizationPercentage =10;
+			problemProperties.minDemand = new DataRate(200,Type.kilobit);
+			problemProperties.maxDemand = new DataRate(400,Type.kilobit);
+			problemProperties.increaseFactor = new DataRate(200, Type.kilobit);
+			problemProperties.overUtilizationPercentage =25;
 			problemProperties.uniqueSourceDestination = true;
 
 			List<ScalarRadioFlow> flowProblems = overUtilizedProblemGenerator.compute(problemProperties, random);
@@ -146,7 +147,7 @@ public abstract class App {
 //			ScalarRadioFlow f1 = new ScalarRadioFlow(manet.getVertex(0), manet.getVertex(99),
 //					new DataRate(1, Type.megabit));
 //			ScalarRadioFlow f2 = new ScalarRadioFlow(manet.getVertex(10), manet.getVertex(89),
-//					new DataRate(1, Type.megabit));
+//					new DataRate(0.1, Type.megabit));
 //
 //			ScalarRadioFlow f3 = new ScalarRadioFlow(manet.getVertex(20), manet.getVertex(79),
 //					new DataRate(1, Type.megabit));
@@ -168,7 +169,6 @@ public abstract class App {
 //
 			ExecutionCallable<ScalarRadioFlow, ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality> run = this
 					.configureRun(manet, resultRecorder, runResultMapper);
-			
 //			AllCombinationOptimization aco = new AllCombinationOptimization(manet);
 //			DeterministicRun dr= new DeterministicRun(aco, resultRecorder, runResultMapper);
 //			dr.call();
@@ -186,14 +186,14 @@ public abstract class App {
 		int i = 0;
 		for (Future<ScalarRadioMANET> future : futureList) {
 			ScalarRadioMANET scalarRadioMANET = future.get();
-//				SwingUtilities.invokeAndWait(new VisualGraphApp<ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality>(
-//						scalarRadioMANET, new LinkUtilizationPrinter<ScalarRadioLink, ScalarLinkQuality>()));
+				SwingUtilities.invokeAndWait(new VisualGraphApp<ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality>(
+						scalarRadioMANET, new LinkUtilizationPrinter<ScalarRadioLink, ScalarLinkQuality>()));
 
 			System.out.println(String.format("Finished with Setting %d, OverUtilization=%s", ++i,scalarRadioMANET.getOverUtilization().toString()));
 		}
 		resultRecorder.finish(totalResultMapper);
 		executor.shutdown();
-
+System.in.read();
 		System.exit(0);
 	}
 
