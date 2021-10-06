@@ -45,7 +45,6 @@ public class CplexOptimization extends Optimization<ScalarRadioMANET> {
 			/*
 			 * Decision varialbes initializatiopn:
 			 */
-			System.out.println(manet.getFlows().size());
 			for (ScalarRadioFlow f : manet.getFlows()) {
 				for (ScalarRadioLink link : manet.getEdges()) {
 
@@ -231,8 +230,8 @@ public class CplexOptimization extends Optimization<ScalarRadioMANET> {
 //			cplex.addMinimize(cplex.sum(minSpeedStabilityExpr));
 //			cplex.addMinimize(cplex.sum(cplex.sum(minSpeedStabilityExpr),cplex.sum(minLinkStabilityExpr)));
 			cplex.setParam(IloCplex.Param.MIP.Limits.Solutions, 1);
-			cplex.setParam(IloCplex.Param.Threads, 1);
-			cplex.setParam(IloCplex.Param.MIP.Display, 0);
+//			cplex.setParam(IloCplex.Param.Threads, 1);
+//			cplex.setParam(IloCplex.Param.MIP.Display, 0);
 			cplex.setParam(IloCplex.Param.TimeLimit, 360);
 
 			if (cplex.solve()) {
@@ -260,7 +259,6 @@ public class CplexOptimization extends Optimization<ScalarRadioMANET> {
 					manet.deployFlow(flow);
 
 				}
-				System.out.println(manet.getOverUtilization().get()>0);
 				return manet;
 			}
 
