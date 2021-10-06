@@ -138,7 +138,7 @@ public abstract class App {
 			problemProperties.minDemand = new DataRate(200,Type.kilobit);
 			problemProperties.maxDemand = new DataRate(400,Type.kilobit);
 			problemProperties.increaseFactor = new DataRate(200, Type.kilobit);
-			problemProperties.overUtilizationPercentage =20;
+			problemProperties.overUtilizationPercentage =scenario.getOverUtilizePercentage();
 			problemProperties.uniqueSourceDestination = true;
 			List<ScalarRadioFlow> flowProblems = overUtilizedProblemGenerator.compute(problemProperties, random);
 			manet.addFlows(flowProblems);

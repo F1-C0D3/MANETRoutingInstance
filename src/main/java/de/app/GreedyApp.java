@@ -28,9 +28,10 @@ public class GreedyApp extends App {
 
 	public static void main(String[] args)
 			throws InterruptedException, ExecutionException, IloException, InvocationTargetException, IOException {
-		int numRuns = 7;
-		int numFlows = 5;
-		Scenario scenario = new Scenario("genetic", numFlows, 100, numRuns);
+		int numRuns=1;
+		int numFlows=15;
+		int overUtilizationPercentage = 5;
+		Scenario scenario = new Scenario("greedy", numFlows, 100, numRuns,overUtilizationPercentage);
 		GreedyApp greedyApp = new GreedyApp(scenario, RandomNumbers.getInstance(0));
 
 		greedyApp.execute();

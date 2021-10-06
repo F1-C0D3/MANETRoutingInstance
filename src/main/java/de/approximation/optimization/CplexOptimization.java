@@ -231,30 +231,27 @@ public class CplexOptimization extends Optimization<ScalarRadioMANET> {
 //			cplex.setParam(IloCplex.Param.MIP.Limits.Solutions, 1);
 			cplex.setParam(IloCplex.Param.Threads, 1);
 			cplex.setParam(IloCplex.Param.MIP.Display, 0);
-			cplex.setParam(IloCplex.Param.TimeLimit, 300);
+			cplex.setParam(IloCplex.Param.TimeLimit, 60);
 
 			if (cplex.solve()) {
 
 				for (int i = 0; i < x_f_l.length; i++) {
 					ScalarRadioFlow flow = manet.getFlow(i);
-					int index = 0;
 					ScalarRadioNode node = flow.getSource();
 					while (node.getID() != flow.getTarget().getID()) {
 
 						List<ScalarRadioLink> oLinks = manet.getOutgoingEdgesOf(node);
 
-						for (ScalarRadioLink link : oLinks) {
-							
-							if (cplex.getValue(x_f_l[i][link.getID()]) > 0) {
-								flow.add(new Tuple<ScalarRadioLink, ScalarRadioNode>(link, manet.getTargetOf(link)));
+						for (ScalarRadioLink olink : oLinks) {
+
+							if (cplex.getValue(x_f_l[i][olink.getID()]) > 0) {
+								flow.add(new Tuple<ScalarRadioLink, ScalarRadioNode>(olink, manet.getTargetOf(olink)));
 								break;
-							}else {
-								System.out.println(String.format("Target: %d, Target of Flow; %d",manet.getTargetOf(link).getID(),flow.getLastVertex().getID() ));
-							}
+								
+							} 
 
 						}
-						index++;
-						node = flow.get(index).getSecond();
+						node = flow.getLastVertex();
 
 					}
 

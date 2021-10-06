@@ -29,9 +29,10 @@ public class GeneticApp extends App {
 
 	public static void main(String[] args)
 			throws InterruptedException, ExecutionException, IloException, InvocationTargetException, IOException {
-		int numRuns = 7;
-		int numFlows=5;
-		Scenario scenario = new Scenario("genetic",numFlows, 100, numRuns);
+		int numRuns=1;
+		int numFlows=15;
+		int overUtilizationPercentage = 5;
+		Scenario scenario = new Scenario("genetic", numFlows, 100, numRuns,overUtilizationPercentage);
 		GeneticApp greedyApp = new GeneticApp(scenario, RandomNumbers.getInstance(0));
 
 		greedyApp.execute();
