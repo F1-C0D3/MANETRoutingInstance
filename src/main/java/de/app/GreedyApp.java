@@ -22,14 +22,16 @@ import ilog.concert.IloException;
 
 public class GreedyApp extends App {
 
-	public GreedyApp(int runs, Scenario scenario, RandomNumbers random) {
-		super(runs, scenario, random);
+	public GreedyApp(Scenario scenario, RandomNumbers random) {
+		super(scenario, random);
 	}
 
 	public static void main(String[] args)
 			throws InterruptedException, ExecutionException, IloException, InvocationTargetException, IOException {
-		Scenario scenario = new Scenario("genetic", 2, 100, 1);
-		GreedyApp greedyApp = new GreedyApp(1, scenario, RandomNumbers.getInstance(0));
+		int numRuns = 7;
+		int numFlows = 5;
+		Scenario scenario = new Scenario("genetic", numFlows, 100, numRuns);
+		GreedyApp greedyApp = new GreedyApp(scenario, RandomNumbers.getInstance(0));
 
 		greedyApp.execute();
 	}

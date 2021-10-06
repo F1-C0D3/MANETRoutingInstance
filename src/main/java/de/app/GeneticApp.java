@@ -23,14 +23,16 @@ import ilog.concert.IloException;
 public class GeneticApp extends App {
 
 
-	public GeneticApp(int runs, Scenario scenario, RandomNumbers random) {
-		super(runs, scenario, random);
+	public GeneticApp(Scenario scenario, RandomNumbers random) {
+		super(scenario, random);
 	}
 
 	public static void main(String[] args)
 			throws InterruptedException, ExecutionException, IloException, InvocationTargetException, IOException {
-		Scenario scenario = new Scenario("genetic", 2, 100, 1);
-		GeneticApp greedyApp = new GeneticApp(1, scenario, RandomNumbers.getInstance(0));
+		int numRuns = 7;
+		int numFlows=5;
+		Scenario scenario = new Scenario("genetic",numFlows, 100, numRuns);
+		GeneticApp greedyApp = new GeneticApp(scenario, RandomNumbers.getInstance(0));
 
 		greedyApp.execute();
 	}

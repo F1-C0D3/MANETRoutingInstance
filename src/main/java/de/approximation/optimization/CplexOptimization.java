@@ -224,14 +224,14 @@ public class CplexOptimization extends Optimization<ScalarRadioMANET> {
 //					cplex.sum(cplex.sum(minPathInstabilityExpr, cplex.sum(minSpeedStabilityExpr)),
 //							cplex.sum(minLinkStabilityExpr)));
 //			cplex.addMinimize(cplex.sum(minPathInstabilityExpr, cplex.sum(minLinkStabilityExpr)));
-//			cplex.addMinimize(cplex.sum(cplex.sum(minSpeedStabilityExpr), cplex.sum(minLinkStabilityExpr)));
-			cplex.addMinimize(cplex.sum(minLinkStabilityExpr));
+			cplex.addMinimize(cplex.sum(cplex.sum(minSpeedStabilityExpr), cplex.sum(minLinkStabilityExpr)));
+//			cplex.addMinimize(cplex.sum(minLinkStabilityExpr));
 //			cplex.addMinimize(cplex.sum(minSpeedStabilityExpr));
 //			cplex.addMinimize(cplex.sum(cplex.sum(minSpeedStabilityExpr),cplex.sum(minLinkStabilityExpr)));
 //			cplex.setParam(IloCplex.Param.MIP.Limits.Solutions, 1);
 			cplex.setParam(IloCplex.Param.Threads, 1);
-//			cplex.setParam(IloCplex.Param.MIP.Display, 0);
-			cplex.setParam(IloCplex.Param.TimeLimit, 30);
+			cplex.setParam(IloCplex.Param.MIP.Display, 0);
+			cplex.setParam(IloCplex.Param.TimeLimit, 300);
 
 			if (cplex.solve()) {
 
@@ -244,9 +244,12 @@ public class CplexOptimization extends Optimization<ScalarRadioMANET> {
 						List<ScalarRadioLink> oLinks = manet.getOutgoingEdgesOf(node);
 
 						for (ScalarRadioLink link : oLinks) {
+							
 							if (cplex.getValue(x_f_l[i][link.getID()]) > 0) {
 								flow.add(new Tuple<ScalarRadioLink, ScalarRadioNode>(link, manet.getTargetOf(link)));
 								break;
+							}else {
+								System.out.println(String.format("Target: %d, Target of Flow; %d",manet.getTargetOf(link).getID(),flow.getLastVertex().getID() ));
 							}
 
 						}

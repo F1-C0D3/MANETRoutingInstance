@@ -40,7 +40,7 @@ public class AllCompApp extends App {
 	}
 
 	public AllCompApp(int runs, Scenario scenario, RandomNumbers random) {
-		super(runs, scenario, random);
+		super(scenario, random);
 	}
 
 	@Override

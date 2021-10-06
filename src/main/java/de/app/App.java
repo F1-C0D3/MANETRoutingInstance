@@ -62,8 +62,8 @@ public abstract class App {
 	private RandomNumbers random;
 	private List<ExecutionCallable<ScalarRadioFlow, ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality>> executionList;
 
-	public App(int runs, Scenario scenario, RandomNumbers random) {
-		this.runs = runs;
+	public App(Scenario scenario, RandomNumbers random) {
+		this.runs = scenario.getNumRuns();
 		this.scenario = scenario;
 		this.random = random;
 		this.executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
@@ -132,7 +132,7 @@ public abstract class App {
 					manet, metric);
 
 			OverUtilizedProblemProperties problemProperties = new OverUtilizedProblemProperties();
-			problemProperties.pathCount =5;
+			problemProperties.pathCount =scenario.getNumFlows();
 			problemProperties.minLength = 10;
 			problemProperties.maxLength = 20;
 			problemProperties.minDemand = new DataRate(200,Type.kilobit);
