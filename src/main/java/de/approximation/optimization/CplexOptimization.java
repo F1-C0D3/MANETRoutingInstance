@@ -65,6 +65,7 @@ public class CplexOptimization extends Optimization<ScalarRadioMANET> {
 			 * Guarantee same amount at incoming edges goes out at outgoing edges This also
 			 * includes unsplittable path guarantee
 			 */
+			
 			for (ScalarRadioFlow f : manet.getFlows()) {
 
 				for (ScalarRadioNode node : manet.getVertices()) {
@@ -84,15 +85,18 @@ public class CplexOptimization extends Optimization<ScalarRadioMANET> {
 						unsplittablePath.addTerm(+1, x_f_l[f.getID()][link.getID()]);
 					}
 
+					
 					if (node.getID() == f.getSource().getID()) {
 						cplex.addGe(-(int) f.getDataRate().get(), nodeEqualDemand);
+						cplex.addGe(1, unsplittablePath);
 					} else if (node.getID() == f.getTarget().getID()) {
 						cplex.addGe(+(int) f.getDataRate().get(), nodeEqualDemand);
+						cplex.addGe(1, unsplittablePath);
 					} else {
 						cplex.addGe(0, nodeEqualDemand);
+						cplex.addGe(2, unsplittablePath);
 					}
 
-					cplex.addGe(2, unsplittablePath);
 				}
 
 			}
@@ -238,10 +242,10 @@ public class CplexOptimization extends Optimization<ScalarRadioMANET> {
 				for (int i = 0; i < x_f_l.length; i++) {
 					ScalarRadioFlow flow = manet.getFlow(i);
 					ScalarRadioNode node = flow.getSource();
+					int index = 0;
 					while (node.getID() != flow.getTarget().getID()) {
 
 						List<ScalarRadioLink> oLinks = manet.getOutgoingEdgesOf(node);
-
 						for (ScalarRadioLink olink : oLinks) {
 
 							if (cplex.getValue(x_f_l[i][olink.getID()]) > 0) {
@@ -251,7 +255,8 @@ public class CplexOptimization extends Optimization<ScalarRadioMANET> {
 							} 
 
 						}
-						node = flow.getLastVertex();
+						index++;
+						node = flow.get(index).getSecond();
 
 					}
 
