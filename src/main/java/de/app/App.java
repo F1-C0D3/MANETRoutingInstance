@@ -17,6 +17,8 @@ import com.opencsv.exceptions.CsvRequiredFieldEmptyException;
 
 import de.jgraphlib.graph.generator.GraphProperties.DoubleRange;
 import de.jgraphlib.graph.generator.GraphProperties.IntRange;
+import de.approximation.app.ApproximationRun;
+import de.approximation.optimization.CplexOptimization;
 import de.deterministic.app.DeterministicRun;
 import de.deterministic.optimization.AllCombinationOptimization;
 import de.genetic.app.GeneticRun;
@@ -117,7 +119,7 @@ public abstract class App {
 			NetworkGraphProperties properties = new NetworkGraphProperties( /* playground width */ 1024,
 					/* playground height */ 768,
 					/* number of vertices */ new IntRange(scenario.getNumNodes(), scenario.getNumNodes()),
-					/* distance between vertices */ new DoubleRange(35d, maxCommunicationRange),
+					/* distance between vertices */ new DoubleRange(5d, maxCommunicationRange),
 					/* edge distance */ new DoubleRange(100, 100));
 			NetworkGraphGenerator<ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality> networkGraphGenerator = new NetworkGraphGenerator<ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality>(
 					manet, random);
@@ -132,13 +134,13 @@ public abstract class App {
 					manet, metric);
 
 			OverUtilizedProblemProperties problemProperties = new OverUtilizedProblemProperties();
-			problemProperties.pathCount =scenario.getNumFlows();
+			problemProperties.pathCount = scenario.getNumFlows();
 			problemProperties.minLength = 10;
 			problemProperties.maxLength = 20;
-			problemProperties.minDemand = new DataRate(200,Type.kilobit);
-			problemProperties.maxDemand = new DataRate(400,Type.kilobit);
-			problemProperties.increaseFactor = new DataRate(200, Type.kilobit);
-			problemProperties.overUtilizationPercentage =scenario.getOverUtilizePercentage();
+			problemProperties.minDemand = new DataRate(10, Type.kilobit);
+			problemProperties.maxDemand = new DataRate(20, Type.kilobit);
+			problemProperties.increaseFactor = new DataRate(5, Type.kilobit);
+			problemProperties.overUtilizationPercentage = scenario.getOverUtilizePercentage();
 			problemProperties.uniqueSourceDestination = true;
 			List<ScalarRadioFlow> flowProblems = overUtilizedProblemGenerator.compute(problemProperties, random);
 			manet.addFlows(flowProblems);
@@ -168,31 +170,30 @@ public abstract class App {
 //
 			ExecutionCallable<ScalarRadioFlow, ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality> run = this
 					.configureRun(manet, resultRecorder, runResultMapper);
-//			AllCombinationOptimization aco = new AllCombinationOptimization(manet);
-//			DeterministicRun dr= new DeterministicRun(aco, resultRecorder, runResultMapper);
+//			CplexOptimization aco = new CplexOptimization(manet);
+//			ApproximationRun dr= new ApproximationRun(aco, resultRecorder, runResultMapper);
 //			dr.call();
 //			System.out.println(String.format("Finished with Setting %d, OverUtilization=%s", 1,manet.getOverUtilization().toString()));
 //			ScalarRadioMANET scalarRadioMANET = future.get();
-//			SwingUtilities.invokeAndWait(new VisualGraphApp<ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality>(
-//					manet, new LinkUtilizationPrinter<ScalarRadioLink, ScalarLinkQuality>()));
 			executionList.add(run);
 			runs--;
 
 		}
 
 		List<Future<ScalarRadioMANET>> futureList = executor.invokeAll(executionList);
-		
+
 		int i = 0;
 		for (Future<ScalarRadioMANET> future : futureList) {
 			ScalarRadioMANET scalarRadioMANET = future.get();
-//				SwingUtilities.invokeAndWait(new VisualGraphApp<ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality>(
-//						scalarRadioMANET, new LinkUtilizationPrinter<ScalarRadioLink, ScalarLinkQuality>()));
+				SwingUtilities.invokeAndWait(new VisualGraphApp<ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality>(
+						scalarRadioMANET, new LinkUtilizationPrinter<ScalarRadioLink, ScalarLinkQuality>()));
 
-			System.out.println(String.format("Finished with Setting %d, OverUtilization=%s", ++i,scalarRadioMANET.getOverUtilization().toString()));
+			System.out.println(String.format("Finished with Setting %d, OverUtilization=%s, ActiveUtilizedLinks=%d", ++i,
+					scalarRadioMANET.getOverUtilization().toString(),scalarRadioMANET.getActiveUtilizedLinks().size()));
 		}
 		resultRecorder.finish(totalResultMapper);
 		executor.shutdown();
-System.in.read();
+		System.in.read();
 		System.exit(0);
 	}
 
