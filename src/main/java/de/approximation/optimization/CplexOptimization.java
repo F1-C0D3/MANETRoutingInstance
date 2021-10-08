@@ -11,6 +11,7 @@ import de.manetmodel.network.scalar.ScalarRadioMANET;
 import de.manetmodel.network.scalar.ScalarRadioNode;
 import de.parallelism.Optimization;
 import ilog.concert.IloException;
+import ilog.concert.IloIntExpr;
 import ilog.concert.IloIntVar;
 import ilog.concert.IloLinearIntExpr;
 import ilog.concert.IloLinearNumExpr;
@@ -38,7 +39,6 @@ public class CplexOptimization extends Optimization<ScalarRadioMANET> {
 		try (IloCplex cplex = new IloCplex()) {
 
 			IloIntVar[][] x_f_l = new IloIntVar[manet.getFlows().size()][manet.getEdges().size()];
-			IloIntVar[][] ulinks = new IloIntVar[manet.getEdges().size()][];
 			IloIntVar[] a_l = new IloIntVar[manet.getEdges().size()];
 
 			/*
@@ -65,36 +65,43 @@ public class CplexOptimization extends Optimization<ScalarRadioMANET> {
 			 * Guarantee same amount at incoming edges goes out at outgoing edges This also
 			 * includes unsplittable path guarantee
 			 */
-			
+
 			for (ScalarRadioFlow f : manet.getFlows()) {
 
 				for (ScalarRadioNode node : manet.getVertices()) {
 
-					IloLinearNumExpr unsplittablePath = cplex.linearNumExpr();
-					IloLinearNumExpr nodeEqualDemand = cplex.linearNumExpr();
 					List<ScalarRadioLink> incomingEdgesOf = manet.getIncomingEdgesOf(node);
 					List<ScalarRadioLink> outgoingEdgesOf = manet.getOutgoingEdgesOf(node);
-
+					IloLinearIntExpr unsplittablePathIncoming = cplex.linearIntExpr();
+					IloLinearIntExpr unsplittablePathOutgoing = cplex.linearIntExpr();
+					IloLinearIntExpr nodeEqualDemand = cplex.linearIntExpr();
+					
 					for (ScalarRadioLink link : incomingEdgesOf) {
 						nodeEqualDemand.addTerm(+(int) f.getDataRate().get(), x_f_l[f.getID()][link.getID()]);
-						unsplittablePath.addTerm(+1, x_f_l[f.getID()][link.getID()]);
+						unsplittablePathIncoming.addTerm(+1, x_f_l[f.getID()][link.getID()]);
+						unsplittablePathOutgoing.addTerm(0, x_f_l[f.getID()][link.getID()]);
 					}
 
 					for (ScalarRadioLink link : outgoingEdgesOf) {
 						nodeEqualDemand.addTerm(-(int) f.getDataRate().get(), x_f_l[f.getID()][link.getID()]);
-						unsplittablePath.addTerm(+1, x_f_l[f.getID()][link.getID()]);
+						unsplittablePathOutgoing.addTerm(+1, x_f_l[f.getID()][link.getID()]);
+						unsplittablePathIncoming.addTerm(0, x_f_l[f.getID()][link.getID()]);
 					}
 
-					
 					if (node.getID() == f.getSource().getID()) {
-						cplex.addGe(-(int) f.getDataRate().get(), nodeEqualDemand);
-						cplex.addGe(1, unsplittablePath);
+						cplex.addEq(-f.getDataRate().get(), nodeEqualDemand);
+						cplex.addEq(1, unsplittablePathOutgoing);
+						cplex.addEq(0, unsplittablePathIncoming);
+
 					} else if (node.getID() == f.getTarget().getID()) {
-						cplex.addGe(+(int) f.getDataRate().get(), nodeEqualDemand);
-						cplex.addGe(1, unsplittablePath);
+						cplex.addEq(+f.getDataRate().get(), nodeEqualDemand);
+						cplex.addEq(1, unsplittablePathIncoming);
+						cplex.addEq(0, unsplittablePathOutgoing);
 					} else {
-						cplex.addGe(0, nodeEqualDemand);
-						cplex.addGe(2, unsplittablePath);
+						cplex.addEq(0, nodeEqualDemand);
+						cplex.addGe(1, unsplittablePathIncoming);
+						cplex.addGe(1, unsplittablePathOutgoing);
+//						cplex.addEq(0, cplex.diff(unsplittablePathIncoming, unsplittablePathOutgoing));
 					}
 
 				}
@@ -232,10 +239,12 @@ public class CplexOptimization extends Optimization<ScalarRadioMANET> {
 //			cplex.addMinimize(cplex.sum(minLinkStabilityExpr));
 //			cplex.addMinimize(cplex.sum(minSpeedStabilityExpr));
 //			cplex.addMinimize(cplex.sum(cplex.sum(minSpeedStabilityExpr),cplex.sum(minLinkStabilityExpr)));
-//			cplex.setParam(IloCplex.Param.MIP.Limits.Solutions, 1);
+			cplex.setParam(IloCplex.Param.MIP.Limits.Solutions, 1);
+			cplex.setParam(IloCplex.Param.RootAlgorithm, 3);
+			cplex.setParam(IloCplex.Param.MIP.Tolerances.Integrality, 0.001);
 			cplex.setParam(IloCplex.Param.Threads, 1);
 			cplex.setParam(IloCplex.Param.MIP.Display, 0);
-			cplex.setParam(IloCplex.Param.TimeLimit, 60);
+//			cplex.setParam(IloCplex.Param.TimeLimit, 60);
 
 			if (cplex.solve()) {
 
@@ -244,17 +253,37 @@ public class CplexOptimization extends Optimization<ScalarRadioMANET> {
 					ScalarRadioNode node = flow.getSource();
 					int index = 0;
 					while (node.getID() != flow.getTarget().getID()) {
-
+						boolean test = true;
 						List<ScalarRadioLink> oLinks = manet.getOutgoingEdgesOf(node);
 						for (ScalarRadioLink olink : oLinks) {
 
-							if (cplex.getValue(x_f_l[i][olink.getID()]) > 0) {
+							if (cplex.getValue(x_f_l[i][olink.getID()]) >= 0.90) {
 								flow.add(new Tuple<ScalarRadioLink, ScalarRadioNode>(olink, manet.getTargetOf(olink)));
+								test = false;
 								break;
-								
-							} 
+
+							}
 
 						}
+						if (test) {
+							System.out.println(String.format("flow ID: %d, Source node: %d, Target node: %d",
+									flow.getID(), flow.getSource().getID(), flow.getTarget().getID()));
+							for (ScalarRadioLink link : manet.getEdges()) {
+								Tuple<ScalarRadioNode, ScalarRadioNode> verticesOf = manet.getVerticesOf(link);
+								if(verticesOf.getSecond().getID()==29 && flow.getID()==8) {
+									for(ScalarRadioLink lll:manet.getOutgoingEdgesOf(verticesOf.getSecond())) {
+										System.out.println(cplex.getValue(x_f_l[i][lll.getID()]));
+									}
+								}
+								if (cplex.getValue(x_f_l[i][link.getID()]) == 1d) {
+									System.out.println(String.format("Source %d, Target %d, cplexValue: %f",
+											manet.getVerticesOf(link).getFirst().getID(),
+											manet.getVerticesOf(link).getSecond().getID(),
+											cplex.getValue(x_f_l[i][link.getID()])));
+								}
+							}
+						}
+
 						index++;
 						node = flow.get(index).getSecond();
 
@@ -264,6 +293,8 @@ public class CplexOptimization extends Optimization<ScalarRadioMANET> {
 
 				}
 				return manet;
+			} else {
+				System.out.println("noSolution Exists");
 			}
 
 		} catch (
