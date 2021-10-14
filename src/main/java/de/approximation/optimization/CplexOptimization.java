@@ -166,9 +166,9 @@ public class CplexOptimization extends Optimization<ScalarRadioMANET> {
 			for (int k = 0; k < individualLinkStabilityMatrix.length; k++) {
 				for (int i = 0; i < individualLinkStabilityMatrix[k].length; i++) {
 
-					individualLinkStabilityMatrix[k][i] = (0.6d * manet.getEdge(i).getWeight().getReceptionConfidence())
-							+ (manet.getEdge(i).getWeight().getRelativeMobility() * 0.39d
-									+ (0.01d * manet.getEdge(i).getWeight().getSpeedQuality()));
+					individualLinkStabilityMatrix[k][i] = (1.00d * manet.getEdge(i).getWeight().getReceptionConfidence())
+							+ (manet.getEdge(i).getWeight().getRelativeMobility() * 0.00d
+									+ (0.00d * manet.getEdge(i).getWeight().getSpeedQuality()));
 //					individualLinkStabilityMatrix[k][i] = (1d * manet.getEdge(i).getWeight().getReceptionConfidence());
 //					individualLinkStabilityMatrix[k][i] = 1;
 				}

@@ -27,7 +27,7 @@ public class CplexApp extends App {
 		int numRuns=10;
 		int numFlows=3;
 		int overUtilizationPercentage = 1;
-		Scenario scenario = new Scenario("cplex_l_s", numFlows, 100, numRuns,overUtilizationPercentage);
+		Scenario scenario = new Scenario("cplex_1.00_0.00_0.00", numFlows, 100, numRuns,overUtilizationPercentage);
 		CplexApp app = new CplexApp(numRuns, scenario,RandomNumbers.getInstance((1)),visual);
 		app.execute();
 	}

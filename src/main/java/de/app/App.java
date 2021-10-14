@@ -134,7 +134,7 @@ public abstract class App {
 			problemProperties.maxLength = 20;
 			problemProperties.minDemand = new DataRate(10, Type.kilobit);
 			problemProperties.maxDemand = new DataRate(20, Type.kilobit);
-			problemProperties.increaseFactor = new DataRate(5, Type.kilobit);
+			problemProperties.increaseFactor = new DataRate(2, Type.kilobit);
 			problemProperties.overUtilizationPercentage = scenario.getOverUtilizePercentage();
 			problemProperties.uniqueSourceDestination = true;
 			List<ScalarRadioFlow> flowProblems = overUtilizedProblemGenerator.compute(problemProperties, random);
@@ -226,7 +226,7 @@ public abstract class App {
 		};
 		totalMappingStrategy.setColumnMapping("meanOverUtilization", "meanUtilization", "activePathParticipants",
 				"meanAverageConnectionStability", "minAverageConnectionStability", "meanNumberOfUndeployedFlows",
-				"averagesimulationTime");
+				"meanAveragesimulationTime","minAveragesimulationTime","maxAveragesimulationTime");
 
 		ScalarRadioTotalResultMapper runResultMapper = new ScalarRadioTotalResultMapper(scenario, totalMappingStrategy);
 
