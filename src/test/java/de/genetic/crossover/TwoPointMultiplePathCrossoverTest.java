@@ -53,10 +53,8 @@ public class TwoPointMultiplePathCrossoverTest {
 			throws InvocationTargetException, InterruptedException, RecombinationException {
 
 		RandomNumbers randomInstance = RandomNumbers.getInstance(0);
-		ScalarRadioModel radioModel = new ScalarRadioModel(new Watt(0.002d), new Watt(1e-11), 1000d, 2412000000d, /**
-																													 * maxCommunicationRange
-																													 **/
-				100d);
+		ScalarRadioModel radioModel = new ScalarRadioModel(new Watt(0.001d), new Watt(1e-11), 2000000d, 2412000000d,
+				35d,100);
 		PedestrianMobilityModel mobilityModel = new PedestrianMobilityModel(randomInstance,
 				new SpeedRange(0, 100, Unit.TimeSteps.second, Unit.Distance.meter),
 				new Speed(50, Unit.Distance.meter, Unit.TimeSteps.second));
@@ -111,10 +109,8 @@ public class TwoPointMultiplePathCrossoverTest {
 			throws InvocationTargetException, InterruptedException, RecombinationException {
 
 		RandomNumbers randomInstance = RandomNumbers.getInstance(0);
-		ScalarRadioModel radioModel = new ScalarRadioModel(new Watt(0.002d), new Watt(1e-11), 1000d, 2412000000d, /**
-																													 * maxCommunicationRange
-																													 **/
-				100d);
+		ScalarRadioModel radioModel = new ScalarRadioModel(new Watt(0.001d), new Watt(1e-11), 2000000d, 2412000000d,
+				35d,100);
 		PedestrianMobilityModel mobilityModel = new PedestrianMobilityModel(randomInstance,
 				new SpeedRange(0, 100, Unit.TimeSteps.second, Unit.Distance.meter),
 				new Speed(50, Unit.Distance.meter, Unit.TimeSteps.second));
