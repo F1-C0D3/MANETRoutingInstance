@@ -9,19 +9,25 @@ import de.terministic.serein.api.Individual;
 import de.terministic.serein.core.fitness.AbstractFitnessFunction;
 
 public class FlowDistributionFitness<W> extends AbstractFitnessFunction<PathComposition> {
+	
+	// Max possuble Utilization
+	private double maxTheoreticalUtiliation;
+	
 	// over utilization weight
-	double ouW = 0.51;
+	private double ouW = 0.51;
 
 	// mobility weight
-	double mW = 0.10;
+	private double mW = 0.04;
 
 	// reception power weight
-	double rcW = 0.15;
+	private double rcW = 0.10;
 
-	double uW = 0.24;
+	private double uW = 0.35;
 
-	private double maxOverUtilization = 0d;
-	private double maxMeasuredUtilization=0d;
+
+	public FlowDistributionFitness(DataRate maxPossibleUtilization) {
+		this.maxTheoreticalUtiliation = maxPossibleUtilization.get();
+	}
 
 	@Override
 	public boolean isNaturalOrder() {
@@ -37,26 +43,17 @@ public class FlowDistributionFitness<W> extends AbstractFitnessFunction<PathComp
 		List<ScalarRadioFlow> flows = pc.getFlows();
 		manet.deployFlows(flows);
 
-//		/* Compute entire manet capacity */
-		DataRate manetCapacity = manet.getCapacity();
-
 		double networkUtilization = manet.getUtilization().get();
-		if(networkUtilization>maxMeasuredUtilization)
-			maxMeasuredUtilization = networkUtilization;
 		
-		double utilizationNormalized=(networkUtilization/maxMeasuredUtilization)*uW;
+		double utilizationNormalized=(networkUtilization/maxTheoreticalUtiliation)*uW;
 		
 
 //		/* Data rate over utilized */
 		DataRate overUtilization = manet.getOverUtilization();
 		double overUtilizationNormalized = 0d;
-		if (overUtilization.get() > 0) {
-
-			if (maxOverUtilization < overUtilization.get())
-				maxOverUtilization = overUtilization.get();
-
+		if (overUtilization.get() > 0) 
 			overUtilizationNormalized = 1d * ouW;
-		}
+		
 
 		double receptionPower = pc.meanReceptionConfidence() * rcW;
 //

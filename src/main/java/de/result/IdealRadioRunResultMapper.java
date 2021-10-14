@@ -1,27 +1,32 @@
 package de.result;
 
+import java.util.List;
+
 import com.opencsv.bean.ColumnPositionMappingStrategy;
 
 import de.manetmodel.mobilitymodel.MobilityModel;
 import de.manetmodel.mobilitymodel.MovementPattern;
+import de.manetmodel.network.Flow;
 import de.manetmodel.network.Link;
 import de.manetmodel.network.LinkQuality;
 import de.manetmodel.network.Node;
 import de.manetmodel.results.RunResultMapper;
-import de.manetmodel.results.RunResultParameter;
+import de.manetmodel.results.AverageRunResultParameter;
+import de.manetmodel.results.IndividualRunResultParameter;
 import de.manetmodel.scenarios.Scenario;
+import de.manetmodel.units.Time;
 
 public class IdealRadioRunResultMapper
-		extends RunResultMapper<RunResultParameter, Node, Link<LinkQuality>, LinkQuality> {
+		extends RunResultMapper<IndividualRunResultParameter,AverageRunResultParameter, Node, Link<LinkQuality>, LinkQuality> {
 
-	public IdealRadioRunResultMapper(ColumnPositionMappingStrategy<RunResultParameter> mappingStrategy,
+	public IdealRadioRunResultMapper(ColumnPositionMappingStrategy<IndividualRunResultParameter> individualMmappingStrategy,ColumnPositionMappingStrategy<AverageRunResultParameter> averageMmappingStrategy,
 			Scenario scenario) {
-		super(scenario, mappingStrategy);
+		super(scenario, individualMmappingStrategy,averageMmappingStrategy);
 	}
 
 	@Override
-	public RunResultParameter individualRunResultMapper(Node source, Node sink, Link<LinkQuality> link) {
-		RunResultParameter resultParameter = new RunResultParameter();
+	public IndividualRunResultParameter individualRunResultMapper(Node source, Node sink, Link<LinkQuality> link) {
+		IndividualRunResultParameter resultParameter = new IndividualRunResultParameter();
 		resultParameter.setlId(link.getID());
 		resultParameter.setN1Id(source.getID());
 		resultParameter.setN2Id(sink.getID());
@@ -34,13 +39,18 @@ public class IdealRadioRunResultMapper
 			if (transmissionrate < utilization)
 				resultParameter.setOverUtilization(utilization - transmissionrate);
 
-			MovementPattern nodeOneMobilityPattern = source.getPreviousMobilityPattern();
-			MovementPattern nodeTwoMobilityPattern = sink.getPreviousMobilityPattern();
-			double linkQuality = link.getWeight().getDistance();
-			resultParameter.setConnectionStability(linkQuality);
+//			double linkQuality = link.getWeight().getDistance();
+//			resultParameter.setConnectionStability(linkQuality);
 		}
 		resultParameter.setUtilization(utilization);
 		return resultParameter;
+	}
+
+	@Override
+	public <F extends Flow<Node, Link<LinkQuality>, LinkQuality>> AverageRunResultParameter averageRunResultMapper(
+			List<IndividualRunResultParameter> runParameters, List<F> flows, Time duration) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }

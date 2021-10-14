@@ -12,12 +12,9 @@ import javax.swing.SwingUtilities;
 
 import org.junit.Test;
 
-import de.genetic.optimization.FlowDistributionFitness;
 import de.genetic.optimization.GenesManetGraphTranslator;
 import de.genetic.optimization.GraphGenome;
-import de.genetic.optimization.PathComposition;
 import de.genetic.optimization.SingleNodeMutation;
-import de.genetic.optimization.UniformCrossoverPathSeperator;
 import de.jgraphlib.graph.algorithms.DijkstraShortestPath;
 import de.jgraphlib.graph.elements.Path;
 import de.jgraphlib.graph.generator.GraphProperties.DoubleRange;
@@ -31,7 +28,7 @@ import de.jgraphlib.util.RandomNumbers;
 import de.jgraphlib.util.Tuple;
 import de.manetmodel.evaluator.DoubleScope;
 import de.manetmodel.evaluator.ScalarLinkQualityEvaluator;
-import de.manetmodel.gui.LinkUtilizationPrinter;
+import de.manetmodel.gui.printer.LinkUtilizationPrinter;
 import de.manetmodel.mobilitymodel.PedestrianMobilityModel;
 import de.manetmodel.network.scalar.ScalarLinkQuality;
 import de.manetmodel.network.scalar.ScalarRadioLink;
@@ -43,9 +40,6 @@ import de.manetmodel.units.Speed;
 import de.manetmodel.units.Speed.SpeedRange;
 import de.manetmodel.units.Unit;
 import de.manetmodel.units.Watt;
-import de.terministic.serein.api.Mutation;
-import de.terministic.serein.api.TerminationCondition;
-import de.terministic.serein.core.termination.TerminationConditionGenerations;
 
 public class SingleNodeMutationTest {
 
@@ -78,11 +72,6 @@ public class SingleNodeMutationTest {
 		Tuple<List<List<Integer>>, List<List<Integer>>> graphGenoRepresentation = translator.manetGraphPhenotoGeno();
 		List<Tuple<Integer, Integer>> flowsPhenoToGeno = translator.flowsPhenoToGeno();
 		List<List<Integer>> manetVerticesPhenoToGeno = translator.manetVerticesPhenoToGeno();
-		Mutation<GraphGenome> mutation = new SingleNodeMutation<GraphGenome>();
-
-		UniformCrossoverPathSeperator recombination = new UniformCrossoverPathSeperator();
-		FlowDistributionFitness<PathComposition> fitness = new FlowDistributionFitness<PathComposition>();
-		TerminationCondition<PathComposition> termination = new TerminationConditionGenerations<PathComposition>(100);
 
 		// Initial individual
 		GraphGenome genome = new GraphGenome(manetVerticesPhenoToGeno, graphGenoRepresentation.getFirst(),
@@ -138,15 +127,6 @@ public class SingleNodeMutationTest {
 		DijkstraShortestPath<ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality> sp = new DijkstraShortestPath<ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality>(
 				manet);
 
-		GenesManetGraphTranslator translator = new GenesManetGraphTranslator(manet);
-		Tuple<List<List<Integer>>, List<List<Integer>>> graphGenoRepresentation = translator.manetGraphPhenotoGeno();
-		List<Tuple<Integer, Integer>> flowsPhenoToGeno = translator.flowsPhenoToGeno();
-		List<List<Integer>> manetVerticesPhenoToGeno = translator.manetVerticesPhenoToGeno();
-		Mutation<GraphGenome> mutation = new SingleNodeMutation<GraphGenome>();
-
-		UniformCrossoverPathSeperator recombination = new UniformCrossoverPathSeperator();
-		FlowDistributionFitness<PathComposition> fitness = new FlowDistributionFitness<PathComposition>();
-		TerminationCondition<PathComposition> termination = new TerminationConditionGenerations<PathComposition>(100);
 		int numTestRuns = 100;
 		while (numTestRuns != 0) {
 			int sourceId = randomInstance.getRandom(0, manet.getVertices().size());
@@ -158,8 +138,6 @@ public class SingleNodeMutationTest {
 				Path<ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality> path = sp.compute(manet.getVertex(sourceId),
 						manet.getVertex(targetId), metric);
 				// Initial individual
-				GraphGenome genome = new GraphGenome(manetVerticesPhenoToGeno, graphGenoRepresentation.getFirst(),
-						graphGenoRepresentation.getSecond(), flowsPhenoToGeno,0d);
 
 				// Path to genotype
 				List<List<Integer>> singlePathList = new ArrayList<List<Integer>>();
@@ -169,11 +147,7 @@ public class SingleNodeMutationTest {
 					singelPath.add(node.getID());
 				}
 				singlePathList.add(singelPath);
-				GraphGenome artificialGenome = genome.createInstance(singlePathList);
-				GraphGenome newPath = new SingleNodeMutation<GraphGenome>().mutate(artificialGenome,
-						randomInstance.getDoubleRandom());
 
-				int numOfDifferentNodes = 0;
 
 				singlePathList.clear();
 
@@ -226,11 +200,7 @@ public class SingleNodeMutationTest {
 		Tuple<List<List<Integer>>, List<List<Integer>>> graphGenoRepresentation = translator.manetGraphPhenotoGeno();
 		List<Tuple<Integer, Integer>> flowsPhenoToGeno = translator.flowsPhenoToGeno();
 		List<List<Integer>> manetVerticesPhenoToGeno = translator.manetVerticesPhenoToGeno();
-		Mutation<GraphGenome> mutation = new SingleNodeMutation<GraphGenome>();
 
-		UniformCrossoverPathSeperator recombination = new UniformCrossoverPathSeperator();
-		FlowDistributionFitness<PathComposition> fitness = new FlowDistributionFitness<PathComposition>();
-		TerminationCondition<PathComposition> termination = new TerminationConditionGenerations<PathComposition>(100);
 		int numTestRuns = 100;
 		while (numTestRuns != 0) {
 			int numSourceTargetPairs = 4;
@@ -333,11 +303,7 @@ public class SingleNodeMutationTest {
 		Tuple<List<List<Integer>>, List<List<Integer>>> graphGenoRepresentation = translator.manetGraphPhenotoGeno();
 		List<Tuple<Integer, Integer>> flowsPhenoToGeno = translator.flowsPhenoToGeno();
 		List<List<Integer>> manetVerticesPhenoToGeno = translator.manetVerticesPhenoToGeno();
-		Mutation<GraphGenome> mutation = new SingleNodeMutation<GraphGenome>();
 
-		UniformCrossoverPathSeperator recombination = new UniformCrossoverPathSeperator();
-		FlowDistributionFitness<PathComposition> fitness = new FlowDistributionFitness<PathComposition>();
-		TerminationCondition<PathComposition> termination = new TerminationConditionGenerations<PathComposition>(100);
 		int numTestRuns = 1000;
 		while (numTestRuns != 0) {
 			int numSourceTargetPairs = 4;
@@ -377,7 +343,6 @@ public class SingleNodeMutationTest {
 			GraphGenome newPaths = new SingleNodeMutation<GraphGenome>().mutate(artificialGenome,
 					randomInstance.getDoubleRandom());
 			for (int j = 0; j < newPaths.getGenes().size(); j++) {
-				int numOfDifferentNodes = 0;
 
 				for (int i = 0; i < newPaths.getGenes().get(j).size();i++) {
 					if (i + 1 < newPaths.getGenes().get(j).size()) {

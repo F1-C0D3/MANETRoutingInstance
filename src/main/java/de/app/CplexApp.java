@@ -12,10 +12,10 @@ import de.manetmodel.network.scalar.ScalarRadioFlow;
 import de.manetmodel.network.scalar.ScalarRadioLink;
 import de.manetmodel.network.scalar.ScalarRadioMANET;
 import de.manetmodel.network.scalar.ScalarRadioNode;
-import de.manetmodel.results.AverageResultParameter;
-import de.manetmodel.results.MANETResultRecorder;
+import de.manetmodel.results.AverageRunResultParameter;
+import de.manetmodel.results.MANETRunResultRecorder;
 import de.manetmodel.results.RunResultMapper;
-import de.manetmodel.results.RunResultParameter;
+import de.manetmodel.results.IndividualRunResultParameter;
 import de.manetmodel.scenarios.Scenario;
 import de.parallelism.ExecutionCallable;
 import ilog.concert.IloException;
@@ -23,27 +23,27 @@ import ilog.concert.IloException;
 public class CplexApp extends App {
 
 	public static void main(String[] args) throws InterruptedException, ExecutionException, IloException, InvocationTargetException, IOException {
+		boolean visual = false;
 		int numRuns=10;
-		int numFlows=5;
-		int overUtilizationPercentage = 5;
-		Scenario scenario = new Scenario("cplex_s_d", numFlows, 100, numRuns,overUtilizationPercentage);
-		CplexApp app = new CplexApp(numRuns, scenario,RandomNumbers.getInstance(-1));
+		int numFlows=3;
+		int overUtilizationPercentage = 1;
+		Scenario scenario = new Scenario("cplex_l_s", numFlows, 100, numRuns,overUtilizationPercentage);
+		CplexApp app = new CplexApp(numRuns, scenario,RandomNumbers.getInstance((1)),visual);
 		app.execute();
 	}
 
-	public CplexApp(int runs, Scenario scenario,RandomNumbers random) {
-		super(scenario,random);
+	public CplexApp(int runs, Scenario scenario,RandomNumbers random,boolean visual) {
+		super(scenario,random,visual);
 	}
 
 
 	@Override
 	public ExecutionCallable<ScalarRadioFlow, ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality> configureRun(
 			ScalarRadioMANET manet,
-			MANETResultRecorder<RunResultParameter, AverageResultParameter> resultRecorder,
-			RunResultMapper<RunResultParameter, ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality> runResultMapper) {
+			MANETRunResultRecorder<IndividualRunResultParameter, AverageRunResultParameter,ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality,ScalarRadioFlow> resultRecorder) {
 		
 		CplexOptimization co = new CplexOptimization(
 				manet);
-		return new ApproximationRun(co, resultRecorder, runResultMapper);
+		return new ApproximationRun(co, resultRecorder);
 	}
 }

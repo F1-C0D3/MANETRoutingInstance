@@ -12,37 +12,37 @@ import de.manetmodel.network.scalar.ScalarRadioFlow;
 import de.manetmodel.network.scalar.ScalarRadioLink;
 import de.manetmodel.network.scalar.ScalarRadioMANET;
 import de.manetmodel.network.scalar.ScalarRadioNode;
-import de.manetmodel.results.AverageResultParameter;
-import de.manetmodel.results.MANETResultRecorder;
+import de.manetmodel.results.AverageRunResultParameter;
+import de.manetmodel.results.MANETRunResultRecorder;
 import de.manetmodel.results.RunResultMapper;
-import de.manetmodel.results.RunResultParameter;
+import de.manetmodel.results.IndividualRunResultParameter;
 import de.manetmodel.scenarios.Scenario;
 import de.parallelism.ExecutionCallable;
 import ilog.concert.IloException;
 
 public class GreedyApp extends App {
 
-	public GreedyApp(Scenario scenario, RandomNumbers random) {
-		super(scenario, random);
+	public GreedyApp(Scenario scenario, RandomNumbers random,boolean visual) {
+		super(scenario, random,visual);
 	}
 
 	public static void main(String[] args)
 			throws InterruptedException, ExecutionException, IloException, InvocationTargetException, IOException {
-		int numRuns=1;
-		int numFlows=15;
-		int overUtilizationPercentage = 5;
+		boolean visual = false;
+		int numRuns=2;
+		int numFlows=3;
+		int overUtilizationPercentage = 10;
 		Scenario scenario = new Scenario("greedy", numFlows, 100, numRuns,overUtilizationPercentage);
-		GreedyApp greedyApp = new GreedyApp(scenario, RandomNumbers.getInstance(0));
+		GreedyApp greedyApp = new GreedyApp(scenario, RandomNumbers.getInstance(0),visual);
 
 		greedyApp.execute();
 	}
 
 	@Override
 	public ExecutionCallable<ScalarRadioFlow, ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality> configureRun(
-			ScalarRadioMANET manet, MANETResultRecorder<RunResultParameter, AverageResultParameter> resultRecorder,
-			RunResultMapper<RunResultParameter, ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality> runResultMapper) {
+			ScalarRadioMANET manet, MANETRunResultRecorder<IndividualRunResultParameter, AverageRunResultParameter,ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality,ScalarRadioFlow> resultRecorder) {
 		GreedyCombinationOptimization go = new GreedyCombinationOptimization(manet);
-		return new DeterministicRun(go, resultRecorder, runResultMapper);
+		return new DeterministicRun(go, resultRecorder);
 	}
 
 }

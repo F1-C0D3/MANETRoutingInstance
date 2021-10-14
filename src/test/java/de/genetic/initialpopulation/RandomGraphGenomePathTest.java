@@ -91,7 +91,7 @@ public class RandomGraphGenomePathTest {
 		Mutation<GraphGenome> mutation = new SingleNodeMutation<GraphGenome>();
 
 		UniformCrossoverPathSeperator recombination = new UniformCrossoverPathSeperator();
-		FlowDistributionFitness<PathComposition> fitness = new FlowDistributionFitness<PathComposition>();
+		FlowDistributionFitness<PathComposition> fitness = new FlowDistributionFitness<PathComposition>(manet.maxPossibleUtilization());
 		TerminationCondition<PathComposition> termination = new TerminationConditionGenerations<PathComposition>(100);
 		int numTestRuns = 4000;
 
@@ -160,7 +160,7 @@ public class RandomGraphGenomePathTest {
 		Mutation<GraphGenome> mutation = new SingleNodeMutation<GraphGenome>();
 
 		UniformCrossoverPathSeperator recombination = new UniformCrossoverPathSeperator();
-		FlowDistributionFitness<PathComposition> fitness = new FlowDistributionFitness<PathComposition>();
+		FlowDistributionFitness<PathComposition> fitness = new FlowDistributionFitness<PathComposition>(manet.maxPossibleUtilization());
 		TerminationCondition<PathComposition> termination = new TerminationConditionGenerations<PathComposition>(100);
 		int numTestRuns = 4000;
 

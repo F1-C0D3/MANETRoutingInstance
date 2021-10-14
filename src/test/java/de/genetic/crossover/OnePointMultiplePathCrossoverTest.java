@@ -29,7 +29,7 @@ import de.jgraphlib.util.RandomNumbers;
 import de.jgraphlib.util.Tuple;
 import de.manetmodel.evaluator.DoubleScope;
 import de.manetmodel.evaluator.ScalarLinkQualityEvaluator;
-import de.manetmodel.gui.LinkUtilizationPrinter;
+import de.manetmodel.gui.printer.LinkUtilizationPrinter;
 import de.manetmodel.mobilitymodel.PedestrianMobilityModel;
 import de.manetmodel.network.scalar.ScalarLinkQuality;
 import de.manetmodel.network.scalar.ScalarRadioFlow;

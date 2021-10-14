@@ -9,6 +9,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import javax.swing.SwingUtilities;
 
@@ -17,23 +18,17 @@ import com.opencsv.exceptions.CsvRequiredFieldEmptyException;
 
 import de.jgraphlib.graph.generator.GraphProperties.DoubleRange;
 import de.jgraphlib.graph.generator.GraphProperties.IntRange;
-import de.approximation.app.ApproximationRun;
-import de.approximation.optimization.CplexOptimization;
-import de.deterministic.app.DeterministicRun;
-import de.deterministic.optimization.AllCombinationOptimization;
-import de.genetic.app.GeneticRun;
-import de.genetic.optimization.GeneticOptimization;
 import de.jgraphlib.graph.generator.NetworkGraphGenerator;
 import de.jgraphlib.graph.generator.NetworkGraphProperties;
 import de.jgraphlib.gui.VisualGraphApp;
 import de.jgraphlib.util.RandomNumbers;
 import de.manetmodel.evaluator.DoubleScope;
-import de.manetmodel.evaluator.ScalarLinkQualityEvaluator;
 import de.manetmodel.evaluator.SimpleLinkQualityEvaluator;
 import de.manetmodel.generator.OverUtilizedProblemProperties;
 import de.manetmodel.generator.OverUtilzedProblemGenerator;
-import de.manetmodel.gui.LinkUtilizationPrinter;
+import de.manetmodel.gui.printer.LinkUtilizationPrinter;
 import de.manetmodel.mobilitymodel.PedestrianMobilityModel;
+import de.manetmodel.mobilitymodel.RandomWaypointMobilityModel;
 import de.manetmodel.network.scalar.ScalarLinkQuality;
 import de.manetmodel.network.scalar.ScalarRadioFlow;
 import de.manetmodel.network.scalar.ScalarRadioLink;
@@ -41,11 +36,12 @@ import de.manetmodel.network.scalar.ScalarRadioMANET;
 import de.manetmodel.network.scalar.ScalarRadioMANETSupplier;
 import de.manetmodel.network.scalar.ScalarRadioModel;
 import de.manetmodel.network.scalar.ScalarRadioNode;
-import de.manetmodel.results.AverageResultParameter;
-import de.manetmodel.results.MANETAverageResultMapper;
-import de.manetmodel.results.MANETResultRecorder;
-import de.manetmodel.results.RunResultMapper;
-import de.manetmodel.results.RunResultParameter;
+import de.manetmodel.results.AverageRunResultParameter;
+import de.manetmodel.results.IndividualRunResultParameter;
+import de.manetmodel.results.MANETRunResultRecorder;
+import de.manetmodel.results.MANETTotalResultRecorder;
+import de.manetmodel.results.RunResultRecorder;
+import de.manetmodel.results.TotalResultParameter;
 import de.manetmodel.scenarios.Scenario;
 import de.manetmodel.units.DataRate;
 import de.manetmodel.units.DataUnit.Type;
@@ -56,55 +52,54 @@ import de.manetmodel.units.Unit;
 import de.manetmodel.units.Watt;
 import de.parallelism.ExecutionCallable;
 import de.result.ScalarRadioRunResultMapper;
+import de.result.ScalarRadioTotalResultMapper;
 
 public abstract class App {
+	private boolean visual;
 	private int runs;
 	private Scenario scenario;
 	ExecutorService executor;
 	private RandomNumbers random;
 	private List<ExecutionCallable<ScalarRadioFlow, ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality>> executionList;
+	List<MANETRunResultRecorder<IndividualRunResultParameter, AverageRunResultParameter, ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality, ScalarRadioFlow>> runResultrecorders;
 
-	public App(Scenario scenario, RandomNumbers random) {
+	public App(Scenario scenario, RandomNumbers random, boolean visual) {
+		this.visual = visual;
 		this.runs = scenario.getNumRuns();
 		this.scenario = scenario;
 		this.random = random;
 		this.executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
 		this.executionList = new ArrayList<ExecutionCallable<ScalarRadioFlow, ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality>>();
+		this.runResultrecorders = new ArrayList<MANETRunResultRecorder<IndividualRunResultParameter, AverageRunResultParameter, ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality, ScalarRadioFlow>>();
 	}
 
 	public abstract ExecutionCallable<ScalarRadioFlow, ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality> configureRun(
-			ScalarRadioMANET manet, MANETResultRecorder<RunResultParameter, AverageResultParameter> resultRecorder,
-			RunResultMapper<RunResultParameter, ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality> runResultMapper);
+			ScalarRadioMANET manet,
+			MANETRunResultRecorder<IndividualRunResultParameter, AverageRunResultParameter, ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality, ScalarRadioFlow> runResultRecorder);
 
 	protected void execute() throws InvocationTargetException, InterruptedException, ExecutionException, IOException {
 
-		/* Result recording options for further evaluation */
-		MANETResultRecorder<RunResultParameter, AverageResultParameter> resultRecorder = new MANETResultRecorder<RunResultParameter, AverageResultParameter>(
-				scenario.getScenarioName());
-
-		/* Result recording options for further evaluation */
-		ColumnPositionMappingStrategy<AverageResultParameter> mappingStrategy = new ColumnPositionMappingStrategy<AverageResultParameter>() {
-			@Override
-			public String[] generateHeader(AverageResultParameter bean) throws CsvRequiredFieldEmptyException {
-				return this.getColumnMapping();
-			}
-		};
-		mappingStrategy.setColumnMapping("overUtilization", "utilization", "activePathParticipants",
-				"connectionStability", "simulationTime");
-		MANETAverageResultMapper totalResultMapper = new MANETAverageResultMapper(mappingStrategy, scenario);
-		totalResultMapper.getMappingStrategy().setType(AverageResultParameter.class);
-
-		while (runs > 0) {
+		int currentRun = 0;
+		while (currentRun < runs) {
 
 			// Define Mobility Model
-			PedestrianMobilityModel mobilityModel = new PedestrianMobilityModel(random,
-					new SpeedRange(2d, 7d, Unit.TimeSteps.hour, Unit.Distance.kilometer),
-					new Time(Unit.TimeSteps.second, 30l), new Speed(1.2d, Unit.Distance.kilometer, Unit.TimeSteps.hour),
-					10);
+			PedestrianMobilityModel mobilityModel = new PedestrianMobilityModel(random, /* Speed min and max of nodes */
+					new SpeedRange(3d, 10d, Unit.TimeSteps.hour, Unit.Distance.kilometer), /* Tick duration */
+					new Time(Unit.TimeSteps.second, 1l),
+					/* deviation of assigned speed */new Speed(1.2d, Unit.Distance.kilometer, Unit.TimeSteps.hour),
+					/* ticks */10);
+
+//			RandomWaypointMobilityModel mobilityModel = new RandomWaypointMobilityModel(random, /*
+//																								 * Speed min and max of
+//																								 * nodes
+//																								 */
+//					new SpeedRange(59d, 60d, Unit.TimeSteps.hour, Unit.Distance.kilometer), /* Tick duration */
+//					new Time(Unit.TimeSteps.second, 1l), /* ticks */10);
 
 			double maxCommunicationRange = 100d;
+			double minCommunicationRange = 35d;
 			// Set RadioModel
-			ScalarRadioModel radioModel = new ScalarRadioModel(new Watt(0.001d), new Watt(1e-11), 2000000d, 2412000000d,
+			ScalarRadioModel radioModel = new ScalarRadioModel(new Watt(0.001d), new Watt(1e-11), 2000000d, 2412000000d,minCommunicationRange,
 					maxCommunicationRange);
 
 			// ScalLinkQualityEvaluator
@@ -119,7 +114,7 @@ public abstract class App {
 			NetworkGraphProperties properties = new NetworkGraphProperties( /* playground width */ 1024,
 					/* playground height */ 768,
 					/* number of vertices */ new IntRange(scenario.getNumNodes(), scenario.getNumNodes()),
-					/* distance between vertices */ new DoubleRange(5d, maxCommunicationRange),
+					/* distance between vertices */ new DoubleRange(minCommunicationRange, maxCommunicationRange),
 					/* edge distance */ new DoubleRange(100, 100));
 			NetworkGraphGenerator<ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality> networkGraphGenerator = new NetworkGraphGenerator<ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality>(
 					manet, random);
@@ -155,28 +150,50 @@ public abstract class App {
 //			manet.addFlow(f1);
 //			manet.addFlow(f2);
 //			manet.addFlow(f3);
-			// Define individual run result recorder
-			ColumnPositionMappingStrategy<RunResultParameter> individualMappingStrategy = new ColumnPositionMappingStrategy<RunResultParameter>() {
+
+			/* Result recording options for further evaluation */
+			ColumnPositionMappingStrategy<AverageRunResultParameter> averageMappingStrategy = new ColumnPositionMappingStrategy<AverageRunResultParameter>() {
 				@Override
-				public String[] generateHeader(RunResultParameter bean) throws CsvRequiredFieldEmptyException {
+				public String[] generateHeader(AverageRunResultParameter bean) throws CsvRequiredFieldEmptyException {
+					return this.getColumnMapping();
+				}
+			};
+			averageMappingStrategy.setColumnMapping("overUtilization", "utilization", "activePathParticipants",
+					"meanConnectionStability", "minConnectionStability", "numberOfUndeployedFlows", "simulationTime");
+
+			ColumnPositionMappingStrategy<IndividualRunResultParameter> individualMappingStrategy = new ColumnPositionMappingStrategy<IndividualRunResultParameter>() {
+				@Override
+				public String[] generateHeader(IndividualRunResultParameter bean)
+						throws CsvRequiredFieldEmptyException {
 					return this.getColumnMapping();
 				}
 			};
 			individualMappingStrategy.setColumnMapping("lId", "n1Id", "n2Id", "overUtilization", "utilization",
 					"isPathParticipant", "connectionStability");
+
 			ScalarRadioRunResultMapper runResultMapper = new ScalarRadioRunResultMapper(individualMappingStrategy,
-					scenario, mobilityModel);
-			runResultMapper.getMappingStrategy().setType(RunResultParameter.class);
+					averageMappingStrategy, scenario, mobilityModel);
+
+			runResultMapper.getAverageMappingStrategy().setType(AverageRunResultParameter.class);
+			runResultMapper.getIndividualMappingStrategy().setType(IndividualRunResultParameter.class);
+
+			/* Result recording options for further evaluation */
+			MANETRunResultRecorder<IndividualRunResultParameter, AverageRunResultParameter, ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality, ScalarRadioFlow> resultRecorder = new MANETRunResultRecorder<IndividualRunResultParameter, AverageRunResultParameter, ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality, ScalarRadioFlow>(
+					scenario.getScenarioName(), runResultMapper, currentRun);
+
+			// Define individual run result recorder
+
 //
 			ExecutionCallable<ScalarRadioFlow, ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality> run = this
-					.configureRun(manet, resultRecorder, runResultMapper);
+					.configureRun(manet, resultRecorder);
 //			CplexOptimization aco = new CplexOptimization(manet);
 //			ApproximationRun dr= new ApproximationRun(aco, resultRecorder, runResultMapper);
 //			dr.call();
 //			System.out.println(String.format("Finished with Setting %d, OverUtilization=%s", 1,manet.getOverUtilization().toString()));
 //			ScalarRadioMANET scalarRadioMANET = future.get();
 			executionList.add(run);
-			runs--;
+			runResultrecorders.add(resultRecorder);
+			currentRun++;
 
 		}
 
@@ -185,15 +202,44 @@ public abstract class App {
 		int i = 0;
 		for (Future<ScalarRadioMANET> future : futureList) {
 			ScalarRadioMANET scalarRadioMANET = future.get();
+			MANETRunResultRecorder<IndividualRunResultParameter, AverageRunResultParameter, ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality, ScalarRadioFlow> resultRecorder = runResultrecorders
+					.get(i);
+			// Record average of each run
+			resultRecorder.recordAverage(scalarRadioMANET);
+
+			// Display result with VisualGraph
+			if (visual)
 				SwingUtilities.invokeAndWait(new VisualGraphApp<ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality>(
 						scalarRadioMANET, new LinkUtilizationPrinter<ScalarRadioLink, ScalarLinkQuality>()));
 
-			System.out.println(String.format("Finished with Setting %d, OverUtilization=%s, ActiveUtilizedLinks=%d", ++i,
-					scalarRadioMANET.getOverUtilization().toString(),scalarRadioMANET.getActiveUtilizedLinks().size()));
+			// Print Utilization
+			System.out.println(String.format("Finished with Setting %d, OverUtilization=%s, ActiveUtilizedLinks=%d",
+					i++, scalarRadioMANET.getOverUtilization().toString(),
+					scalarRadioMANET.getActiveUtilizedLinks().size()));
 		}
-		resultRecorder.finish(totalResultMapper);
+
+		ColumnPositionMappingStrategy<TotalResultParameter> totalMappingStrategy = new ColumnPositionMappingStrategy<TotalResultParameter>() {
+			@Override
+			public String[] generateHeader(TotalResultParameter bean) throws CsvRequiredFieldEmptyException {
+				return this.getColumnMapping();
+			}
+		};
+		totalMappingStrategy.setColumnMapping("meanOverUtilization", "meanUtilization", "activePathParticipants",
+				"meanAverageConnectionStability", "minAverageConnectionStability", "meanNumberOfUndeployedFlows",
+				"averagesimulationTime");
+
+		ScalarRadioTotalResultMapper runResultMapper = new ScalarRadioTotalResultMapper(scenario, totalMappingStrategy);
+
+		runResultMapper.getTotalMappingStrategy().setType(TotalResultParameter.class);
+
+		MANETTotalResultRecorder<TotalResultParameter, IndividualRunResultParameter, AverageRunResultParameter> totalResultRecorder = new MANETTotalResultRecorder<TotalResultParameter, IndividualRunResultParameter, AverageRunResultParameter>(
+				scenario.getScenarioName(), runResultMapper);
+		totalResultRecorder.finish(runResultrecorders.stream().map(MANETRunResultRecorder::getRunResultContent)
+				.collect(Collectors.toList()));
 		executor.shutdown();
-		System.in.read();
+		
+		if (visual)
+			System.in.read();
 		System.exit(0);
 	}
 

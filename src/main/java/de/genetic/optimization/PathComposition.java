@@ -124,7 +124,7 @@ public class PathComposition {
 			numLinks += flow.size() - 1;
 
 			for (ScalarRadioLink link : flow.getEdges()) {
-				receptionPowerMean += link.getWeight().getReceptionQuality();
+				receptionPowerMean += link.getWeight().getReceptionConfidence();
 			}
 		}
 
@@ -153,7 +153,7 @@ public class PathComposition {
 		for (ScalarRadioFlow flow : flows) {
 			numLinks += flow.size() - 1;
 			for (ScalarRadioLink link : flow.getEdges()) {
-				mobilityQualityMean += link.getWeight().getMobilityQuality();
+				mobilityQualityMean += link.getWeight().getSpeedQuality();
 			}
 		}
 		return mobilityQualityMean / numLinks;

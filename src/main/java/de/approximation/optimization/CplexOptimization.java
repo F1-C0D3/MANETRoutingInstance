@@ -75,7 +75,7 @@ public class CplexOptimization extends Optimization<ScalarRadioMANET> {
 					IloLinearIntExpr unsplittablePathIncoming = cplex.linearIntExpr();
 					IloLinearIntExpr unsplittablePathOutgoing = cplex.linearIntExpr();
 					IloLinearIntExpr nodeEqualDemand = cplex.linearIntExpr();
-					
+
 					for (ScalarRadioLink link : incomingEdgesOf) {
 						nodeEqualDemand.addTerm(+(int) f.getDataRate().get(), x_f_l[f.getID()][link.getID()]);
 						unsplittablePathIncoming.addTerm(+1, x_f_l[f.getID()][link.getID()]);
@@ -164,10 +164,12 @@ public class CplexOptimization extends Optimization<ScalarRadioMANET> {
 			double[][] individualLinkStabilityMatrix = new double[manet.getFlows().size()][manet.getEdges().size()];
 
 			for (int k = 0; k < individualLinkStabilityMatrix.length; k++) {
-
 				for (int i = 0; i < individualLinkStabilityMatrix[k].length; i++) {
 
-					individualLinkStabilityMatrix[k][i] = manet.getEdge(i).getWeight().getReceptionConfidence();
+					individualLinkStabilityMatrix[k][i] = (0.6d * manet.getEdge(i).getWeight().getReceptionConfidence())
+							+ (manet.getEdge(i).getWeight().getRelativeMobility() * 0.39d
+									+ (0.01d * manet.getEdge(i).getWeight().getSpeedQuality()));
+//					individualLinkStabilityMatrix[k][i] = (1d * manet.getEdge(i).getWeight().getReceptionConfidence());
 //					individualLinkStabilityMatrix[k][i] = 1;
 				}
 			}
@@ -188,7 +190,7 @@ public class CplexOptimization extends Optimization<ScalarRadioMANET> {
 
 				for (int i = 0; i < individualspeedStabilityMatrix[k].length; i++) {
 
-					individualspeedStabilityMatrix[k][i] = manet.getEdge(i).getWeight().getMobilityQuality();
+					individualspeedStabilityMatrix[k][i] = manet.getEdge(i).getWeight().getSpeedQuality();
 				}
 			}
 
@@ -196,6 +198,25 @@ public class CplexOptimization extends Optimization<ScalarRadioMANET> {
 			for (int i = 0; i < individualspeedStabilityMatrix.length; i++) {
 
 				minSpeedStabilityExpr[i] = cplex.scalProd(individualspeedStabilityMatrix[i], x_f_l[i]);
+
+			}
+
+			/*
+			 * Relative direction stability
+			 */
+			double[][] relativeDirectionStabilityMatrix = new double[manet.getFlows().size()][manet.getEdges().size()];
+
+			for (int k = 0; k < relativeDirectionStabilityMatrix.length; k++) {
+
+				for (int i = 0; i < relativeDirectionStabilityMatrix[k].length; i++) {
+
+					relativeDirectionStabilityMatrix[k][i] = manet.getEdge(i).getWeight().getRelativeMobility();
+				}
+			}
+			IloNumExpr[] minRelativeDirectionStabilityExpr = new IloNumExpr[manet.getFlows().size()];
+			for (int i = 0; i < relativeDirectionStabilityMatrix.length; i++) {
+
+				minRelativeDirectionStabilityExpr[i] = cplex.scalProd(relativeDirectionStabilityMatrix[i], x_f_l[i]);
 
 			}
 
@@ -231,20 +252,19 @@ public class CplexOptimization extends Optimization<ScalarRadioMANET> {
 //						minHighUtilizedNearbyLinks[link.getID()]);
 			}
 
-//			cplex.addMinimize(
-//					cplex.sum(cplex.sum(minPathInstabilityExpr, cplex.sum(minSpeedStabilityExpr)),
-//							cplex.sum(minLinkStabilityExpr)));
+//			cplex.addMinimize(cplex.sum(cplex.sum(minSpeedStabilityExpr), cplex.sum(minLinkStabilityExpr),cplex.sum(minRelativeDirectionStabilityExpr)));
+//			cplex.addMinimize(cplex.sum(cplex.sum(minSpeedStabilityExpr), cplex.sum(minLinkStabilityExpr),cplex.sum(minRelativeDirectionStabilityExpr)));
 //			cplex.addMinimize(cplex.sum(minPathInstabilityExpr, cplex.sum(minLinkStabilityExpr)));
-			cplex.addMinimize(cplex.sum(cplex.sum(minSpeedStabilityExpr), cplex.sum(minLinkStabilityExpr)));
-//			cplex.addMinimize(cplex.sum(minLinkStabilityExpr));
+//			cplex.addMinimize(cplex.sum(cplex.sum(minLinkStabilityExpr), cplex.sum(minRelativeDirectionStabilityExpr)));
+			cplex.addMinimize(cplex.sum(minLinkStabilityExpr));
 //			cplex.addMinimize(cplex.sum(minSpeedStabilityExpr));
 //			cplex.addMinimize(cplex.sum(cplex.sum(minSpeedStabilityExpr),cplex.sum(minLinkStabilityExpr)));
-			cplex.setParam(IloCplex.Param.MIP.Limits.Solutions, 1);
+//			cplex.setParam(IloCplex.Param.MIP.Limits.Solutions, 1);
 			cplex.setParam(IloCplex.Param.RootAlgorithm, 3);
-			cplex.setParam(IloCplex.Param.MIP.Tolerances.Integrality, 0.001);
+//			cplex.setParam(IloCplex.Param.MIP.Tolerances.Integrality, 0.001);
 			cplex.setParam(IloCplex.Param.Threads, 1);
 			cplex.setParam(IloCplex.Param.MIP.Display, 0);
-//			cplex.setParam(IloCplex.Param.TimeLimit, 60);
+//			cplex.setParam(IloCplex.Param.TimeLimit, 10);
 
 			if (cplex.solve()) {
 
@@ -270,8 +290,8 @@ public class CplexOptimization extends Optimization<ScalarRadioMANET> {
 									flow.getID(), flow.getSource().getID(), flow.getTarget().getID()));
 							for (ScalarRadioLink link : manet.getEdges()) {
 								Tuple<ScalarRadioNode, ScalarRadioNode> verticesOf = manet.getVerticesOf(link);
-								if(verticesOf.getSecond().getID()==29 && flow.getID()==8) {
-									for(ScalarRadioLink lll:manet.getOutgoingEdgesOf(verticesOf.getSecond())) {
+								if (verticesOf.getSecond().getID() == 29 && flow.getID() == 8) {
+									for (ScalarRadioLink lll : manet.getOutgoingEdgesOf(verticesOf.getSecond())) {
 										System.out.println(cplex.getValue(x_f_l[i][lll.getID()]));
 									}
 								}

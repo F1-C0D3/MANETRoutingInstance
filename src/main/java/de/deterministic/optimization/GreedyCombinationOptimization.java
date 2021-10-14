@@ -2,37 +2,33 @@ package de.deterministic.optimization;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 import java.util.function.Function;
 
-import de.deterministic.algorithm.DijkstraShortesFlow;
 import de.manetmodel.network.scalar.ScalarLinkQuality;
 import de.manetmodel.network.scalar.ScalarRadioFlow;
 import de.manetmodel.network.scalar.ScalarRadioMANET;
-import de.parallelism.Optimization;
 
-public class GreedyCombinationOptimization extends Optimization<ScalarRadioMANET> {
+public class GreedyCombinationOptimization extends DeterministicOptimization<ScalarRadioMANET> {
 
-	protected DijkstraShortesFlow sp;
 
 	public GreedyCombinationOptimization(ScalarRadioMANET manet) {
 		super(manet);
-		this.sp = new DijkstraShortesFlow(manet);
 	}
 
-	Function<ScalarLinkQuality, Double> metric = (linkQuality) -> {
-
-		return linkQuality.getReceptionConfidence();
-
-	};
 
 	public ScalarRadioMANET execute() {
+
+		Function<ScalarLinkQuality, Double> metric = (flowAndlinkQality) -> {
+			return flowAndlinkQality.getReceptionConfidence() * 0.6d + flowAndlinkQality.getRelativeMobility() * 0.2d
+					+ flowAndlinkQality.getSpeedQuality() * 0.2d;
+		};
+		
 		List<Integer> flowIds = manet.getFlowIDs();
 		List<Integer> visitedIds = new ArrayList<Integer>(flowIds.size());
 
 		int currentId = -1;
 		while (visitedIds.size() < flowIds.size()) {
-			double utilization = Double.POSITIVE_INFINITY;
+			double previousRobustness = Double.POSITIVE_INFINITY;
 			double overUtilization = Double.POSITIVE_INFINITY;
 			for (int flowId : flowIds) {
 
@@ -44,17 +40,17 @@ public class GreedyCombinationOptimization extends Optimization<ScalarRadioMANET
 					manet.deployFlow(suggestedSolution);
 
 					double currentOverUtilization = manet.getOverUtilization().get();
-					double currentUtilization = manet.getUtilization().get();
+					double currentRobustness = this.evaluateSolution();
 
 					if (overUtilization >= currentOverUtilization) {
-						if (currentOverUtilization == 0d && overUtilization == 0d && currentUtilization < utilization) {
+						if (currentOverUtilization == 0d && overUtilization == 0d && currentRobustness < previousRobustness) {
 							currentId = flowId;
 							overUtilization = currentOverUtilization;
-							utilization = currentUtilization;
+							previousRobustness = currentRobustness;
 						} else if (currentOverUtilization < overUtilization) {
 							currentId = flowId;
 							overUtilization = currentOverUtilization;
-							utilization = currentUtilization;
+							previousRobustness = currentRobustness;
 						}
 					}
 

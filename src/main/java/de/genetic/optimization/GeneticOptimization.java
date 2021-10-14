@@ -47,8 +47,10 @@ public class GeneticOptimization extends Optimization<ScalarRadioMANET> {
 		List<List<Integer>> manetVerticesPhenoToGeno = translator.manetVerticesPhenoToGeno();
 		Mutation<GraphGenome> mutation = new CompletePathsMutation<GraphGenome>();
 
-		TwoPointMultiplePathCrossover recombination = new TwoPointMultiplePathCrossover();
-		FlowDistributionFitness<PathComposition> fitness = new FlowDistributionFitness<PathComposition>();
+//		TwoPointMultiplePathCrossover recombination = new TwoPointMultiplePathCrossover();
+
+		OnePointMultiplePathCrossover recombination = new OnePointMultiplePathCrossover();
+		FlowDistributionFitness<PathComposition> fitness = new FlowDistributionFitness<PathComposition>(manet.maxPossibleUtilization());
 		TerminationCondition<PathComposition> termination = new TerminationConditionGenerations<PathComposition>(
 				generations);
 
