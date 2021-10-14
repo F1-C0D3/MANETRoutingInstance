@@ -52,7 +52,7 @@ public class ScalarRadioTotalResultMapper
 				meanNumberOfUndeployedFlows += averageResultContent.getNumberOfUndeployedFlows();
 				averagesimulationTime
 						.set(averagesimulationTime.getMillis() + averageResultContent.getSimulationTime().getMillis());
-			}
+			
 
 			totalResultParemeter.setAverageOverUtilization(meanOverUtilization / actualRuns);
 			totalResultParemeter.setAverageUtilization(meanUtilization / actualRuns);
@@ -64,6 +64,7 @@ public class ScalarRadioTotalResultMapper
 			totalResultParemeter.setNumberOfUndeployedFlows(meanNumberOfUndeployedFlows / actualRuns);
 			totalResultParemeter
 					.setAverageSimulationTime(new Time(averagesimulationTime.getMillis() / (long) actualRuns));
+			}
 		}
 
 		return totalResultParemeter;
