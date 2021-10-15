@@ -84,7 +84,7 @@ public abstract class App {
 
 			// Define Mobility Model
 			PedestrianMobilityModel mobilityModel = new PedestrianMobilityModel(random, /* Speed min and max of nodes */
-					new SpeedRange(3d, 10d, Unit.TimeSteps.hour, Unit.Distance.kilometer), /* Tick duration */
+					new SpeedRange(0d, 10d, Unit.TimeSteps.hour, Unit.Distance.kilometer), /* Tick duration */
 					new Time(Unit.TimeSteps.second, 1l),
 					/* deviation of assigned speed */new Speed(1.2d, Unit.Distance.kilometer, Unit.TimeSteps.hour),
 					/* ticks */10);
@@ -99,8 +99,8 @@ public abstract class App {
 			double maxCommunicationRange = 100d;
 			double minCommunicationRange = 35d;
 			// Set RadioModel
-			ScalarRadioModel radioModel = new ScalarRadioModel(new Watt(0.001d), new Watt(1e-11), 2000000d, 2412000000d,minCommunicationRange,
-					maxCommunicationRange);
+			ScalarRadioModel radioModel = new ScalarRadioModel(new Watt(0.001d), new Watt(1e-11), 2000000d, 2412000000d,
+					minCommunicationRange, maxCommunicationRange);
 
 			// ScalLinkQualityEvaluator
 			SimpleLinkQualityEvaluator evaluator = new SimpleLinkQualityEvaluator(new DoubleScope(0d, 1d), radioModel,
@@ -122,21 +122,21 @@ public abstract class App {
 			manet.initialize();
 
 			Function<ScalarLinkQuality, Double> metric = (ScalarLinkQuality w) -> {
-				return w.getDistance();
+				return (w.getReceptionConfidence() * 0.6) + (w.getRelativeMobility() * 0.2)
+						+ (w.getSpeedQuality() * 0.2);
 			};
 
 			OverUtilzedProblemGenerator<ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality, ScalarRadioFlow> overUtilizedProblemGenerator = new OverUtilzedProblemGenerator<ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality, ScalarRadioFlow>(
 					manet, metric);
 
-			OverUtilizedProblemProperties problemProperties = new OverUtilizedProblemProperties();
-			problemProperties.pathCount = scenario.getNumFlows();
-			problemProperties.minLength = 10;
-			problemProperties.maxLength = 20;
-			problemProperties.minDemand = new DataRate(10, Type.kilobit);
-			problemProperties.maxDemand = new DataRate(20, Type.kilobit);
-			problemProperties.increaseFactor = new DataRate(2, Type.kilobit);
-			problemProperties.overUtilizationPercentage = scenario.getOverUtilizePercentage();
-			problemProperties.uniqueSourceDestination = true;
+			OverUtilizedProblemProperties problemProperties = new OverUtilizedProblemProperties(
+					/* Number of paths */scenario.getNumFlows(), /* Minimum path length */10,
+					/* Maximum path length */20, /* Minimum demand of each flow */new DataRate(10, Type.kilobit),
+					/* Maximum demand of each flow */new DataRate(20, Type.kilobit),
+					/* Unique source destination pairs */true,
+					/* Over-utilization percentage */scenario.getOverUtilizePercentage(),
+					/* Increase factor of each tick */new DataRate(2, Type.kilobit));
+			
 			List<ScalarRadioFlow> flowProblems = overUtilizedProblemGenerator.compute(problemProperties, random);
 			manet.addFlows(flowProblems);
 //			System.out.println(manet.getUtilization());
@@ -226,7 +226,7 @@ public abstract class App {
 		};
 		totalMappingStrategy.setColumnMapping("meanOverUtilization", "meanUtilization", "activePathParticipants",
 				"meanAverageConnectionStability", "minAverageConnectionStability", "meanNumberOfUndeployedFlows",
-				"meanAveragesimulationTime","minAveragesimulationTime","maxAveragesimulationTime");
+				"meanAveragesimulationTime", "minAveragesimulationTime", "maxAveragesimulationTime");
 
 		ScalarRadioTotalResultMapper runResultMapper = new ScalarRadioTotalResultMapper(scenario, totalMappingStrategy);
 
@@ -237,7 +237,7 @@ public abstract class App {
 		totalResultRecorder.finish(runResultrecorders.stream().map(MANETRunResultRecorder::getRunResultContent)
 				.collect(Collectors.toList()));
 		executor.shutdown();
-		
+
 		if (visual)
 			System.in.read();
 		System.exit(0);
