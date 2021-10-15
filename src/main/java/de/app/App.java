@@ -131,11 +131,11 @@ public abstract class App {
 
 			OverUtilizedProblemProperties problemProperties = new OverUtilizedProblemProperties(
 					/* Number of paths */scenario.getNumFlows(), /* Minimum path length */10,
-					/* Maximum path length */20, /* Minimum demand of each flow */new DataRate(10, Type.kilobit),
-					/* Maximum demand of each flow */new DataRate(20, Type.kilobit),
+					/* Maximum path length */20, /* Minimum demand of each flow */new DataRate(50, Type.kilobit),
+					/* Maximum demand of each flow */new DataRate(100, Type.kilobit),
 					/* Unique source destination pairs */true,
 					/* Over-utilization percentage */scenario.getOverUtilizePercentage(),
-					/* Increase factor of each tick */new DataRate(2, Type.kilobit));
+					/* Increase factor of each tick */new DataRate(20, Type.kilobit));
 			
 			List<ScalarRadioFlow> flowProblems = overUtilizedProblemGenerator.compute(problemProperties, random);
 			manet.addFlows(flowProblems);
