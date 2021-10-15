@@ -6,6 +6,7 @@ import java.util.function.Function;
 
 import de.deterministic.algorithm.DijkstraShortestPenaltyFlow;
 import de.jgraphlib.util.Tuple;
+import de.manetmodel.network.Link;
 import de.manetmodel.network.scalar.ScalarLinkQuality;
 import de.manetmodel.network.scalar.ScalarRadioFlow;
 import de.manetmodel.network.scalar.ScalarRadioLink;
@@ -61,7 +62,7 @@ public class RateBasedDistributedRobustPathsOptimization extends DeterministicOp
 
 			for (ScalarRadioFlow flow : manet.getFlows()) {
 
-				if (activeCommonLinksByFlows.get(link.getID()).isEmpty()) {
+				if (activeCommonLinksByFlows.get(link.getID()).isEmpty()&& passiveCommonLinksByFlows.get(link.getID()).isEmpty()) {
 
 					rateParameters.get(link.getID()).add(flow.getID(), 1d);
 
@@ -91,6 +92,12 @@ public class RateBasedDistributedRobustPathsOptimization extends DeterministicOp
 					- currentLink.getUtilization().get();
 
 			double rateParameter = rateParameters.get(currentLink.getID()).get(currentFlow.getID());
+			
+			if(rateParameter==1) {
+				ScalarLinkQuality weight = currentLink.getWeight();
+				rateParameter += 1-((weight.getReceptionConfidence()*0.6)+(weight.getRelativeMobility()*0.2)+(weight.getSpeedQuality()*0.2));
+				
+				}
 
 			double result = countLinkUsage.get(currentLink.getID()) / (rateParameter * residualTransmissionRate);
 
