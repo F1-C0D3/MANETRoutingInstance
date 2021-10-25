@@ -23,15 +23,15 @@ public class GeneticOptimization extends Optimization<ScalarRadioMANET> {
 	private GenesManetGraphTranslator translator;
 
 	private final int populationSize;
-	private final int generations;
+	private final TerminationConditionMANET terminationCondition;
 	private final double mutationProbability;
 	private double instructionFactor;
 
 	private RandomNumbers random;
 
-	public GeneticOptimization(ScalarRadioMANET manet,int populationSize, int generations, double mutationProbability,double instructionFactor,  RandomNumbers random) {
+	public GeneticOptimization(ScalarRadioMANET manet,int populationSize,TerminationConditionMANET terminationCondition, double mutationProbability,double instructionFactor,  RandomNumbers random) {
 		super(manet);
-		this.generations = generations;
+		this.terminationCondition = terminationCondition;
 		this.populationSize = populationSize;
 		this.random = random;
 		this.mutationProbability = mutationProbability;
@@ -51,8 +51,7 @@ public class GeneticOptimization extends Optimization<ScalarRadioMANET> {
 
 		OnePointMultiplePathCrossover recombination = new OnePointMultiplePathCrossover();
 		FlowDistributionFitness<PathComposition> fitness = new FlowDistributionFitness<PathComposition>(manet.maxPossibleUtilization());
-		TerminationCondition<PathComposition> termination = new TerminationConditionGenerations<PathComposition>(
-				generations);
+		terminationCondition.setFitnessFuntion(fitness);
 
 		// Initial individual
 		GraphGenome genome = new GraphGenome(manetVerticesPhenoToGeno, graphGenoRepresentation.getFirst(),graphGenoRepresentation.getSecond(), flowsPhenoToGeno,instructionFactor);
@@ -66,7 +65,7 @@ public class GeneticOptimization extends Optimization<ScalarRadioMANET> {
 				populationSize, random.getDoubleRandom());
 		// assembling the metaheuristic
 		AlgorithmFactory<PathComposition> factory = new AlgorithmFactory<>();
-		factory.termination = termination;
+		factory.termination = terminationCondition;
 		EvolutionEnvironment<PathComposition> algo = factory.createReferenceEvolutionaryAlgorithm(fitness,
 				initialPopulation, random.getDoubleRandom());
 

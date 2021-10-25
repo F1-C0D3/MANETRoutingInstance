@@ -15,8 +15,6 @@ import de.parallelism.RunEcecutionCallable;
 import de.parallelism.Optimization;
 
 public class GeneticRun extends RunEcecutionCallable {
-	private Optimization<ScalarRadioMANET> op;
-	private MANETRunResultRecorder<IndividualRunResultParameter, AverageRunResultParameter, ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality, ScalarRadioFlow> resultRecorder;
 
 	public GeneticRun(GeneticOptimization go,
 			MANETRunResultRecorder<IndividualRunResultParameter, AverageRunResultParameter, ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality, ScalarRadioFlow> resultRecorder) {
@@ -25,7 +23,7 @@ public class GeneticRun extends RunEcecutionCallable {
 
 	@Override
 	public ScalarRadioMANET call() {
-		ScalarRadioMANET manet = this.op.execute();
+		ScalarRadioMANET manet = super.op.execute();
 		Time duration = op.stop();
 
 		if (super.isSuccessfull()) {
