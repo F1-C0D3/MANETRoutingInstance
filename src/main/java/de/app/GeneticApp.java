@@ -17,7 +17,7 @@ import de.manetmodel.results.MANETRunResultRecorder;
 import de.manetmodel.results.RunResultMapper;
 import de.manetmodel.results.IndividualRunResultParameter;
 import de.manetmodel.scenarios.Scenario;
-import de.parallelism.ExecutionCallable;
+import de.parallelism.RunEcecutionCallable;
 import ilog.concert.IloException;
 
 public class GeneticApp extends App {
@@ -39,7 +39,7 @@ public class GeneticApp extends App {
 	}
 
 	@Override
-	public ExecutionCallable<ScalarRadioFlow, ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality> configureRun(
+	public RunEcecutionCallable configureRun(
 			ScalarRadioMANET manet, MANETRunResultRecorder<IndividualRunResultParameter, AverageRunResultParameter,ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality,ScalarRadioFlow> resultRecorder) {
 		GeneticOptimization go = new GeneticOptimization(manet, /* Initial Population */3000, /* generations */30,
 				/* mutation probability */0.20, /* Instruction factor */0.15d, RandomNumbers.getInstance(0));

@@ -31,6 +31,7 @@ public class ScalarRadioTotalResultMapper
 		double activePathParticipants = 0d;
 		Time meanConnectionStability = new Time();
 		Time minConnectionStability = new Time();
+		Time maxConnectionStability = new Time();
 		double meanNumberOfUndeployedFlows = 0d;
 		Time meanAveragesimulationTime = new Time();
 		Time minAveragesimulationTime = new Time(Long.MAX_VALUE);
@@ -41,7 +42,6 @@ public class ScalarRadioTotalResultMapper
 
 			AverageRunResultParameter averageResultContent = run.getAverageResultContent();
 
-			if (averageResultContent != null) {
 				actualRuns++;
 
 				meanOverUtilization += averageResultContent.getOverUtilization();
@@ -51,6 +51,10 @@ public class ScalarRadioTotalResultMapper
 						+ averageResultContent.getMeanConnectionStability().getMillis());
 				minConnectionStability.set(minConnectionStability.getMillis()
 						+ averageResultContent.getMinConnectionStability().getMillis());
+				
+				maxConnectionStability.set(maxConnectionStability.getMillis()
+						+ averageResultContent.getMaxConnectionStability().getMillis());
+				
 				meanNumberOfUndeployedFlows += averageResultContent.getNumberOfUndeployedFlows();
 				meanAveragesimulationTime.set(
 						meanAveragesimulationTime.getMillis() + averageResultContent.getSimulationTime().getMillis());
@@ -61,7 +65,6 @@ public class ScalarRadioTotalResultMapper
 				if (maxAveragesimulationTime.getMillis() < averageResultContent.getSimulationTime().getMillis())
 					maxAveragesimulationTime.set(averageResultContent.getSimulationTime().getMillis());
 
-			}
 		}
 		
 		totalResultParemeter.setAverageOverUtilization(meanOverUtilization / actualRuns);
@@ -70,6 +73,8 @@ public class ScalarRadioTotalResultMapper
 		totalResultParemeter
 				.setMinAverageConnectionStability(new Time(minConnectionStability.getMillis() / (long) actualRuns));
 		totalResultParemeter
+		.setMaxAverageConnectionStability(new Time(maxConnectionStability.getMillis() / (long) actualRuns));
+		totalResultParemeter
 				.setMeanAverageConnectionStability(new Time(meanConnectionStability.getMillis() / (long) actualRuns));
 		totalResultParemeter.setNumberOfUndeployedFlows(meanNumberOfUndeployedFlows / actualRuns);
 		totalResultParemeter
@@ -77,6 +82,7 @@ public class ScalarRadioTotalResultMapper
 
 		totalResultParemeter.setMinAveragesimulationTime(minAveragesimulationTime);
 		totalResultParemeter.setMaxAveragesimulationTime(maxAveragesimulationTime);
+		totalResultParemeter.setFinishedRuns(runs.size());
 
 		return totalResultParemeter;
 	}

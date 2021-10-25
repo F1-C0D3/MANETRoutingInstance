@@ -18,7 +18,7 @@ import de.manetmodel.results.MANETRunResultRecorder;
 import de.manetmodel.results.RunResultMapper;
 import de.manetmodel.results.IndividualRunResultParameter;
 import de.manetmodel.scenarios.Scenario;
-import de.parallelism.ExecutionCallable;
+import de.parallelism.RunEcecutionCallable;
 import ilog.concert.IloException;
 
 public class RateBasedDistributedRobustPathApp extends App {
@@ -26,9 +26,9 @@ public class RateBasedDistributedRobustPathApp extends App {
 	public static void main(String[] args)
 			throws InterruptedException, ExecutionException, IloException, InvocationTargetException {
 		boolean visual = false;
-		int numRuns=1;
-		int numFlows=4;
-		int overUtilizationPercentage = 1;
+		int numRuns=30;
+		int numFlows=5;
+		int overUtilizationPercentage = 10;
 		Scenario scenario = new Scenario("RBDRP", numFlows, 100, numRuns,overUtilizationPercentage);
 
 		RateBasedDistributedRobustPathApp allComp = new RateBasedDistributedRobustPathApp(2, scenario, RandomNumbers.getInstance(0),visual);
@@ -48,7 +48,7 @@ public class RateBasedDistributedRobustPathApp extends App {
 	}
 
 	@Override
-	public ExecutionCallable<ScalarRadioFlow, ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality> configureRun(
+	public RunEcecutionCallable configureRun(
 			ScalarRadioMANET manet, MANETRunResultRecorder<IndividualRunResultParameter, AverageRunResultParameter,ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality,ScalarRadioFlow> resultRecorder) {
 
 		RateBasedDistributedRobustPathsOptimization rbdrpo = new RateBasedDistributedRobustPathsOptimization(manet);

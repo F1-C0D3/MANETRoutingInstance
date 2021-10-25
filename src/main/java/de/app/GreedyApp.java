@@ -17,7 +17,7 @@ import de.manetmodel.results.MANETRunResultRecorder;
 import de.manetmodel.results.RunResultMapper;
 import de.manetmodel.results.IndividualRunResultParameter;
 import de.manetmodel.scenarios.Scenario;
-import de.parallelism.ExecutionCallable;
+import de.parallelism.RunEcecutionCallable;
 import ilog.concert.IloException;
 
 public class GreedyApp extends App {
@@ -29,9 +29,9 @@ public class GreedyApp extends App {
 	public static void main(String[] args)
 			throws InterruptedException, ExecutionException, IloException, InvocationTargetException, IOException {
 		boolean visual = false;
-		int numRuns=2;
-		int numFlows=3;
-		int overUtilizationPercentage = 10;
+		int numRuns=50;
+		int numFlows=10;
+		int overUtilizationPercentage = 5;
 		Scenario scenario = new Scenario("greedy", numFlows, 100, numRuns,overUtilizationPercentage);
 		GreedyApp greedyApp = new GreedyApp(scenario, RandomNumbers.getInstance(0),visual);
 
@@ -39,7 +39,7 @@ public class GreedyApp extends App {
 	}
 
 	@Override
-	public ExecutionCallable<ScalarRadioFlow, ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality> configureRun(
+	public RunEcecutionCallable configureRun(
 			ScalarRadioMANET manet, MANETRunResultRecorder<IndividualRunResultParameter, AverageRunResultParameter,ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality,ScalarRadioFlow> resultRecorder) {
 		GreedyCombinationOptimization go = new GreedyCombinationOptimization(manet);
 		return new DeterministicRun(go, resultRecorder);

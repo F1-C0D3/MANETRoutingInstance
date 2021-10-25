@@ -95,7 +95,7 @@ public class ScalarRadioRunResultMapper
 
 	@Override
 	public <F extends Flow<ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality>> AverageRunResultParameter averageRunResultMapper(
-			List<IndividualRunResultParameter> runParameters, List<F> flows, Time duration) {
+			List<IndividualRunResultParameter> runParameters, List<F> flows, Time duration,int currentRun) {
 		
 		AverageRunResultParameter averageRunParemeter = new AverageRunResultParameter();
 		
@@ -104,6 +104,7 @@ public class ScalarRadioRunResultMapper
 		int activeLinks = 0;
 		Time averageConnectivityStability = new Time();
 		Time minConnectionStability = new Time(Long.MAX_VALUE);
+		Time maxConnectionStability = new Time(0);
 		
 		for (IndividualRunResultParameter runParameter : runParameters) {
 
@@ -120,6 +121,9 @@ public class ScalarRadioRunResultMapper
 			
 			if(minConnectionStability.getMillis()>runParameter.getConnectionStability().getMillis())
 				minConnectionStability.set(runParameter.getConnectionStability().getMillis());
+		    
+			if(maxConnectionStability.getMillis()<runParameter.getConnectionStability().getMillis())
+				maxConnectionStability.set(runParameter.getConnectionStability().getMillis());
 		    }
 
 		    if (runParameter.getUtilization() != 0l) {
@@ -131,8 +135,11 @@ public class ScalarRadioRunResultMapper
 		averageRunParemeter.setUtilization(averageUtilization);
 		averageRunParemeter.setMeanConnectionStability(new Time(averageConnectivityStability.getMillis() / activeLinks));
 		averageRunParemeter.setMinConnectionStability(minConnectionStability);
+		averageRunParemeter.setMaxConnectionStability(maxConnectionStability);
 		averageRunParemeter.setActivePathParticipants(activeLinks);
 		averageRunParemeter.setSimulationTime(duration);
+		averageRunParemeter.setRunNumber(currentRun);
+		
 		averageRunParemeter.setNumberOfUndeployedFlows(
 			flows.stream().filter(f -> !f.isComplete()).collect(Collectors.toList()).size());
 

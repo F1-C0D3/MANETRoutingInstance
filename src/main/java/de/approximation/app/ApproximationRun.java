@@ -13,24 +13,27 @@ import de.manetmodel.results.ResultParameter;
 import de.manetmodel.results.RunResultMapper;
 import de.manetmodel.results.IndividualRunResultParameter;
 import de.manetmodel.units.Time;
-import de.parallelism.ExecutionCallable;
+import de.parallelism.RunEcecutionCallable;
 
 public class ApproximationRun
-		extends ExecutionCallable<ScalarRadioFlow, ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality> {
-	private CplexOptimization op;
-	private MANETRunResultRecorder<IndividualRunResultParameter, AverageRunResultParameter,ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality,ScalarRadioFlow> runResultRecorder;
+		extends RunEcecutionCallable {
 
 	public ApproximationRun(CplexOptimization op,
 			MANETRunResultRecorder<IndividualRunResultParameter, AverageRunResultParameter,ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality,ScalarRadioFlow> runResultRecorder) {
-		this.op = op;
-		this.runResultRecorder = runResultRecorder;
+		super(op, runResultRecorder);
 	}
 
 	@Override
 	public ScalarRadioMANET call() {
 		ScalarRadioMANET manet = this.op.execute();
+		
 		Time duration = this.op.stop();
-		this.runResultRecorder.recordIndividual(manet, duration);
+		
+		if(super.isSuccessfull()) {
+			this.resultRecorder.recordIndividual(manet, duration);
+			this.resultRecorder.getRunResultContent().recordRun();
+		}
+		
 		return manet;
 	}
 

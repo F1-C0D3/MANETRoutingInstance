@@ -50,7 +50,7 @@ import de.manetmodel.units.Speed.SpeedRange;
 import de.manetmodel.units.Time;
 import de.manetmodel.units.Unit;
 import de.manetmodel.units.Watt;
-import de.parallelism.ExecutionCallable;
+import de.parallelism.RunEcecutionCallable;
 import de.result.ScalarRadioRunResultMapper;
 import de.result.ScalarRadioTotalResultMapper;
 
@@ -60,7 +60,7 @@ public abstract class App {
 	private Scenario scenario;
 	ExecutorService executor;
 	private RandomNumbers random;
-	private List<ExecutionCallable<ScalarRadioFlow, ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality>> executionList;
+	private List<RunEcecutionCallable> executionList;
 	List<MANETRunResultRecorder<IndividualRunResultParameter, AverageRunResultParameter, ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality, ScalarRadioFlow>> runResultrecorders;
 
 	public App(Scenario scenario, RandomNumbers random, boolean visual) {
@@ -69,11 +69,11 @@ public abstract class App {
 		this.scenario = scenario;
 		this.random = random;
 		this.executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
-		this.executionList = new ArrayList<ExecutionCallable<ScalarRadioFlow, ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality>>();
+		this.executionList = new ArrayList<RunEcecutionCallable>();
 		this.runResultrecorders = new ArrayList<MANETRunResultRecorder<IndividualRunResultParameter, AverageRunResultParameter, ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality, ScalarRadioFlow>>();
 	}
 
-	public abstract ExecutionCallable<ScalarRadioFlow, ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality> configureRun(
+	public abstract RunEcecutionCallable configureRun(
 			ScalarRadioMANET manet,
 			MANETRunResultRecorder<IndividualRunResultParameter, AverageRunResultParameter, ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality, ScalarRadioFlow> runResultRecorder);
 
@@ -159,7 +159,7 @@ public abstract class App {
 				}
 			};
 			averageMappingStrategy.setColumnMapping("overUtilization", "utilization", "activePathParticipants",
-					"meanConnectionStability", "minConnectionStability", "numberOfUndeployedFlows", "simulationTime");
+					"meanConnectionStability", "minConnectionStability", "maxConnectionStability","numberOfUndeployedFlows", "simulationTime","runNumber");
 
 			ColumnPositionMappingStrategy<IndividualRunResultParameter> individualMappingStrategy = new ColumnPositionMappingStrategy<IndividualRunResultParameter>() {
 				@Override
@@ -184,7 +184,7 @@ public abstract class App {
 			// Define individual run result recorder
 
 //
-			ExecutionCallable<ScalarRadioFlow, ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality> run = this
+			RunEcecutionCallable run = this
 					.configureRun(manet, resultRecorder);
 //			CplexOptimization aco = new CplexOptimization(manet);
 //			ApproximationRun dr= new ApproximationRun(aco, resultRecorder, runResultMapper);
@@ -225,17 +225,16 @@ public abstract class App {
 			}
 		};
 		totalMappingStrategy.setColumnMapping("meanOverUtilization", "meanUtilization", "activePathParticipants",
-				"meanAverageConnectionStability", "minAverageConnectionStability", "meanNumberOfUndeployedFlows",
-				"meanAveragesimulationTime", "minAveragesimulationTime", "maxAveragesimulationTime");
+				"meanAverageConnectionStability", "minAverageConnectionStability","maxAverageConnectionStability", "meanNumberOfUndeployedFlows",
+				"meanAveragesimulationTime", "minAveragesimulationTime", "maxAveragesimulationTime","finishedRuns");
 
 		ScalarRadioTotalResultMapper runResultMapper = new ScalarRadioTotalResultMapper(scenario, totalMappingStrategy);
 
 		runResultMapper.getTotalMappingStrategy().setType(TotalResultParameter.class);
 
 		MANETTotalResultRecorder<TotalResultParameter, IndividualRunResultParameter, AverageRunResultParameter> totalResultRecorder = new MANETTotalResultRecorder<TotalResultParameter, IndividualRunResultParameter, AverageRunResultParameter>(
-				scenario.getScenarioName(), runResultMapper);
-		totalResultRecorder.finish(runResultrecorders.stream().map(MANETRunResultRecorder::getRunResultContent)
-				.collect(Collectors.toList()));
+				scenario.getScenarioName(), runResultMapper,runResultrecorders.stream().map(rrr -> rrr.getRunResultContent()).collect(Collectors.toList()));
+		totalResultRecorder.finish();
 		executor.shutdown();
 
 		if (visual)

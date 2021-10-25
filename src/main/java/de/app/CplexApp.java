@@ -17,7 +17,7 @@ import de.manetmodel.results.MANETRunResultRecorder;
 import de.manetmodel.results.RunResultMapper;
 import de.manetmodel.results.IndividualRunResultParameter;
 import de.manetmodel.scenarios.Scenario;
-import de.parallelism.ExecutionCallable;
+import de.parallelism.RunEcecutionCallable;
 import ilog.concert.IloException;
 
 public class CplexApp extends App {
@@ -25,8 +25,8 @@ public class CplexApp extends App {
 	public static void main(String[] args) throws InterruptedException, ExecutionException, IloException, InvocationTargetException, IOException {
 		boolean visual = false;
 		int numRuns=10;
-		int numFlows=3;
-		int overUtilizationPercentage = 1;
+		int numFlows=5;
+		int overUtilizationPercentage = 5;
 		Scenario scenario = new Scenario("cplex_1.00_0.00_0.00", numFlows, 100, numRuns,overUtilizationPercentage);
 		CplexApp app = new CplexApp(numRuns, scenario,RandomNumbers.getInstance((1)),visual);
 		app.execute();
@@ -38,7 +38,7 @@ public class CplexApp extends App {
 
 
 	@Override
-	public ExecutionCallable<ScalarRadioFlow, ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality> configureRun(
+	public RunEcecutionCallable configureRun(
 			ScalarRadioMANET manet,
 			MANETRunResultRecorder<IndividualRunResultParameter, AverageRunResultParameter,ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality,ScalarRadioFlow> resultRecorder) {
 		

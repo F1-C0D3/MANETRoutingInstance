@@ -11,25 +11,27 @@ import de.manetmodel.results.MANETRunResultRecorder;
 import de.manetmodel.results.RunResultMapper;
 import de.manetmodel.results.IndividualRunResultParameter;
 import de.manetmodel.units.Time;
-import de.parallelism.ExecutionCallable;
+import de.parallelism.RunEcecutionCallable;
 import de.parallelism.Optimization;
 
-public class GeneticRun
-		extends ExecutionCallable<ScalarRadioFlow, ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality> {
+public class GeneticRun extends RunEcecutionCallable {
 	private Optimization<ScalarRadioMANET> op;
-	private MANETRunResultRecorder<IndividualRunResultParameter, AverageRunResultParameter,ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality,ScalarRadioFlow> resultRecorder;
+	private MANETRunResultRecorder<IndividualRunResultParameter, AverageRunResultParameter, ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality, ScalarRadioFlow> resultRecorder;
 
 	public GeneticRun(GeneticOptimization go,
-			MANETRunResultRecorder<IndividualRunResultParameter, AverageRunResultParameter,ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality,ScalarRadioFlow> resultRecorder) {
-		this.op = go;
-		this.resultRecorder = resultRecorder;
+			MANETRunResultRecorder<IndividualRunResultParameter, AverageRunResultParameter, ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality, ScalarRadioFlow> resultRecorder) {
+		super(go, resultRecorder);
 	}
 
 	@Override
 	public ScalarRadioMANET call() {
 		ScalarRadioMANET manet = this.op.execute();
 		Time duration = op.stop();
-		this.resultRecorder.recordIndividual(manet,duration);
+
+		if (super.isSuccessfull()) {
+			this.resultRecorder.recordIndividual(manet, duration);
+			this.resultRecorder.getRunResultContent().recordRun();
+		}
 		return manet;
 	}
 }

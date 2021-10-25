@@ -19,8 +19,10 @@ public class GreedyCombinationOptimization extends DeterministicOptimization<Sca
 	public ScalarRadioMANET execute() {
 
 		Function<ScalarLinkQuality, Double> metric = (flowAndlinkQality) -> {
-			return flowAndlinkQality.getReceptionConfidence() * 0.6d + flowAndlinkQality.getRelativeMobility() * 0.2d
-					+ flowAndlinkQality.getSpeedQuality() * 0.2d;
+//			return flowAndlinkQality.getReceptionConfidence() * 0.6d + flowAndlinkQality.getRelativeMobility() * 0.2d
+//					+ flowAndlinkQality.getSpeedQuality() * 0.2d;
+			
+			return 1d;
 		};
 		
 		List<Integer> flowIds = manet.getFlowIDs();

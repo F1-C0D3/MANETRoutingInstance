@@ -48,7 +48,7 @@ public class IdealRadioRunResultMapper
 
 	@Override
 	public <F extends Flow<Node, Link<LinkQuality>, LinkQuality>> AverageRunResultParameter averageRunResultMapper(
-			List<IndividualRunResultParameter> runParameters, List<F> flows, Time duration) {
+			List<IndividualRunResultParameter> runParameters, List<F> flows, Time duration, int currentRun) {
 		// TODO Auto-generated method stub
 		return null;
 	}
