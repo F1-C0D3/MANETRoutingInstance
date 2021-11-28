@@ -23,6 +23,8 @@ public class GeneticRun extends RunEcecutionCallable {
 
 	@Override
 	public ScalarRadioMANET call() {
+		
+		this.op.start();
 		ScalarRadioMANET manet = super.op.execute();
 		Time duration = op.stop();
 

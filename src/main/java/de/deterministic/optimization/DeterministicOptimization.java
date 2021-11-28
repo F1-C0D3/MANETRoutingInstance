@@ -34,8 +34,8 @@ public class DeterministicOptimization<M extends ScalarRadioMANET> extends Optim
 
 		for (ScalarRadioLink link : manet.getActiveUtilizedLinks()) {
 			receptionConfidence += link.getWeight().getReceptionConfidence() * 0.6d;
-			sinkSpeed += link.getWeight().getSpeedQuality() * 0.2d;
-			relativeDistance += link.getWeight().getRelativeMobility() * 0.2d;
+			sinkSpeed += link.getWeight().getSpeedQuality() * 0.3d;
+			relativeDistance += link.getWeight().getRelativeMobility() * 0.1d;
 		}
 
 		return (receptionConfidence + sinkSpeed + relativeDistance) / manet.getActiveUtilizedLinks().size();

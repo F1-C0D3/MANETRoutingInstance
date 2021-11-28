@@ -20,18 +20,20 @@ import de.manetmodel.scenarios.Scenario;
 import de.manetmodel.units.Time;
 import de.manetmodel.units.Watt;
 
-public class ScalarRadioRunResultMapper
-		extends RunResultMapper<IndividualRunResultParameter,AverageRunResultParameter, ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality> {
+public class ScalarRadioRunResultMapper extends
+		RunResultMapper<IndividualRunResultParameter, AverageRunResultParameter, ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality> {
 
 	MobilityModel mobilityModel;
 
-	public ScalarRadioRunResultMapper(ColumnPositionMappingStrategy<IndividualRunResultParameter> individualMappingStrategy,ColumnPositionMappingStrategy<AverageRunResultParameter> averageMappingStrategy,
-			Scenario scenario, MobilityModel mobilityModel) {
-		super(scenario, individualMappingStrategy,averageMappingStrategy);
+	public ScalarRadioRunResultMapper(
+			ColumnPositionMappingStrategy<IndividualRunResultParameter> individualMappingStrategy,
+			ColumnPositionMappingStrategy<AverageRunResultParameter> averageMappingStrategy, Scenario scenario,
+			MobilityModel mobilityModel) {
+		super(scenario, individualMappingStrategy, averageMappingStrategy);
 		this.mobilityModel = mobilityModel;
 	}
 
-	private Time getLinkStability(ScalarRadioNode source, ScalarRadioNode sink, ScalarRadioLink link) {
+	private double getLinkStability(ScalarRadioNode source, ScalarRadioNode sink, ScalarRadioLink link) {
 
 		MovementPattern nodeOneMobilityPattern = source.getPreviousMobilityPattern();
 		MovementPattern nodeTwoMobilityPattern = sink.getPreviousMobilityPattern();
@@ -60,7 +62,7 @@ public class ScalarRadioRunResultMapper
 			nodeTwoMobilityPattern = newNodeTwoMobilityPattern;
 			stabilityIterator++;
 		}
-		return new Time (stabilityIterator * mobilityModel.getTickDuration().value);
+		return new Time(stabilityIterator * mobilityModel.getTickDuration().value).getMinutes();
 	}
 
 	private double nodeDistance(Position2D nodeOne, Position2D nodeTwo) {
@@ -86,6 +88,9 @@ public class ScalarRadioRunResultMapper
 				runResultParameter.setOverUtilization(utilization - transmissionrate);
 
 			runResultParameter.setConnectionStability(getLinkStability(source, sink, link));
+			ScalarLinkQuality linkQuality = link.getWeight();
+			runResultParameter.setLinkQuality((linkQuality.getReceptionConfidence() * 0.6)
+					+ (linkQuality.getSpeedQuality() * 0.3) + (linkQuality.getRelativeMobility() * 0.1));
 		}
 
 		runResultParameter.setUtilization(link.getUtilization().get());
@@ -95,53 +100,59 @@ public class ScalarRadioRunResultMapper
 
 	@Override
 	public <F extends Flow<ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality>> AverageRunResultParameter averageRunResultMapper(
-			List<IndividualRunResultParameter> runParameters, List<F> flows, Time duration,int currentRun) {
-		
+			List<IndividualRunResultParameter> runParameters, List<F> flows, Time duration, int currentRun) {
+
 		AverageRunResultParameter averageRunParemeter = new AverageRunResultParameter();
-		
+
 		long overUtilization = 0l;
 		long averageUtilization = 0l;
-		int activeLinks = 0;
-		Time averageConnectivityStability = new Time();
-		Time minConnectionStability = new Time(Long.MAX_VALUE);
-		Time maxConnectionStability = new Time(0);
-		
+		double linkQuality = 0d;
+		double activeLinks = 0d;
+		double averageConnectivityStability = 0d;
+		double minConnectionStability = Double.MAX_VALUE;
+		double maxConnectionStability = 0d;
+
 		for (IndividualRunResultParameter runParameter : runParameters) {
 
-		    if (runParameter.isPathParticipant()) {
+			if (runParameter.isPathParticipant()) {
 
-			if (runParameter.getOverUtilization() != 0l) {
-			    overUtilization += runParameter.getOverUtilization();
+				if (runParameter.getOverUtilization() != 0l) {
+					overUtilization += runParameter.getOverUtilization();
+				}
+
+				if (runParameter.getConnectionStability() != 0d) 
+					averageConnectivityStability
+							+=runParameter.getConnectionStability();
+
+				if (minConnectionStability > runParameter.getConnectionStability())
+					minConnectionStability=runParameter.getConnectionStability();
+
+				if (maxConnectionStability < runParameter.getConnectionStability())
+					maxConnectionStability=runParameter.getConnectionStability();
+				
+				linkQuality +=runParameter.getLinkQuality();
+				activeLinks++;
 			}
 
-			if (runParameter.getConnectionStability().getMillis() != 0) {
-			    averageConnectivityStability.set(averageConnectivityStability.getMillis()+runParameter.getConnectionStability().getMillis());
-			    activeLinks++;
+			if (runParameter.getUtilization() != 0l) {
+				averageUtilization += runParameter.getUtilization();
 			}
 			
-			if(minConnectionStability.getMillis()>runParameter.getConnectionStability().getMillis())
-				minConnectionStability.set(runParameter.getConnectionStability().getMillis());
-		    
-			if(maxConnectionStability.getMillis()<runParameter.getConnectionStability().getMillis())
-				maxConnectionStability.set(runParameter.getConnectionStability().getMillis());
-		    }
-
-		    if (runParameter.getUtilization() != 0l) {
-			averageUtilization += runParameter.getUtilization();
-		    }
 
 		}
 		averageRunParemeter.setOverUtilization(overUtilization);
 		averageRunParemeter.setUtilization(averageUtilization);
-		averageRunParemeter.setMeanConnectionStability(new Time(averageConnectivityStability.getMillis() / activeLinks));
+		averageRunParemeter
+				.setMeanConnectionStability(averageConnectivityStability / activeLinks);
 		averageRunParemeter.setMinConnectionStability(minConnectionStability);
 		averageRunParemeter.setMaxConnectionStability(maxConnectionStability);
 		averageRunParemeter.setActivePathParticipants(activeLinks);
-		averageRunParemeter.setSimulationTime(duration);
+		averageRunParemeter.setLinkQuality(linkQuality/(double)activeLinks);
+		averageRunParemeter.setSimulationTime(duration.getMinutes());
 		averageRunParemeter.setRunNumber(currentRun);
-		
+
 		averageRunParemeter.setNumberOfUndeployedFlows(
-			flows.stream().filter(f -> !f.isComplete()).collect(Collectors.toList()).size());
+				flows.stream().filter(f -> !f.isComplete()).collect(Collectors.toList()).size());
 
 		return averageRunParemeter;
 	}

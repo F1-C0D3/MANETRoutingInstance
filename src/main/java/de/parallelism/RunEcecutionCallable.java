@@ -36,7 +36,7 @@ public class RunEcecutionCallable
 		return ((!manet.isOverutilized()) && (manet.getUtilization().get() > 0L) && (undeployedFlows.size() == 0));
 	}
 	@Override
-	public ScalarRadioMANET call() throws Exception {
+	public ScalarRadioMANET call() {
 		// TODO Auto-generated method stub
 		return null;
 	}

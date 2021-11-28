@@ -26,12 +26,12 @@ public class RateBasedDistributedRobustPathApp extends App {
 	public static void main(String[] args)
 			throws InterruptedException, ExecutionException, IloException, InvocationTargetException {
 		boolean visual = false;
-		int numRuns=30;
+		int numRuns=3;
 		int numFlows=5;
-		int overUtilizationPercentage = 10;
+		int overUtilizationPercentage = 25;
 		Scenario scenario = new Scenario("RBDRP", numFlows, 100, numRuns,overUtilizationPercentage);
 
-		RateBasedDistributedRobustPathApp allComp = new RateBasedDistributedRobustPathApp(2, scenario, RandomNumbers.getInstance(0),visual);
+		RateBasedDistributedRobustPathApp allComp = new RateBasedDistributedRobustPathApp(50, scenario, RandomNumbers.getInstance(3),visual);
 
 		try {
 			allComp.execute();

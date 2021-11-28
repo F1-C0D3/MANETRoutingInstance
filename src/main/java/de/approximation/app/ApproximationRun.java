@@ -25,8 +25,9 @@ public class ApproximationRun
 
 	@Override
 	public ScalarRadioMANET call() {
-		ScalarRadioMANET manet = this.op.execute();
 		
+		this.op.start();
+		ScalarRadioMANET manet = this.op.execute();
 		Time duration = this.op.stop();
 		
 		if(super.isSuccessfull()) {

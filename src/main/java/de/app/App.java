@@ -21,6 +21,7 @@ import de.jgraphlib.graph.generator.GraphProperties.IntRange;
 import de.jgraphlib.graph.generator.NetworkGraphGenerator;
 import de.jgraphlib.graph.generator.NetworkGraphProperties;
 import de.jgraphlib.gui.VisualGraphApp;
+import de.jgraphlib.gui.printer.WeightedEdgeIDPrinter;
 import de.jgraphlib.util.RandomNumbers;
 import de.manetmodel.evaluator.DoubleScope;
 import de.manetmodel.evaluator.SimpleLinkQualityEvaluator;
@@ -62,6 +63,7 @@ public abstract class App {
 	private RandomNumbers random;
 	private List<RunEcecutionCallable> executionList;
 	List<MANETRunResultRecorder<IndividualRunResultParameter, AverageRunResultParameter, ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality, ScalarRadioFlow>> runResultrecorders;
+	double density = 0;
 
 	public App(Scenario scenario, RandomNumbers random, boolean visual) {
 		this.visual = visual;
@@ -73,8 +75,7 @@ public abstract class App {
 		this.runResultrecorders = new ArrayList<MANETRunResultRecorder<IndividualRunResultParameter, AverageRunResultParameter, ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality, ScalarRadioFlow>>();
 	}
 
-	public abstract RunEcecutionCallable configureRun(
-			ScalarRadioMANET manet,
+	public abstract RunEcecutionCallable configureRun(ScalarRadioMANET manet,
 			MANETRunResultRecorder<IndividualRunResultParameter, AverageRunResultParameter, ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality, ScalarRadioFlow> runResultRecorder);
 
 	protected void execute() throws InvocationTargetException, InterruptedException, ExecutionException, IOException {
@@ -128,7 +129,18 @@ public abstract class App {
 
 			OverUtilzedProblemGenerator<ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality, ScalarRadioFlow> overUtilizedProblemGenerator = new OverUtilzedProblemGenerator<ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality, ScalarRadioFlow>(
 					manet, metric);
+//			density += manet.getEdges().size()
+//					/ (double) (manet.getVertices().size() * (manet.getVertices().size() - 1));
+//			double neighbors = 0;
+//			for (ScalarRadioNode n : manet.getVertices()) {
+//				neighbors += manet.getNextHopsOf(n).size();
+//			}
 
+//			neighbors = neighbors / manet.getVertices().size();
+//			System.out.println(String.format("Edges: %d, Vertices: %d Density:%f, Neighbors: %f",
+//					manet.getEdges().size(), manet.getVertices().size(),
+//					manet.getEdges().size() / (double) (manet.getVertices().size() * (manet.getVertices().size() - 1)),
+//					neighbors));
 			OverUtilizedProblemProperties problemProperties = new OverUtilizedProblemProperties(
 					/* Number of paths */scenario.getNumFlows(), /* Minimum path length */10,
 					/* Maximum path length */20, /* Minimum demand of each flow */new DataRate(50, Type.kilobit),
@@ -136,7 +148,7 @@ public abstract class App {
 					/* Unique source destination pairs */true,
 					/* Over-utilization percentage */scenario.getOverUtilizePercentage(),
 					/* Increase factor of each tick */new DataRate(20, Type.kilobit));
-			
+
 			List<ScalarRadioFlow> flowProblems = overUtilizedProblemGenerator.compute(problemProperties, random);
 			manet.addFlows(flowProblems);
 //			System.out.println(manet.getUtilization());
@@ -158,8 +170,9 @@ public abstract class App {
 					return this.getColumnMapping();
 				}
 			};
-			averageMappingStrategy.setColumnMapping("overUtilization", "utilization", "activePathParticipants",
-					"meanConnectionStability", "minConnectionStability", "maxConnectionStability","numberOfUndeployedFlows", "simulationTime","runNumber");
+			averageMappingStrategy.setColumnMapping("overUtilization", "utilization", "linkQuality","activePathParticipants",
+					"meanConnectionStability", "minConnectionStability", "maxConnectionStability",
+					"numberOfUndeployedFlows", "simulationTime", "runNumber");
 
 			ColumnPositionMappingStrategy<IndividualRunResultParameter> individualMappingStrategy = new ColumnPositionMappingStrategy<IndividualRunResultParameter>() {
 				@Override
@@ -168,7 +181,7 @@ public abstract class App {
 					return this.getColumnMapping();
 				}
 			};
-			individualMappingStrategy.setColumnMapping("lId", "n1Id", "n2Id", "overUtilization", "utilization",
+			individualMappingStrategy.setColumnMapping("lId", "n1Id", "n2Id", "overUtilization", "utilization", "linkQuality",
 					"isPathParticipant", "connectionStability");
 
 			ScalarRadioRunResultMapper runResultMapper = new ScalarRadioRunResultMapper(individualMappingStrategy,
@@ -184,8 +197,7 @@ public abstract class App {
 			// Define individual run result recorder
 
 //
-			RunEcecutionCallable run = this
-					.configureRun(manet, resultRecorder);
+			RunEcecutionCallable run = this.configureRun(manet, resultRecorder);
 //			CplexOptimization aco = new CplexOptimization(manet);
 //			ApproximationRun dr= new ApproximationRun(aco, resultRecorder, runResultMapper);
 //			dr.call();
@@ -196,6 +208,7 @@ public abstract class App {
 			currentRun++;
 
 		}
+		System.out.println(String.format("Average density: %f", density / (double) runs));
 
 		List<Future<ScalarRadioMANET>> futureList = executor.invokeAll(executionList);
 
@@ -210,7 +223,7 @@ public abstract class App {
 			// Display result with VisualGraph
 			if (visual)
 				SwingUtilities.invokeAndWait(new VisualGraphApp<ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality>(
-						scalarRadioMANET, new LinkUtilizationPrinter<ScalarRadioLink, ScalarLinkQuality>()));
+						scalarRadioMANET, new WeightedEdgeIDPrinter<ScalarRadioLink, ScalarLinkQuality>()));
 
 			// Print Utilization
 			System.out.println(String.format("Finished with Setting %d, OverUtilization=%s, ActiveUtilizedLinks=%d",
@@ -224,16 +237,18 @@ public abstract class App {
 				return this.getColumnMapping();
 			}
 		};
-		totalMappingStrategy.setColumnMapping("meanOverUtilization", "meanUtilization", "activePathParticipants",
-				"meanAverageConnectionStability", "minAverageConnectionStability","maxAverageConnectionStability", "meanNumberOfUndeployedFlows",
-				"meanAveragesimulationTime", "minAveragesimulationTime", "maxAveragesimulationTime","finishedRuns");
+		totalMappingStrategy.setColumnMapping("meanOverUtilization", "meanUtilization", "linkQuality","activePathParticipants",
+				"meanAverageConnectionStability", "minAverageConnectionStability", "maxAverageConnectionStability",
+				"meanNumberOfUndeployedFlows", "meanAveragesimulationTime", "minAveragesimulationTime",
+				"maxAveragesimulationTime", "finishedRuns");
 
 		ScalarRadioTotalResultMapper runResultMapper = new ScalarRadioTotalResultMapper(scenario, totalMappingStrategy);
 
 		runResultMapper.getTotalMappingStrategy().setType(TotalResultParameter.class);
 
 		MANETTotalResultRecorder<TotalResultParameter, IndividualRunResultParameter, AverageRunResultParameter> totalResultRecorder = new MANETTotalResultRecorder<TotalResultParameter, IndividualRunResultParameter, AverageRunResultParameter>(
-				scenario.getScenarioName(), runResultMapper,runResultrecorders.stream().map(rrr -> rrr.getRunResultContent()).collect(Collectors.toList()));
+				scenario.getScenarioName(), runResultMapper,
+				runResultrecorders.stream().map(rrr -> rrr.getRunResultContent()).collect(Collectors.toList()));
 		totalResultRecorder.finish();
 		executor.shutdown();
 

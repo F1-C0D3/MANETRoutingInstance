@@ -29,59 +29,57 @@ public class ScalarRadioTotalResultMapper
 		long meanOverUtilization = 0l;
 		long meanUtilization = 0l;
 		double activePathParticipants = 0d;
-		Time meanConnectionStability = new Time();
-		Time minConnectionStability = new Time();
-		Time maxConnectionStability = new Time();
+		double totalmeanLinkQuality = 0d;
+		double meanConnectionStability = 0d;
+		double minConnectionStability = 0d;
+		double maxConnectionStability = 0d;
 		double meanNumberOfUndeployedFlows = 0d;
-		Time meanAveragesimulationTime = new Time();
-		Time minAveragesimulationTime = new Time(Long.MAX_VALUE);
-		Time maxAveragesimulationTime = new Time(0L);
+		double meanAveragesimulationTime = 0d;
+		double minAveragesimulationTime = Double.MAX_VALUE;
+		double maxAveragesimulationTime = 0d;
 
 		double actualRuns = 0;
 		for (RunResultContent<IndividualRunResultParameter, AverageRunResultParameter> run : runs) {
 
 			AverageRunResultParameter averageResultContent = run.getAverageResultContent();
 
-				actualRuns++;
+			actualRuns++;
+			totalmeanLinkQuality += averageResultContent.getLinkQuality();
+			meanOverUtilization += averageResultContent.getOverUtilization();
+			meanUtilization += averageResultContent.getUtilization();
+			activePathParticipants += averageResultContent.getActivePathParticipants();
+			meanConnectionStability+= averageResultContent.getMeanConnectionStability();;
+			minConnectionStability+=averageResultContent.getMinConnectionStability();
+			maxConnectionStability+=averageResultContent.getMaxConnectionStability();
 
-				meanOverUtilization += averageResultContent.getOverUtilization();
-				meanUtilization += averageResultContent.getUtilization();
-				activePathParticipants += averageResultContent.getActivePathParticipants();
-				meanConnectionStability.set(meanConnectionStability.getMillis()
-						+ averageResultContent.getMeanConnectionStability().getMillis());
-				minConnectionStability.set(minConnectionStability.getMillis()
-						+ averageResultContent.getMinConnectionStability().getMillis());
-				
-				maxConnectionStability.set(maxConnectionStability.getMillis()
-						+ averageResultContent.getMaxConnectionStability().getMillis());
-				
-				meanNumberOfUndeployedFlows += averageResultContent.getNumberOfUndeployedFlows();
-				meanAveragesimulationTime.set(
-						meanAveragesimulationTime.getMillis() + averageResultContent.getSimulationTime().getMillis());
+			meanNumberOfUndeployedFlows += averageResultContent.getNumberOfUndeployedFlows();
+			meanAveragesimulationTime +=averageResultContent.getSimulationTime();;
 
-				if (minAveragesimulationTime.getMillis() > averageResultContent.getSimulationTime().getMillis())
-					minAveragesimulationTime.set(averageResultContent.getSimulationTime().getMillis());
+			if (minAveragesimulationTime > averageResultContent.getSimulationTime())
+				minAveragesimulationTime=averageResultContent.getSimulationTime();
 
-				if (maxAveragesimulationTime.getMillis() < averageResultContent.getSimulationTime().getMillis())
-					maxAveragesimulationTime.set(averageResultContent.getSimulationTime().getMillis());
+			if (maxAveragesimulationTime < averageResultContent.getSimulationTime())
+				maxAveragesimulationTime =averageResultContent.getSimulationTime();
 
 		}
-		
+
 		totalResultParemeter.setAverageOverUtilization(meanOverUtilization / actualRuns);
 		totalResultParemeter.setAverageUtilization(meanUtilization / actualRuns);
 		totalResultParemeter.setActivePathParticipants(activePathParticipants / actualRuns);
 		totalResultParemeter
-				.setMinAverageConnectionStability(new Time(minConnectionStability.getMillis() / (long) actualRuns));
+				.setMinAverageConnectionStability(minConnectionStability /  actualRuns);
 		totalResultParemeter
-		.setMaxAverageConnectionStability(new Time(maxConnectionStability.getMillis() / (long) actualRuns));
+				.setMaxAverageConnectionStability(maxConnectionStability / actualRuns);
 		totalResultParemeter
-				.setMeanAverageConnectionStability(new Time(meanConnectionStability.getMillis() / (long) actualRuns));
+				.setMeanAverageConnectionStability(meanConnectionStability /  actualRuns);
 		totalResultParemeter.setNumberOfUndeployedFlows(meanNumberOfUndeployedFlows / actualRuns);
 		totalResultParemeter
-				.setMeanAverageSimulationTime(new Time(meanAveragesimulationTime.getMillis() / (long) actualRuns));
+				.setMeanAverageSimulationTime(meanAveragesimulationTime /  actualRuns);
 
 		totalResultParemeter.setMinAveragesimulationTime(minAveragesimulationTime);
 		totalResultParemeter.setMaxAveragesimulationTime(maxAveragesimulationTime);
+		
+		totalResultParemeter.setLinkQuality(totalmeanLinkQuality/(double)actualRuns);
 		totalResultParemeter.setFinishedRuns(runs.size());
 
 		return totalResultParemeter;

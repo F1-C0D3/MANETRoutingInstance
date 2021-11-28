@@ -27,6 +27,7 @@ public class DeterministicRun
 
 	@Override
 	public ScalarRadioMANET call() {
+		this.op.start();
 		ScalarRadioMANET manet = this.op.execute();
 		Time duration = this.op.stop();
 

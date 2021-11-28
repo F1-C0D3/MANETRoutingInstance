@@ -24,31 +24,31 @@ public class AllCompApp extends App {
 
 	public static void main(String[] args)
 			throws InterruptedException, ExecutionException, IloException, InvocationTargetException {
-		 boolean visual=false; 
-		int numRuns=1;
-		int numFlows=4;
+		boolean visual = false;
+		int numRuns = 1;
+		int numFlows = 5;
 		int overUtilizationPercentage = 10;
-		Scenario scenario = new Scenario("allComb", numFlows, 100, numRuns,overUtilizationPercentage);
+		Scenario scenario = new Scenario("allComb", numFlows, 100, numRuns, overUtilizationPercentage);
 
-		AllCompApp allComp = new AllCompApp(2, scenario, RandomNumbers.getInstance(0),visual);
+			AllCompApp allComp = new AllCompApp(2, scenario, RandomNumbers.getInstance(53), visual);
 
-		try {
-			allComp.execute();
-		} catch (InvocationTargetException | InterruptedException | ExecutionException | IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+			try {
+				allComp.execute();
+			} catch (InvocationTargetException | InterruptedException | ExecutionException | IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 
 //	System.exit(0);
 	}
 
-	public AllCompApp(int runs, Scenario scenario, RandomNumbers random,boolean visual) {
-		super(scenario, random,visual);
+	public AllCompApp(int runs, Scenario scenario, RandomNumbers random, boolean visual) {
+		super(scenario, random, visual);
 	}
 
 	@Override
-	public RunEcecutionCallable configureRun(
-			ScalarRadioMANET manet, MANETRunResultRecorder<IndividualRunResultParameter, AverageRunResultParameter,ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality,ScalarRadioFlow> resultRecorder) {
+	public RunEcecutionCallable configureRun(ScalarRadioMANET manet,
+			MANETRunResultRecorder<IndividualRunResultParameter, AverageRunResultParameter, ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality, ScalarRadioFlow> resultRecorder) {
 
 		AllCombinationOptimization aco = new AllCombinationOptimization(manet);
 		return new DeterministicRun(aco, resultRecorder);

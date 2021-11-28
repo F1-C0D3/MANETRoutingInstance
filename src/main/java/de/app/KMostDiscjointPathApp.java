@@ -6,6 +6,7 @@ import java.util.concurrent.ExecutionException;
 
 import de.deterministic.app.DeterministicRun;
 import de.deterministic.optimization.GreedyCombinationOptimization;
+import de.deterministic.optimization.KMostDisjointPathsOptimization;
 import de.jgraphlib.util.RandomNumbers;
 import de.manetmodel.network.scalar.ScalarLinkQuality;
 import de.manetmodel.network.scalar.ScalarRadioFlow;
@@ -20,9 +21,9 @@ import de.manetmodel.scenarios.Scenario;
 import de.parallelism.RunEcecutionCallable;
 import ilog.concert.IloException;
 
-public class GreedyApp extends App {
+public class KMostDiscjointPathApp extends App {
 
-	public GreedyApp(Scenario scenario, RandomNumbers random,boolean visual) {
+	public KMostDiscjointPathApp(Scenario scenario, RandomNumbers random,boolean visual) {
 		super(scenario, random,visual);
 	}
 
@@ -30,18 +31,18 @@ public class GreedyApp extends App {
 			throws InterruptedException, ExecutionException, IloException, InvocationTargetException, IOException {
 		boolean visual = false;
 		int numRuns=50;
-		int numFlows=25;
-		int overUtilizationPercentage = 25;
-		Scenario scenario = new Scenario("greedy", numFlows, 100, numRuns,overUtilizationPercentage);
-		GreedyApp greedyApp = new GreedyApp(scenario, RandomNumbers.getInstance(3),visual);
+		int numFlows=10;
+		int overUtilizationPercentage = 5;
+		Scenario scenario = new Scenario("kMostDisjountPath", numFlows, 100, numRuns,overUtilizationPercentage);
+		KMostDiscjointPathApp kMostDisjointPathsApp = new KMostDiscjointPathApp(scenario, RandomNumbers.getInstance(3),visual);
 
-		greedyApp.execute();
+		kMostDisjointPathsApp.execute();
 	}
 
 	@Override
 	public RunEcecutionCallable configureRun(
 			ScalarRadioMANET manet, MANETRunResultRecorder<IndividualRunResultParameter, AverageRunResultParameter,ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality,ScalarRadioFlow> resultRecorder) {
-		GreedyCombinationOptimization go = new GreedyCombinationOptimization(manet);
+		KMostDisjointPathsOptimization go = new KMostDisjointPathsOptimization(manet,8,RandomNumbers.getInstance(3));
 		return new DeterministicRun(go, resultRecorder);
 	}
 

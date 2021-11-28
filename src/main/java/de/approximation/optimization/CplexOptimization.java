@@ -4,6 +4,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import de.jgraphlib.util.Timer;
 import de.jgraphlib.util.Tuple;
 import de.manetmodel.network.scalar.ScalarRadioFlow;
 import de.manetmodel.network.scalar.ScalarRadioLink;
@@ -33,6 +34,7 @@ public class CplexOptimization extends Optimization<ScalarRadioMANET> {
 
 	private ScalarRadioMANET determinePaths() {
 
+		System.out.println(duration.toString());
 		/*
 		 * path arc
 		 */
@@ -166,7 +168,8 @@ public class CplexOptimization extends Optimization<ScalarRadioMANET> {
 			for (int k = 0; k < individualLinkStabilityMatrix.length; k++) {
 				for (int i = 0; i < individualLinkStabilityMatrix[k].length; i++) {
 
-					individualLinkStabilityMatrix[k][i] = (1.00d * manet.getEdge(i).getWeight().getReceptionConfidence())
+					individualLinkStabilityMatrix[k][i] = (1.00d
+							* manet.getEdge(i).getWeight().getReceptionConfidence())
 							+ (manet.getEdge(i).getWeight().getRelativeMobility() * 0.00d
 									+ (0.00d * manet.getEdge(i).getWeight().getSpeedQuality()));
 //					individualLinkStabilityMatrix[k][i] = (1d * manet.getEdge(i).getWeight().getReceptionConfidence());
@@ -264,8 +267,8 @@ public class CplexOptimization extends Optimization<ScalarRadioMANET> {
 //			cplex.setParam(IloCplex.Param.MIP.Tolerances.Integrality, 0.001);
 			cplex.setParam(IloCplex.Param.Threads, 1);
 			cplex.setParam(IloCplex.Param.MIP.Display, 0);
-			cplex.setParam(IloCplex.Param.TimeLimit, 120);
-
+//			cplex.setParam(IloCplex.Param.TimeLimit, 24);
+			cplex.setParam(IloCplex.Param.ClockType, 2);
 			if (cplex.solve()) {
 
 				for (int i = 0; i < x_f_l.length; i++) {
