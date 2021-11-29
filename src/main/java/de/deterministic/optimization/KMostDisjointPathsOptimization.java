@@ -40,8 +40,9 @@ public class KMostDisjointPathsOptimization extends DeterministicOptimization<Sc
 
 		TreeMap<Integer, Tuple<List<Integer>, List<ScalarRadioFlow>>> kspFlows = new TreeMap<Integer, Tuple<List<Integer>, List<ScalarRadioFlow>>>();
 		Function<ScalarLinkQuality, Double> edgeMetric = (flowAndlinkQality) -> {
-			return flowAndlinkQality.getReceptionConfidence() * 0.6d + flowAndlinkQality.getRelativeMobility() * 0.1d
-					+ flowAndlinkQality.getSpeedQuality() * 0.3d;
+//			return flowAndlinkQality.getReceptionConfidence() * 0.6d + flowAndlinkQality.getRelativeMobility() * 0.1d
+//					+ flowAndlinkQality.getSpeedQuality() * 0.3d;
+			return 1d;
 
 		};
 
@@ -60,7 +61,7 @@ public class KMostDisjointPathsOptimization extends DeterministicOptimization<Sc
 						commonLinks++;
 				}
 			}
-			return  (commonLinks / (double) union.size());
+			return (commonLinks / (double) union.size());
 
 		};
 
@@ -110,7 +111,7 @@ public class KMostDisjointPathsOptimization extends DeterministicOptimization<Sc
 
 							compareList.add(kspFlows.get(innerFlow.getID()).getSecond().get(pathIndex));
 
-							double score = computeSimilarity(compareList);
+							double score = computeUtilization(compareList);
 
 							if (score < totalScore) {
 
@@ -200,4 +201,14 @@ public class KMostDisjointPathsOptimization extends DeterministicOptimization<Sc
 
 		return intersection.size() / (double) union.size();
 	}
+
+	private double computeUtilization(List<ScalarRadioFlow> flows) {
+		
+		manet.deployFlows(flows);
+		
+		double utilization = manet.getUtilization().get()/(double)manet.maxPossibleUtilization().get();
+		manet.undeployFlows();
+		return utilization;
+	}
+
 }
