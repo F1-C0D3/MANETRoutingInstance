@@ -38,10 +38,9 @@ public class KMostDisjointPathsOptimization extends DeterministicOptimization<Sc
 
 		TreeMap<Integer, Tuple<List<Integer>, List<ScalarRadioFlow>>> kspFlows = new TreeMap<Integer, Tuple<List<Integer>, List<ScalarRadioFlow>>>();
 		Function<ScalarLinkQuality, Double> edgeMetric = (flowAndlinkQality) -> {
-//			return flowAndlinkQality.getReceptionConfidence() * 0.6d + flowAndlinkQality.getRelativeMobility() * 0.2d
-//					+ flowAndlinkQality.getSpeedQuality() * 0.2d;
+			return flowAndlinkQality.getReceptionConfidence() * 0.6d + flowAndlinkQality.getRelativeMobility() * 0.1d
+					+ flowAndlinkQality.getSpeedQuality() * 0.3d;
 
-			return 1d;
 		};
 
 		Function<Tuple<Path<ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality>, Path<ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality>>, Double> pathMetric = (
@@ -136,7 +135,6 @@ public class KMostDisjointPathsOptimization extends DeterministicOptimization<Sc
 
 			--iterations;
 		}
-		
 
 		double bestScore = Double.POSITIVE_INFINITY;
 		int candidateIndex = 0;
@@ -150,6 +148,7 @@ public class KMostDisjointPathsOptimization extends DeterministicOptimization<Sc
 
 			manet.undeployFlows();
 			manet.deployFlows(manet.getFlows());
+			
 			double currentRobustness = this.evaluateSolution();
 			boolean foundFeasibleSolution = false;
 
@@ -173,7 +172,6 @@ public class KMostDisjointPathsOptimization extends DeterministicOptimization<Sc
 			manet.deployFlow(manetFlow);
 
 		}
-System.out.println("ende");
 		return manet;
 	}
 
