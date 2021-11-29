@@ -2,7 +2,9 @@ package de.deterministic.optimization;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -48,6 +50,9 @@ public class KMostDisjointPathsOptimization extends DeterministicOptimization<Sc
 
 			Path<ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality> firstPath = pathTuple.getFirst();
 			Path<ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality> secondPath = pathTuple.getSecond();
+			Set<ScalarRadioLink> union = new HashSet<ScalarRadioLink>(firstPath.getEdges());
+			union.addAll(secondPath.getEdges());
+
 			int commonLinks = 0;
 			for (ScalarRadioLink fEdge : firstPath.getEdges()) {
 				for (ScalarRadioLink sEdge : secondPath.getEdges()) {
@@ -55,7 +60,7 @@ public class KMostDisjointPathsOptimization extends DeterministicOptimization<Sc
 						commonLinks++;
 				}
 			}
-			return (double) commonLinks;
+			return  (commonLinks / (double) union.size());
 
 		};
 
@@ -148,7 +153,7 @@ public class KMostDisjointPathsOptimization extends DeterministicOptimization<Sc
 
 			manet.undeployFlows();
 			manet.deployFlows(manet.getFlows());
-			
+
 			double currentRobustness = this.evaluateSolution();
 			boolean foundFeasibleSolution = false;
 
