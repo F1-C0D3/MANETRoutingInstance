@@ -62,7 +62,7 @@ public class ScalarRadioRunResultMapper extends
 			nodeTwoMobilityPattern = newNodeTwoMobilityPattern;
 			stabilityIterator++;
 		}
-		return new Time(stabilityIterator * mobilityModel.getTickDuration().value).getMinutes();
+		return new Time(stabilityIterator * mobilityModel.getTickDuration().value).getSeconds();
 	}
 
 	private double nodeDistance(Position2D nodeOne, Position2D nodeTwo) {
@@ -148,7 +148,7 @@ public class ScalarRadioRunResultMapper extends
 		averageRunParemeter.setMaxConnectionStability(maxConnectionStability);
 		averageRunParemeter.setActivePathParticipants(activeLinks);
 		averageRunParemeter.setLinkQuality(linkQuality/(double)activeLinks);
-		averageRunParemeter.setSimulationTime(duration.getMinutes());
+		averageRunParemeter.setSimulationTime(duration.getSeconds());
 		averageRunParemeter.setRunNumber(currentRun);
 
 		averageRunParemeter.setNumberOfUndeployedFlows(
