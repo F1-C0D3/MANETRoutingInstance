@@ -15,8 +15,10 @@ public class Start {
 		int numRuns = Integer.parseInt(args[1]);
 		int numFlows = Integer.parseInt(args[2]);
 		int overUtilizationPercentage = Integer.parseInt(args[3]);
-		double methodSpecifiyConstraint = Double.parseDouble(args[4]);
 		boolean visual = Integer.parseInt(args[4]) == 0 ? false : true;
+		double methodSpecifiyConstraint = Double.MAX_VALUE;
+		if (args.length==6)
+			methodSpecifiyConstraint = Double.parseDouble(args[5]);
 
 		Scenario scenario = new Scenario(numFlows, 100, numRuns, overUtilizationPercentage);
 
