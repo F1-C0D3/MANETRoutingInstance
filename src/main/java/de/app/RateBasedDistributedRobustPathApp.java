@@ -1,11 +1,6 @@
 package de.app;
 
-import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-import java.util.concurrent.ExecutionException;
-
 import de.deterministic.app.DeterministicRun;
-import de.deterministic.optimization.AllCombinationOptimization;
 import de.deterministic.optimization.RateBasedDistributedRobustPathsOptimization;
 import de.jgraphlib.util.RandomNumbers;
 import de.manetmodel.network.scalar.ScalarLinkQuality;
@@ -14,34 +9,12 @@ import de.manetmodel.network.scalar.ScalarRadioLink;
 import de.manetmodel.network.scalar.ScalarRadioMANET;
 import de.manetmodel.network.scalar.ScalarRadioNode;
 import de.manetmodel.results.AverageRunResultParameter;
-import de.manetmodel.results.MANETRunResultRecorder;
-import de.manetmodel.results.RunResultMapper;
 import de.manetmodel.results.IndividualRunResultParameter;
+import de.manetmodel.results.MANETRunResultRecorder;
 import de.manetmodel.scenarios.Scenario;
 import de.parallelism.RunEcecutionCallable;
-import ilog.concert.IloException;
 
 public class RateBasedDistributedRobustPathApp extends App {
-
-	public static void main(String[] args)
-			throws InterruptedException, ExecutionException, IloException, InvocationTargetException {
-		boolean visual = false;
-		int numRuns=3;
-		int numFlows=5;
-		int overUtilizationPercentage = 25;
-		Scenario scenario = new Scenario("RBDRP", numFlows, 100, numRuns,overUtilizationPercentage);
-
-		RateBasedDistributedRobustPathApp allComp = new RateBasedDistributedRobustPathApp(50, scenario, RandomNumbers.getInstance(3),visual);
-
-		try {
-			allComp.execute();
-		} catch (InvocationTargetException | InterruptedException | ExecutionException | IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-
-//	System.exit(0);
-	}
 
 	public RateBasedDistributedRobustPathApp(int runs, Scenario scenario, RandomNumbers random,boolean visual) {
 		super(scenario, random,visual);

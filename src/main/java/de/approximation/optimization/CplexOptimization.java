@@ -4,7 +4,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import de.jgraphlib.util.Timer;
 import de.jgraphlib.util.Tuple;
 import de.manetmodel.network.scalar.ScalarRadioFlow;
 import de.manetmodel.network.scalar.ScalarRadioLink;
@@ -12,7 +11,6 @@ import de.manetmodel.network.scalar.ScalarRadioMANET;
 import de.manetmodel.network.scalar.ScalarRadioNode;
 import de.parallelism.Optimization;
 import ilog.concert.IloException;
-import ilog.concert.IloIntExpr;
 import ilog.concert.IloIntVar;
 import ilog.concert.IloLinearIntExpr;
 import ilog.concert.IloLinearNumExpr;
@@ -267,7 +265,7 @@ public class CplexOptimization extends Optimization<ScalarRadioMANET> {
 //			cplex.setParam(IloCplex.Param.MIP.Tolerances.Integrality, 0.001);
 			cplex.setParam(IloCplex.Param.Threads, 1);
 			cplex.setParam(IloCplex.Param.MIP.Display, 0);
-//			cplex.setParam(IloCplex.Param.TimeLimit, 24);
+			cplex.setParam(IloCplex.Param.TimeLimit, 7.3);
 			cplex.setParam(IloCplex.Param.ClockType, 2);
 			if (cplex.solve()) {
 
