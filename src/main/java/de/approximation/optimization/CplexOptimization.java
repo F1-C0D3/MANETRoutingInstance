@@ -267,6 +267,7 @@ public class CplexOptimization extends Optimization<ScalarRadioMANET> {
 //			cplex.setParam(IloCplex.Param.MIP.Tolerances.Integrality, 0.001);
 			cplex.setParam(IloCplex.Param.Threads, 1);
 			cplex.setParam(IloCplex.Param.MIP.Display, 0);
+			System.out.println(timeConstraint);
 			cplex.setParam(IloCplex.Param.TimeLimit, timeConstraint);
 			cplex.setParam(IloCplex.Param.ClockType, 2);
 			if (cplex.solve()) {
