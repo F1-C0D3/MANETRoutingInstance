@@ -16,9 +16,10 @@ import de.parallelism.RunEcecutionCallable;
 
 public class CplexApp extends App {
 
-
-	public CplexApp(int runs, Scenario scenario,RandomNumbers random,boolean visual) {
+	private double constraint;
+	public CplexApp(double constraint, Scenario scenario,RandomNumbers random,boolean visual) {
 		super(scenario,random,visual);
+		this.constraint = constraint;
 	}
 
 
@@ -28,7 +29,7 @@ public class CplexApp extends App {
 			MANETRunResultRecorder<IndividualRunResultParameter, AverageRunResultParameter,ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality,ScalarRadioFlow> resultRecorder) {
 		
 		CplexOptimization co = new CplexOptimization(
-				manet);
+				manet,this.constraint);
 		return new ApproximationRun(co, resultRecorder);
 	}
 }

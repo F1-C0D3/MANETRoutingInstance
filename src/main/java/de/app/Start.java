@@ -15,6 +15,7 @@ public class Start {
 		int numRuns = Integer.parseInt(args[1]);
 		int numFlows = Integer.parseInt(args[2]);
 		int overUtilizationPercentage = Integer.parseInt(args[3]);
+		double methodSpecifiyConstraint = Double.parseDouble(args[4]);
 		boolean visual = Integer.parseInt(args[4]) == 0 ? false : true;
 
 		Scenario scenario = new Scenario(numFlows, 100, numRuns, overUtilizationPercentage);
@@ -22,12 +23,12 @@ public class Start {
 		switch (optMethod) {
 		case 0:
 			scenario.setScenarioName("cplex_LimitedTime");
-			CplexApp app = new CplexApp(numRuns, scenario, RandomNumbers.getInstance((3)), visual);
+			CplexApp app = new CplexApp(methodSpecifiyConstraint, scenario, RandomNumbers.getInstance((3)), visual);
 			app.execute();
 			break;
 		case 1:
 			scenario.setScenarioName("genetic_LimitedTime");
-			GeneticApp geneticApp = new GeneticApp(scenario, RandomNumbers.getInstance(3), visual);
+			GeneticApp geneticApp = new GeneticApp(methodSpecifiyConstraint,scenario, RandomNumbers.getInstance(3), visual);
 			geneticApp.execute();
 			break;
 		case 2:

@@ -19,8 +19,10 @@ import ilog.cplex.IloCplex;
 
 public class CplexOptimization extends Optimization<ScalarRadioMANET> {
 
-	public CplexOptimization(ScalarRadioMANET manet) {
+	private double timeConstraint;
+	public CplexOptimization(ScalarRadioMANET manet,double constraint) {
 		super(manet);
+		this.timeConstraint = constraint;
 	}
 
 	@Override
@@ -265,7 +267,7 @@ public class CplexOptimization extends Optimization<ScalarRadioMANET> {
 //			cplex.setParam(IloCplex.Param.MIP.Tolerances.Integrality, 0.001);
 			cplex.setParam(IloCplex.Param.Threads, 1);
 			cplex.setParam(IloCplex.Param.MIP.Display, 0);
-			cplex.setParam(IloCplex.Param.TimeLimit, 7.3);
+			cplex.setParam(IloCplex.Param.TimeLimit, timeConstraint);
 			cplex.setParam(IloCplex.Param.ClockType, 2);
 			if (cplex.solve()) {
 

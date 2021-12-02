@@ -19,14 +19,16 @@ import de.parallelism.RunEcecutionCallable;
 
 public class GeneticApp extends App {
 
-	public GeneticApp(Scenario scenario, RandomNumbers random,boolean visual) {
+	private int constraint;
+	public GeneticApp(double constraint,Scenario scenario, RandomNumbers random,boolean visual) {
 		super(scenario, random,visual);
+		this.constraint = (int)constraint;
 	}
 
 	@Override
 	public RunEcecutionCallable configureRun(
 			ScalarRadioMANET manet, MANETRunResultRecorder<IndividualRunResultParameter, AverageRunResultParameter,ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality,ScalarRadioFlow> resultRecorder) {
-		GeneticOptimization go = new GeneticOptimization(manet, /* Initial Population */500, /* Termination condition */new TerminationConditionMANET(/*Successive fitness levels*/15, /*Max generations*/700, /*Min fitness level*/ 0.05, /*Max runtime*/new Time(TimeSteps.milliseconds, 23400)),
+		GeneticOptimization go = new GeneticOptimization(manet, /* Initial Population */500, /* Termination condition */new TerminationConditionMANET(/*Successive fitness levels*/15, /*Max generations*/700, /*Min fitness level*/ 0.05, /*Max runtime*/new Time(TimeSteps.milliseconds, constraint)),
 				/* mutation probability */0.25, /* Instruction factor */0.8d, RandomNumbers.getInstance(0));
 		return new GeneticRun(go, resultRecorder);
 	}
