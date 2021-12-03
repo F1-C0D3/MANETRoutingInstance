@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.concurrent.ExecutionException;
 
+import de.app.commander.CommandArgument;
 import de.deterministic.app.DeterministicRun;
 import de.deterministic.optimization.AllCombinationOptimization;
 import de.jgraphlib.util.RandomNumbers;
@@ -22,30 +23,18 @@ import ilog.concert.IloException;
 
 public class AllCompApp extends App {
 
-	public static void main(String[] args)
-			throws InterruptedException, ExecutionException, IloException, InvocationTargetException {
-		boolean visual = false;
-		int numRuns = 1;
-		int numFlows = 5;
-		int overUtilizationPercentage = 10;
-		Scenario scenario = new Scenario("allComb", numFlows, 100, numRuns, overUtilizationPercentage);
+	protected CommandArgument<String> scenarioName;
 
-			AllCompApp allComp = new AllCompApp(2, scenario, RandomNumbers.getInstance(53), visual);
-
-			try {
-				allComp.execute();
-			} catch (InvocationTargetException | InterruptedException | ExecutionException | IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-
-//	System.exit(0);
+	public AllCompApp(String[] args) {
+		super(args);
+		this.scenarioName = new CommandArgument<String>("--scenarioName", "-sN", "AllCombinations");
+		parseCommandLine(args);
+		this.scenario.setScenarioName(scenarioName.value);
 	}
-
-	public AllCompApp(int runs, Scenario scenario, RandomNumbers random, boolean visual) {
-		super(scenario, random, visual);
+	
+	private void parseCommandLine(String[] args) {
+		scenarioName.setValue(commandLineReader.parse(this.scenarioName));
 	}
-
 	@Override
 	public RunEcecutionCallable configureRun(ScalarRadioMANET manet,
 			MANETRunResultRecorder<IndividualRunResultParameter, AverageRunResultParameter, ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality, ScalarRadioFlow> resultRecorder) {
@@ -54,14 +43,11 @@ public class AllCompApp extends App {
 		return new DeterministicRun(aco, resultRecorder);
 	}
 
-//	@Override
-//	public ExecutionCallable<ScalarLinkQuality> configureRun(
-//			MANET<ScalarLinkQuality> manet,
-//			MANETResultRecorder<ScalarLinkQuality,RunResultParameter,AverageResultParameter> geneticEvalRecorder,
-//			RunResultMapper<ScalarLinkQuality,RunResultParameter> runResultMapper) {
-//
-//		AllCombinationOptimization<MANET<ScalarLinkQuality>> aco = new AllCombinationOptimization<MANET<ScalarLinkQuality>>(
-//				manet);
-//		return new DeterministicRun(aco, geneticEvalRecorder, runResultMapper);
-//	}
+	public static void main(String[] args)
+			throws InterruptedException, ExecutionException, IloException, InvocationTargetException, IOException {
+
+		AllCompApp allComp = new AllCompApp(args);
+		allComp.execute();
+
+	}
 }

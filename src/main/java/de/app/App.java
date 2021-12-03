@@ -2,6 +2,7 @@ package de.app;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -18,6 +19,9 @@ import com.opencsv.exceptions.CsvRequiredFieldEmptyException;
 
 import de.jgraphlib.graph.generator.GraphProperties.DoubleRange;
 import de.jgraphlib.graph.generator.GraphProperties.IntRange;
+import de.app.commander.CommandArgument;
+import de.app.commander.CommandLineReader;
+import de.app.commander.PathComputationTechnique;
 import de.jgraphlib.graph.generator.NetworkGraphGenerator;
 import de.jgraphlib.graph.generator.NetworkGraphProperties;
 import de.jgraphlib.gui.VisualGraphApp;
@@ -53,23 +57,46 @@ import de.result.ScalarRadioRunResultMapper;
 import de.result.ScalarRadioTotalResultMapper;
 
 public abstract class App {
-	private boolean visual;
-	private int runs;
-	private Scenario scenario;
+	protected Scenario scenario;
 	ExecutorService executor;
 	private RandomNumbers random;
 	private List<RunEcecutionCallable> executionList;
 	List<MANETRunResultRecorder<IndividualRunResultParameter, AverageRunResultParameter, ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality, ScalarRadioFlow>> runResultrecorders;
-	double density = 0;
 
-	public App(Scenario scenario, RandomNumbers random, boolean visual) {
-		this.visual = visual;
-		this.runs = scenario.getNumRuns();
-		this.scenario = scenario;
-		this.random = random;
+	protected CommandLineReader commandLineReader;
+	protected CommandArgument<Integer> runs;
+	protected CommandArgument<Integer> flows;
+	protected CommandArgument<Integer> overUtilization;
+	protected CommandArgument<Integer> randomSeed;
+	protected CommandArgument<Integer> visual; // turns Gui on or off
+
+	public App(String[] args) {
+
+		this.runs = new CommandArgument<Integer>("--runs", "-r",5);
+		this.flows = new CommandArgument<Integer>("--flows", "-f",5);
+		this.overUtilization = new CommandArgument<Integer>("--overUtilization", "-u",5);
+		this.randomSeed = new CommandArgument<Integer>("--seed", "-s",3);
+		this.visual = new CommandArgument<Integer>("--visual", "-v",0);
+
+		this.commandLineReader = new CommandLineReader(args);
+		parseCommandLine();
+
+		this.scenario = new Scenario(flows.value, 100, runs.value, overUtilization.value);
+
+		this.random = RandomNumbers.getInstance(randomSeed.value);
 		this.executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
 		this.executionList = new ArrayList<RunEcecutionCallable>();
 		this.runResultrecorders = new ArrayList<MANETRunResultRecorder<IndividualRunResultParameter, AverageRunResultParameter, ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality, ScalarRadioFlow>>();
+	}
+
+	protected void parseCommandLine() {
+
+		runs.setValue(Integer.parseInt(commandLineReader.parse(this.runs)));
+		flows.setValue(Integer.parseInt(commandLineReader.parse(this.flows)));
+		overUtilization.setValue(Integer.parseInt(commandLineReader.parse(this.overUtilization)));
+		randomSeed.setValue(Integer.parseInt(commandLineReader.parse(this.randomSeed)));
+		visual.setValue(Integer.parseInt(commandLineReader.parse(this.visual)));
+
 	}
 
 	public abstract RunEcecutionCallable configureRun(ScalarRadioMANET manet,
@@ -78,7 +105,7 @@ public abstract class App {
 	protected void execute() throws InvocationTargetException, InterruptedException, ExecutionException, IOException {
 
 		int currentRun = 0;
-		while (currentRun < runs) {
+		while (currentRun < runs.value) {
 
 			// Define Mobility Model
 			PedestrianMobilityModel mobilityModel = new PedestrianMobilityModel(random, /* Speed min and max of nodes */
@@ -167,9 +194,9 @@ public abstract class App {
 					return this.getColumnMapping();
 				}
 			};
-			averageMappingStrategy.setColumnMapping("overUtilization", "utilization", "linkQuality","activePathParticipants",
-					"meanConnectionStability", "minConnectionStability", "maxConnectionStability",
-					"numberOfUndeployedFlows", "simulationTime", "runNumber");
+			averageMappingStrategy.setColumnMapping("overUtilization", "utilization", "linkQuality",
+					"activePathParticipants", "meanConnectionStability", "minConnectionStability",
+					"maxConnectionStability", "numberOfUndeployedFlows", "simulationTime", "runNumber");
 
 			ColumnPositionMappingStrategy<IndividualRunResultParameter> individualMappingStrategy = new ColumnPositionMappingStrategy<IndividualRunResultParameter>() {
 				@Override
@@ -178,8 +205,8 @@ public abstract class App {
 					return this.getColumnMapping();
 				}
 			};
-			individualMappingStrategy.setColumnMapping("lId", "n1Id", "n2Id", "overUtilization", "utilization", "linkQuality",
-					"isPathParticipant", "connectionStability");
+			individualMappingStrategy.setColumnMapping("lId", "n1Id", "n2Id", "overUtilization", "utilization",
+					"linkQuality", "isPathParticipant", "connectionStability");
 
 			ScalarRadioRunResultMapper runResultMapper = new ScalarRadioRunResultMapper(individualMappingStrategy,
 					averageMappingStrategy, scenario, mobilityModel);
@@ -205,7 +232,6 @@ public abstract class App {
 			currentRun++;
 
 		}
-		System.out.println(String.format("Average density: %f", density / (double) runs));
 
 		List<Future<ScalarRadioMANET>> futureList = executor.invokeAll(executionList);
 
@@ -218,7 +244,7 @@ public abstract class App {
 			resultRecorder.recordAverage(scalarRadioMANET);
 
 			// Display result with VisualGraph
-			if (visual)
+			if (visual.value==1)
 				SwingUtilities.invokeAndWait(new VisualGraphApp<ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality>(
 						scalarRadioMANET, new WeightedEdgeIDPrinter<ScalarRadioLink, ScalarLinkQuality>()));
 
@@ -234,10 +260,10 @@ public abstract class App {
 				return this.getColumnMapping();
 			}
 		};
-		totalMappingStrategy.setColumnMapping("meanOverUtilization", "meanUtilization", "linkQuality","activePathParticipants",
-				"meanAverageConnectionStability", "minAverageConnectionStability", "maxAverageConnectionStability",
-				"meanNumberOfUndeployedFlows", "meanAveragesimulationTime", "minAveragesimulationTime",
-				"maxAveragesimulationTime", "finishedRuns");
+		totalMappingStrategy.setColumnMapping("meanOverUtilization", "meanUtilization", "linkQuality",
+				"activePathParticipants", "meanAverageConnectionStability", "minAverageConnectionStability",
+				"maxAverageConnectionStability", "meanNumberOfUndeployedFlows", "meanAveragesimulationTime",
+				"minAveragesimulationTime", "maxAveragesimulationTime", "finishedRuns");
 
 		ScalarRadioTotalResultMapper runResultMapper = new ScalarRadioTotalResultMapper(scenario, totalMappingStrategy);
 
@@ -249,7 +275,7 @@ public abstract class App {
 		totalResultRecorder.finish();
 		executor.shutdown();
 
-		if (visual)
+		if (visual.value==1)
 			System.in.read();
 		System.exit(0);
 	}
