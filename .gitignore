@@ -66,3 +66,6 @@ local.properties
 # Project specific excludes:
 *.log
 *.csv
+
+# Project specific excludes:
+Results/
