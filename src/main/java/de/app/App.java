@@ -67,6 +67,7 @@ public abstract class App {
 	protected CommandArgument<Integer> overUtilization;
 	protected CommandArgument<Integer> randomSeed;
 	protected CommandArgument<Integer> visual; // turns Gui on or off
+	protected CommandArgument<Integer> outputPrefix;
 
 	public App(String[] args) {
 
@@ -75,11 +76,12 @@ public abstract class App {
 		this.overUtilization = new CommandArgument<Integer>("--overUtilization", "-u",5);
 		this.randomSeed = new CommandArgument<Integer>("--seed", "-s",3);
 		this.visual = new CommandArgument<Integer>("--visual", "-v",0);
+		this.outputPrefix = new CommandArgument<Integer>("--dateOutput", "-d",0);
 
 		this.commandLineReader = new CommandLineReader(args);
 		parseCommandLine();
 
-		this.scenario = new Scenario(flows.value, 100, runs.value, overUtilization.value);
+		this.scenario = new Scenario(flows.value, 100, runs.value, overUtilization.value,outputPrefix.value);
 
 		this.random = RandomNumbers.getInstance(randomSeed.value);
 		this.executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
@@ -94,6 +96,7 @@ public abstract class App {
 		overUtilization.setValue(Integer.parseInt(commandLineReader.parse(this.overUtilization)));
 		randomSeed.setValue(Integer.parseInt(commandLineReader.parse(this.randomSeed)));
 		visual.setValue(Integer.parseInt(commandLineReader.parse(this.visual)));
+		outputPrefix.setValue(Integer.parseInt(commandLineReader.parse(this.outputPrefix)));
 
 	}
 
@@ -111,13 +114,6 @@ public abstract class App {
 					new Time(Unit.TimeSteps.second, 1l),
 					/* deviation of assigned speed */new Speed(1.2d, Unit.Distance.kilometer, Unit.TimeSteps.hour),
 					/* ticks */10);
-
-//			RandomWaypointMobilityModel mobilityModel = new RandomWaypointMobilityModel(random, /*
-//																								 * Speed min and max of
-//																								 * nodes
-//																								 */
-//					new SpeedRange(59d, 60d, Unit.TimeSteps.hour, Unit.Distance.kilometer), /* Tick duration */
-//					new Time(Unit.TimeSteps.second, 1l), /* ticks */10);
 
 			double maxCommunicationRange = 100d;
 			double minCommunicationRange = 35d;
@@ -143,48 +139,9 @@ public abstract class App {
 					manet, random);
 			networkGraphGenerator.generate(properties);
 			manet.initialize();
-
-			Function<ScalarLinkQuality, Double> metric = (ScalarLinkQuality w) -> {
-				return (w.getReceptionConfidence() * 0.6) + (w.getRelativeMobility() * 0.2)
-						+ (w.getSpeedQuality() * 0.2);
-			};
-
-			OverUtilzedProblemGenerator<ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality, ScalarRadioFlow> overUtilizedProblemGenerator = new OverUtilzedProblemGenerator<ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality, ScalarRadioFlow>(
-					manet, metric);
-//			density += manet.getEdges().size()
-//					/ (double) (manet.getVertices().size() * (manet.getVertices().size() - 1));
-//			double neighbors = 0;
-//			for (ScalarRadioNode n : manet.getVertices()) {
-//				neighbors += manet.getNextHopsOf(n).size();
-//			}
-
-//			neighbors = neighbors / manet.getVertices().size();
-//			System.out.println(String.format("Edges: %d, Vertices: %d Density:%f, Neighbors: %f",
-//					manet.getEdges().size(), manet.getVertices().size(),
-//					manet.getEdges().size() / (double) (manet.getVertices().size() * (manet.getVertices().size() - 1)),
-//					neighbors));
-			OverUtilizedProblemProperties problemProperties = new OverUtilizedProblemProperties(
-					/* Number of paths */scenario.getNumFlows(), /* Minimum path length */10,
-					/* Maximum path length */20, /* Minimum demand of each flow */new DataRate(50, Type.kilobit),
-					/* Maximum demand of each flow */new DataRate(100, Type.kilobit),
-					/* Unique source destination pairs */true,
-					/* Over-utilization percentage */scenario.getOverUtilizePercentage(),
-					/* Increase factor of each tick */new DataRate(20, Type.kilobit));
-
-			List<ScalarRadioFlow> flowProblems = overUtilizedProblemGenerator.compute(problemProperties, random);
-			manet.addFlows(flowProblems);
-//			System.out.println(manet.getUtilization());
-//			ScalarRadioFlow f1 = new ScalarRadioFlow(manet.getVertex(0), manet.getVertex(99),
-//					new DataRate(1, Type.megabit));
-//			ScalarRadioFlow f2 = new ScalarRadioFlow(manet.getVertex(10), manet.getVertex(89),
-//					new DataRate(0.1, Type.megabit));
-//
-//			ScalarRadioFlow f3 = new ScalarRadioFlow(manet.getVertex(20), manet.getVertex(79),
-//					new DataRate(1, Type.megabit));
-//			manet.addFlow(f1);
-//			manet.addFlow(f2);
-//			manet.addFlow(f3);
-
+			
+			
+			
 			/* Result recording options for further evaluation */
 			ColumnPositionMappingStrategy<AverageRunResultParameter> averageMappingStrategy = new ColumnPositionMappingStrategy<AverageRunResultParameter>() {
 				@Override
@@ -211,20 +168,36 @@ public abstract class App {
 
 			runResultMapper.getAverageMappingStrategy().setType(AverageRunResultParameter.class);
 			runResultMapper.getIndividualMappingStrategy().setType(IndividualRunResultParameter.class);
+			
+			
 
 			/* Result recording options for further evaluation */
 			MANETRunResultRecorder<IndividualRunResultParameter, AverageRunResultParameter, ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality, ScalarRadioFlow> resultRecorder = new MANETRunResultRecorder<IndividualRunResultParameter, AverageRunResultParameter, ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality, ScalarRadioFlow>(
-					scenario.getScenarioName(), runResultMapper, currentRun);
+					scenario, runResultMapper, currentRun);
 
-			// Define individual run result recorder
+			Function<ScalarLinkQuality, Double> metric = (ScalarLinkQuality w) -> {
+				return (w.getReceptionConfidence() * 0.6) + (w.getRelativeMobility() * 0.2)
+						+ (w.getSpeedQuality() * 0.2);
+			};
 
-//
+			OverUtilzedProblemGenerator<ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality, ScalarRadioFlow> overUtilizedProblemGenerator = new OverUtilzedProblemGenerator<ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality, ScalarRadioFlow>(
+					manet, metric);
+
+			OverUtilizedProblemProperties problemProperties = new OverUtilizedProblemProperties(
+					/* Number of paths */scenario.getNumFlows(), /* Minimum path length */10,
+					/* Maximum path length */20, /* Minimum demand of each flow */new DataRate(50, Type.kilobit),
+					/* Maximum demand of each flow */new DataRate(100, Type.kilobit),
+					/* Unique source destination pairs */true,
+					/* Over-utilization percentage */scenario.getOverUtilizePercentage(),
+					/* Increase factor of each tick */new DataRate(20, Type.kilobit));
+
+			List<ScalarRadioFlow> flowProblems = overUtilizedProblemGenerator.compute(problemProperties, random);
+			manet.addFlows(flowProblems);
+
+
+
+
 			RunEcecutionCallable run = this.configureRun(manet, resultRecorder);
-//			CplexOptimization aco = new CplexOptimization(manet);
-//			ApproximationRun dr= new ApproximationRun(aco, resultRecorder, runResultMapper);
-//			dr.call();
-//			System.out.println(String.format("Finished with Setting %d, OverUtilization=%s", 1,manet.getOverUtilization().toString()));
-//			ScalarRadioMANET scalarRadioMANET = future.get();
 			executionList.add(run);
 			runResultrecorders.add(resultRecorder);
 			currentRun++;
@@ -268,8 +241,11 @@ public abstract class App {
 		runResultMapper.getTotalMappingStrategy().setType(TotalResultParameter.class);
 
 		MANETTotalResultRecorder<TotalResultParameter, IndividualRunResultParameter, AverageRunResultParameter> totalResultRecorder = new MANETTotalResultRecorder<TotalResultParameter, IndividualRunResultParameter, AverageRunResultParameter>(
-				scenario.getScenarioName(), runResultMapper,
+				scenario, runResultMapper,
 				runResultrecorders.stream().map(rrr -> rrr.getRunResultContent()).collect(Collectors.toList()));
+		
+		if(scenario.getDatePrefixFlag()==1)
+			totalResultRecorder.setDate(runResultrecorders.get(0).getDate());
 		totalResultRecorder.finish();
 		executor.shutdown();
 
