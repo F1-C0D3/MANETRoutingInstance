@@ -244,8 +244,6 @@ public abstract class App {
 				scenario, runResultMapper,
 				runResultrecorders.stream().map(rrr -> rrr.getRunResultContent()).collect(Collectors.toList()));
 		
-		if(scenario.getDatePrefixFlag()==1)
-			totalResultRecorder.setDate(runResultrecorders.get(0).getDate());
 		totalResultRecorder.finish();
 		executor.shutdown();
 
