@@ -21,20 +21,23 @@ import de.parallelism.RunEcecutionCallable;
 
 public class KMostDiscjointPathApp extends App {
 	protected CommandArgument<String> scenarioName;
+	protected CommandArgument<Integer> kFlows;
 
 	public KMostDiscjointPathApp(String[] args) {
 		super(args);
 		this.scenarioName = new CommandArgument<String>("--name", "-n", "KMDP");
+		this.kFlows = new CommandArgument<Integer>("--kFlows", "-k", 3);
 		parseCommandLine(args);
 		this.scenario.setScenarioName(scenarioName.value);
 	}
 	private void parseCommandLine(String[] args) {
 		this.scenarioName.setValue(commandLineReader.parse(this.scenarioName));
+		this.kFlows.setValue(Integer.parseInt(commandLineReader.parse(this.kFlows)));
 	}
 	@Override
 	public RunEcecutionCallable configureRun(
 			ScalarRadioMANET manet, MANETRunResultRecorder<IndividualRunResultParameter, AverageRunResultParameter,ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality,ScalarRadioFlow> resultRecorder) {
-		KMostDisjointPathsOptimization go = new KMostDisjointPathsOptimization(manet,4,RandomNumbers.getInstance(3));
+		KMostDisjointPathsOptimization go = new KMostDisjointPathsOptimization(manet,kFlows.value,RandomNumbers.getInstance(3));
 		return new DeterministicRun(go, resultRecorder);
 	}
 	

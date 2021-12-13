@@ -82,57 +82,48 @@ public class KMostDisjointPathsOptimization extends DeterministicOptimization<Sc
 		List<List<ScalarRadioFlow>> candidates = new ArrayList<List<ScalarRadioFlow>>();
 
 		int iterations = kspFlows.get(0).getSecond().size();
-		List<Integer> chosen = new ArrayList<Integer>();
-
 		while (iterations > 0) {
 
-			if (chosen.size() == kspFlows.size())
-				chosen.clear();
+			List<Integer> chosen = new ArrayList<Integer>();
+			for (int i = 0; i < kspFlows.size(); i++) {
+					int randomFlowID = random.getRandomNotInE(0, kspFlows.size(), chosen);
+					chosen.add(randomFlowID);
+					double totalScore = Double.MAX_VALUE;
+					int pathIndex = 0;
+					int bestIndex = 0;
+					if (chosen.size() == 1) {
+						int randomPathID = random.getRandomNotInE(0, kspFlows.get(randomFlowID).getSecond().size(),
+								kspFlows.get(randomFlowID).getFirst());
+						kspFlows.get(randomFlowID).getFirst().add(randomPathID);
+						compareList.add(new ScalarRadioFlow(kspFlows.get(randomFlowID).getSecond().get(randomPathID)));
+					} else {
+						for (ScalarRadioFlow innerFlow : kspFlows.get(randomFlowID).getSecond()) {
 
-			int randomFlowID = random.getRandomNotInE(0, kspFlows.size(), chosen);
-			chosen.add(randomFlowID);
+							if (!kspFlows.get(randomFlowID).getFirst().contains(pathIndex)) {
 
-			int randomPathID = random.getRandomNotInE(0, kspFlows.get(randomFlowID).getSecond().size(),
-					kspFlows.get(randomFlowID).getFirst());
-			kspFlows.get(randomFlowID).getFirst().add(randomPathID);
-			ScalarRadioFlow flow = kspFlows.get(randomFlowID).getSecond().get(randomPathID);
+								compareList.add(kspFlows.get(innerFlow.getID()).getSecond().get(pathIndex));
 
-			compareList.add(new ScalarRadioFlow(flow));
+								double score = computeSimilarity(compareList);
 
-			for (Integer flowID : kspFlows.keySet()) {
-				double totalScore = Double.MAX_VALUE;
-				int pathIndex = 0;
-				int bestIndex = 0;
-				if (flowID != flow.getID()) {
+								if (score < totalScore) {
 
-					for (ScalarRadioFlow innerFlow : kspFlows.get(flowID).getSecond()) {
+									totalScore = score;
+									bestIndex = pathIndex;
 
-						if (!kspFlows.get(flowID).getFirst().contains(pathIndex)) {
+								}
 
-							compareList.add(kspFlows.get(innerFlow.getID()).getSecond().get(pathIndex));
-
-							double score = computeUtilization(compareList);
-
-							if (score < totalScore) {
-
-								totalScore = score;
-								bestIndex = pathIndex;
+								compareList.remove(innerFlow);
 
 							}
 
-							compareList.remove(innerFlow);
+							pathIndex++;
 
-						}
-
-						pathIndex++;
-
-						if (kspFlows.get(flowID).getSecond().size() == pathIndex) {
-							compareList.add(new ScalarRadioFlow(kspFlows.get(flowID).getSecond().get(bestIndex)));
-//							kspFlows.get(flowID).getFirst().add(bestIndex);
+							if (kspFlows.get(randomFlowID).getSecond().size() == pathIndex) {
+								compareList.add(new ScalarRadioFlow(kspFlows.get(randomFlowID).getSecond().get(bestIndex)));
+							kspFlows.get(randomFlowID).getFirst().add(bestIndex);
+							}
 						}
 					}
-				}
-
 			}
 
 			List<ScalarRadioFlow> candidate = new ArrayList<ScalarRadioFlow>(compareList);
@@ -203,10 +194,10 @@ public class KMostDisjointPathsOptimization extends DeterministicOptimization<Sc
 	}
 
 	private double computeUtilization(List<ScalarRadioFlow> flows) {
-		
+
 		manet.deployFlows(flows);
-		
-		double utilization = manet.getUtilization().get()/(double)manet.maxPossibleUtilization().get();
+
+		double utilization = manet.getUtilization().get() / (double) manet.maxPossibleUtilization().get();
 		manet.undeployFlows();
 		return utilization;
 	}
