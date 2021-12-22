@@ -40,9 +40,8 @@ public class KMostDisjointPathsOptimization extends DeterministicOptimization<Sc
 
 		TreeMap<Integer, Tuple<List<Integer>, List<ScalarRadioFlow>>> kspFlows = new TreeMap<Integer, Tuple<List<Integer>, List<ScalarRadioFlow>>>();
 		Function<ScalarLinkQuality, Double> edgeMetric = (flowAndlinkQality) -> {
-//			return flowAndlinkQality.getReceptionConfidence() * 0.6d + flowAndlinkQality.getRelativeMobility() * 0.1d
-//					+ flowAndlinkQality.getSpeedQuality() * 0.3d;
-			return 1d;
+			return flowAndlinkQality.getReceptionConfidence() * 0.6d + flowAndlinkQality.getRelativeMobility() * 0.1d
+					+ flowAndlinkQality.getSpeedQuality() * 0.3d;
 
 		};
 
