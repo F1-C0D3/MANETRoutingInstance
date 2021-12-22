@@ -26,15 +26,6 @@ public class RunEcecutionCallable
 	}
 	
 
-	protected boolean isSuccessfull() {
-		
-		ScalarRadioMANET manet = op.getManet();
-		
-		List<ScalarRadioFlow> undeployedFlows = manet.getFlows().stream().filter(f -> !f.isComplete())
-				.collect(Collectors.toList());
-
-		return ((!manet.isOverutilized()) && (manet.getUtilization().get() > 0L) && (undeployedFlows.size() == 0));
-	}
 	@Override
 	public ScalarRadioMANET call() {
 		// TODO Auto-generated method stub

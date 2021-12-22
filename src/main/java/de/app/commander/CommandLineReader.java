@@ -1,8 +1,5 @@
 package de.app.commander;
 
-import java.util.HashMap;
-import java.util.Map;
-
 public class CommandLineReader {
 	private String commands;
 

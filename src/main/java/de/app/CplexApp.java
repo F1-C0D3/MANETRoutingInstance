@@ -5,7 +5,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.concurrent.ExecutionException;
 
 import de.app.commander.CommandArgument;
-import de.approximation.app.ApproximationRun;
 import de.approximation.optimization.CplexOptimization;
 import de.manetmodel.network.scalar.ScalarLinkQuality;
 import de.manetmodel.network.scalar.ScalarRadioFlow;
@@ -15,6 +14,7 @@ import de.manetmodel.network.scalar.ScalarRadioNode;
 import de.manetmodel.results.AverageRunResultParameter;
 import de.manetmodel.results.IndividualRunResultParameter;
 import de.manetmodel.results.MANETRunResultRecorder;
+import de.parallelism.Run;
 import de.parallelism.RunEcecutionCallable;
 
 public class CplexApp extends App {
@@ -46,6 +46,6 @@ public class CplexApp extends App {
 			MANETRunResultRecorder<IndividualRunResultParameter, AverageRunResultParameter, ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality, ScalarRadioFlow> resultRecorder) {
 
 		CplexOptimization co = new CplexOptimization(manet, runtimeConstraint.value);
-		return new ApproximationRun(co, resultRecorder);
+		return new Run(co, resultRecorder);
 	}
 }

@@ -103,7 +103,6 @@ public class CplexOptimization extends Optimization<ScalarRadioMANET> {
 						cplex.addEq(0, nodeEqualDemand);
 						cplex.addGe(1, unsplittablePathIncoming);
 						cplex.addGe(1, unsplittablePathOutgoing);
-//						cplex.addEq(0, cplex.diff(unsplittablePathIncoming, unsplittablePathOutgoing));
 					}
 
 				}
@@ -168,12 +167,10 @@ public class CplexOptimization extends Optimization<ScalarRadioMANET> {
 			for (int k = 0; k < individualLinkStabilityMatrix.length; k++) {
 				for (int i = 0; i < individualLinkStabilityMatrix[k].length; i++) {
 
-					individualLinkStabilityMatrix[k][i] = (1.00d
+					individualLinkStabilityMatrix[k][i] = (0.60d
 							* manet.getEdge(i).getWeight().getReceptionConfidence())
-							+ (manet.getEdge(i).getWeight().getRelativeMobility() * 0.00d
-									+ (0.00d * manet.getEdge(i).getWeight().getSpeedQuality()));
-//					individualLinkStabilityMatrix[k][i] = (1d * manet.getEdge(i).getWeight().getReceptionConfidence());
-//					individualLinkStabilityMatrix[k][i] = 1;
+							+ (manet.getEdge(i).getWeight().getRelativeMobility() * 0.10d
+									+ (0.30d * manet.getEdge(i).getWeight().getSpeedQuality()));
 				}
 			}
 
@@ -250,24 +247,12 @@ public class CplexOptimization extends Optimization<ScalarRadioMANET> {
 
 				}
 
-//				minHighUtilizedNearbyLinksRange[link.getID()] = cplex.sum(minHighUtilizedNearbyLinks);
-//				minHighUtilizedNearbyLinksExpr[link.getID()] = cplex.ge(link.getWeight().getTransmissionRate().get(),
-//						minHighUtilizedNearbyLinks[link.getID()]);
 			}
 
-//			cplex.addMinimize(cplex.sum(cplex.sum(minSpeedStabilityExpr), cplex.sum(minLinkStabilityExpr),cplex.sum(minRelativeDirectionStabilityExpr)));
-//			cplex.addMinimize(cplex.sum(cplex.sum(minSpeedStabilityExpr), cplex.sum(minLinkStabilityExpr),cplex.sum(minRelativeDirectionStabilityExpr)));
-//			cplex.addMinimize(cplex.sum(minPathInstabilityExpr, cplex.sum(minLinkStabilityExpr)));
-//			cplex.addMinimize(cplex.sum(cplex.sum(minLinkStabilityExpr), cplex.sum(minRelativeDirectionStabilityExpr)));
 			cplex.addMinimize(cplex.sum(minLinkStabilityExpr));
-//			cplex.addMinimize(cplex.sum(minSpeedStabilityExpr));
-//			cplex.addMinimize(cplex.sum(cplex.sum(minSpeedStabilityExpr),cplex.sum(minLinkStabilityExpr)));
-//			cplex.setParam(IloCplex.Param.MIP.Limits.Solutions, 1);
 			cplex.setParam(IloCplex.Param.RootAlgorithm, 3);
-//			cplex.setParam(IloCplex.Param.MIP.Tolerances.Integrality, 0.001);
 			cplex.setParam(IloCplex.Param.Threads, 1);
 			cplex.setParam(IloCplex.Param.MIP.Display, 0);
-			System.out.println(timeConstraint);
 			cplex.setParam(IloCplex.Param.TimeLimit, timeConstraint);
 			cplex.setParam(IloCplex.Param.ClockType, 2);
 			if (cplex.solve()) {

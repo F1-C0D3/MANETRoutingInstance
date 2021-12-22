@@ -1,8 +1,15 @@
-package de.genetic.optimization;
+package de.heuristic.optimization;
 
 import java.util.List;
 import java.util.Random;
 
+import de.heuristic.optimization.geneticprogramming.CompletePathsMutation;
+import de.heuristic.optimization.geneticprogramming.FlowDistributionFitness;
+import de.heuristic.optimization.geneticprogramming.GenesManetGraphTranslator;
+import de.heuristic.optimization.geneticprogramming.GraphGenome;
+import de.heuristic.optimization.geneticprogramming.OnePointMultiplePathCrossover;
+import de.heuristic.optimization.geneticprogramming.PathComposition;
+import de.heuristic.optimization.geneticprogramming.TerminationConditionMANET;
 import de.jgraphlib.util.RandomNumbers;
 import de.jgraphlib.util.Tuple;
 import de.manetmodel.network.scalar.ScalarRadioMANET;
@@ -10,13 +17,11 @@ import de.parallelism.Optimization;
 import de.terministic.serein.api.EvolutionEnvironment;
 import de.terministic.serein.api.Mutation;
 import de.terministic.serein.api.Population;
-import de.terministic.serein.api.TerminationCondition;
 import de.terministic.serein.core.AlgorithmFactory;
 import de.terministic.serein.core.BasicIndividual;
 import de.terministic.serein.core.Populations;
 import de.terministic.serein.core.StatsListener;
 import de.terministic.serein.core.selection.individual.TournamentSelection;
-import de.terministic.serein.core.termination.TerminationConditionGenerations;
 
 public class GeneticOptimization extends Optimization<ScalarRadioMANET> {
 

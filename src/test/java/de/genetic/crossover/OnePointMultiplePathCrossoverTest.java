@@ -10,13 +10,11 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
 
-import javax.swing.SwingUtilities;
-
 import org.junit.Test;
 
-import de.genetic.optimization.GenesManetGraphTranslator;
-import de.genetic.optimization.GraphGenome;
-import de.genetic.optimization.OnePointMultiplePathCrossover;
+import de.heuristic.optimization.geneticprogramming.GenesManetGraphTranslator;
+import de.heuristic.optimization.geneticprogramming.GraphGenome;
+import de.heuristic.optimization.geneticprogramming.OnePointMultiplePathCrossover;
 import de.jgraphlib.graph.algorithms.DijkstraShortestPath;
 import de.jgraphlib.graph.generator.GraphProperties.DoubleRange;
 import de.jgraphlib.graph.generator.GraphProperties.IntRange;
@@ -24,12 +22,10 @@ import de.jgraphlib.graph.generator.GridGraphGenerator;
 import de.jgraphlib.graph.generator.GridGraphProperties;
 import de.jgraphlib.graph.generator.NetworkGraphGenerator;
 import de.jgraphlib.graph.generator.NetworkGraphProperties;
-import de.jgraphlib.gui.VisualGraphApp;
 import de.jgraphlib.util.RandomNumbers;
 import de.jgraphlib.util.Tuple;
 import de.manetmodel.evaluator.DoubleScope;
 import de.manetmodel.evaluator.ScalarLinkQualityEvaluator;
-import de.manetmodel.gui.printer.LinkUtilizationPrinter;
 import de.manetmodel.mobilitymodel.PedestrianMobilityModel;
 import de.manetmodel.network.scalar.ScalarLinkQuality;
 import de.manetmodel.network.scalar.ScalarRadioFlow;

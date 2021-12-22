@@ -1,13 +1,7 @@
 package de.deterministic;
 
-import static org.junit.Assert.assertTrue;
-
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.function.Function;
 
 import javax.swing.SwingUtilities;
@@ -15,25 +9,15 @@ import javax.swing.SwingUtilities;
 import org.junit.Test;
 
 import de.deterministic.optimization.KMostDisjointPathsOptimization;
-import de.genetic.optimization.GenesManetGraphTranslator;
-import de.genetic.optimization.GraphGenome;
-import de.genetic.optimization.OnePointMultiplePathCrossover;
-import de.jgraphlib.graph.algorithms.DijkstraShortestPath;
-import de.jgraphlib.graph.generator.GraphProperties.DoubleRange;
-import de.jgraphlib.graph.generator.GraphProperties.IntRange;
 import de.jgraphlib.graph.generator.GridGraphGenerator;
 import de.jgraphlib.graph.generator.GridGraphProperties;
-import de.jgraphlib.graph.generator.NetworkGraphGenerator;
-import de.jgraphlib.graph.generator.NetworkGraphProperties;
 import de.jgraphlib.gui.VisualGraphApp;
 import de.jgraphlib.gui.printer.WeightedEdgeIDPrinter;
 import de.jgraphlib.util.RandomNumbers;
-import de.jgraphlib.util.Tuple;
 import de.manetmodel.evaluator.DoubleScope;
 import de.manetmodel.evaluator.ScalarLinkQualityEvaluator;
 import de.manetmodel.generator.OverUtilizedProblemProperties;
 import de.manetmodel.generator.OverUtilzedProblemGenerator;
-import de.manetmodel.gui.printer.LinkUtilizationPrinter;
 import de.manetmodel.mobilitymodel.PedestrianMobilityModel;
 import de.manetmodel.network.scalar.ScalarLinkQuality;
 import de.manetmodel.network.scalar.ScalarRadioFlow;
@@ -44,11 +28,11 @@ import de.manetmodel.network.scalar.ScalarRadioModel;
 import de.manetmodel.network.scalar.ScalarRadioNode;
 import de.manetmodel.scenarios.Scenario;
 import de.manetmodel.units.DataRate;
+import de.manetmodel.units.DataUnit.Type;
 import de.manetmodel.units.Speed;
 import de.manetmodel.units.Speed.SpeedRange;
 import de.manetmodel.units.Unit;
 import de.manetmodel.units.Watt;
-import de.manetmodel.units.DataUnit.Type;
 import de.terministic.serein.api.RecombinationException;
 
 public class KMostDistjointPathsTest {

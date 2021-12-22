@@ -11,12 +11,12 @@ import javax.swing.SwingUtilities;
 
 import org.junit.Test;
 
-import de.genetic.optimization.FlowDistributionFitness;
-import de.genetic.optimization.GenesManetGraphTranslator;
-import de.genetic.optimization.GraphGenome;
-import de.genetic.optimization.PathComposition;
-import de.genetic.optimization.SingleNodeMutation;
-import de.genetic.optimization.UniformCrossoverPathSeperator;
+import de.heuristic.optimization.geneticprogramming.FlowDistributionFitness;
+import de.heuristic.optimization.geneticprogramming.GenesManetGraphTranslator;
+import de.heuristic.optimization.geneticprogramming.GraphGenome;
+import de.heuristic.optimization.geneticprogramming.PathComposition;
+import de.heuristic.optimization.geneticprogramming.SingleNodeMutation;
+import de.heuristic.optimization.geneticprogramming.UniformCrossoverPathSeperator;
 import de.jgraphlib.graph.algorithms.DijkstraShortestPath;
 import de.jgraphlib.graph.generator.GridGraphGenerator;
 import de.jgraphlib.graph.generator.GridGraphProperties;

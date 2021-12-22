@@ -14,10 +14,9 @@ import javax.swing.SwingUtilities;
 
 import org.junit.Test;
 
-import de.genetic.optimization.GenesManetGraphTranslator;
-import de.genetic.optimization.GraphGenome;
-import de.genetic.optimization.OnePointMultiplePathCrossover;
-import de.genetic.optimization.TwoPointMultiplePathCrossover;
+import de.heuristic.optimization.geneticprogramming.GenesManetGraphTranslator;
+import de.heuristic.optimization.geneticprogramming.GraphGenome;
+import de.heuristic.optimization.geneticprogramming.TwoPointMultiplePathCrossover;
 import de.jgraphlib.graph.algorithms.DijkstraShortestPath;
 import de.jgraphlib.graph.generator.GraphProperties.DoubleRange;
 import de.jgraphlib.graph.generator.GraphProperties.IntRange;

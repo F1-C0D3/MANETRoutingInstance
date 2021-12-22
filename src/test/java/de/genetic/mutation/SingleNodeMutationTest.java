@@ -12,9 +12,9 @@ import javax.swing.SwingUtilities;
 
 import org.junit.Test;
 
-import de.genetic.optimization.GenesManetGraphTranslator;
-import de.genetic.optimization.GraphGenome;
-import de.genetic.optimization.SingleNodeMutation;
+import de.heuristic.optimization.geneticprogramming.GenesManetGraphTranslator;
+import de.heuristic.optimization.geneticprogramming.GraphGenome;
+import de.heuristic.optimization.geneticprogramming.SingleNodeMutation;
 import de.jgraphlib.graph.algorithms.DijkstraShortestPath;
 import de.jgraphlib.graph.elements.Path;
 import de.jgraphlib.graph.generator.GraphProperties.DoubleRange;

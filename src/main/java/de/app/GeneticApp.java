@@ -5,9 +5,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.concurrent.ExecutionException;
 
 import de.app.commander.CommandArgument;
-import de.genetic.app.GeneticRun;
-import de.genetic.optimization.GeneticOptimization;
-import de.genetic.optimization.TerminationConditionMANET;
+import de.heuristic.optimization.GeneticOptimization;
+import de.heuristic.optimization.geneticprogramming.TerminationConditionMANET;
 import de.jgraphlib.util.RandomNumbers;
 import de.manetmodel.network.scalar.ScalarLinkQuality;
 import de.manetmodel.network.scalar.ScalarRadioFlow;
@@ -17,9 +16,9 @@ import de.manetmodel.network.scalar.ScalarRadioNode;
 import de.manetmodel.results.AverageRunResultParameter;
 import de.manetmodel.results.IndividualRunResultParameter;
 import de.manetmodel.results.MANETRunResultRecorder;
-import de.manetmodel.scenarios.Scenario;
 import de.manetmodel.units.Time;
 import de.manetmodel.units.Unit.TimeSteps;
+import de.parallelism.Run;
 import de.parallelism.RunEcecutionCallable;
 
 public class GeneticApp extends App {
@@ -56,7 +55,7 @@ public class GeneticApp extends App {
 						/* Max runtime */new Time(TimeSteps.milliseconds, runtimeConstraint.value)),
 				/* mutation probability */0.25, /* Instruction factor */instructionFactor.value,
 				RandomNumbers.getInstance(0));
-		return new GeneticRun(go, resultRecorder);
+		return new Run(go, resultRecorder);
 	}
 
 	public static void main(String[] args) throws InvocationTargetException, InterruptedException, ExecutionException, IOException {
