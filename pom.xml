@@ -67,5 +67,10 @@
 			<scope>system</scope>
 			<systemPath>${project.basedir}/lib/cplex.jar</systemPath>
 		</dependency>
+		<dependency>
+			<groupId>de.aco</groupId>
+			<artifactId>AntColonyOptimization</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+		</dependency>
 	</dependencies>
 </project>
