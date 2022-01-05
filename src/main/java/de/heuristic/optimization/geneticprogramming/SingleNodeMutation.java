@@ -22,7 +22,6 @@ public class SingleNodeMutation<G extends ValueGenome<?>> implements Mutation<G>
 
 		for (List<Integer> part : chromosome) {
 
-//
 			if (part.size() <= 2) {
 
 				newInstance.add(new ArrayList<Integer>(part));
@@ -72,8 +71,8 @@ public class SingleNodeMutation<G extends ValueGenome<?>> implements Mutation<G>
 				}
 			}
 		}
+		
 		GraphGenome createInstance = genes.createInstance(newInstance);
-//		System.out.println(createInstance.toString());
 		return (G) createInstance;
 	}
 }

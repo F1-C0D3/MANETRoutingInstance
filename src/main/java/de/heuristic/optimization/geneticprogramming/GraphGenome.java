@@ -130,24 +130,24 @@ public class GraphGenome extends ValueGenome<List<Integer>> {
 
 	public List<Integer> getOutgoingGenes(int index) {
 
-		List<Integer> outgoingGenesList = new ArrayList<Integer>();
+		List<Integer> outgoingGenes = new ArrayList<Integer>();
 
-		for (Integer outgoingGenes : this.sourceTargetAdjacvencyGenes.get(index)) {
-			outgoingGenesList.add(outgoingGenes);
+		for (Integer outgoingGene : this.sourceTargetAdjacvencyGenes.get(index)) {
+			outgoingGenes.add(outgoingGene);
 
 		}
-		return outgoingGenesList;
+		return outgoingGenes;
 	}
 
 	public List<Integer> getIncomingGenes(int index) {
 
-		List<Integer> incomingGenesList = new ArrayList<Integer>();
+		List<Integer> incomingGenes = new ArrayList<Integer>();
 
-		for (Integer incomingGenes : this.targetSourceAdjacencyGenes.get(index)) {
-			incomingGenesList.add(incomingGenes);
+		for (Integer incomingGene : this.targetSourceAdjacencyGenes.get(index)) {
+			incomingGenes.add(incomingGene);
 
 		}
-		return incomingGenesList;
+		return incomingGenes;
 	}
 
 	@Override

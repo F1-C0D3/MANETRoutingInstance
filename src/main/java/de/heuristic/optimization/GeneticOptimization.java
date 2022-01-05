@@ -9,6 +9,7 @@ import de.heuristic.optimization.geneticprogramming.GenesManetGraphTranslator;
 import de.heuristic.optimization.geneticprogramming.GraphGenome;
 import de.heuristic.optimization.geneticprogramming.OnePointMultiplePathCrossover;
 import de.heuristic.optimization.geneticprogramming.PathComposition;
+import de.heuristic.optimization.geneticprogramming.SingleNodeMutation;
 import de.heuristic.optimization.geneticprogramming.TerminationConditionMANET;
 import de.jgraphlib.util.RandomNumbers;
 import de.jgraphlib.util.Tuple;
@@ -50,7 +51,7 @@ public class GeneticOptimization extends Optimization<ScalarRadioMANET> {
 		Tuple<List<List<Integer>>, List<List<Integer>>> graphGenoRepresentation = translator.manetGraphPhenotoGeno();
 		List<Tuple<Integer, Integer>> flowsPhenoToGeno = translator.flowsPhenoToGeno();
 		List<List<Integer>> manetVerticesPhenoToGeno = translator.manetVerticesPhenoToGeno();
-		Mutation<GraphGenome> mutation = new CompletePathsMutation<GraphGenome>();
+		Mutation<GraphGenome> mutation = new SingleNodeMutation<GraphGenome>();
 
 //		TwoPointMultiplePathCrossover recombination = new TwoPointMultiplePathCrossover();
 
