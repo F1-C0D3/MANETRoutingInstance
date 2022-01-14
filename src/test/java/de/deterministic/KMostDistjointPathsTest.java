@@ -3,14 +3,16 @@ package de.deterministic;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 import javax.swing.SwingUtilities;
 
 import org.junit.Test;
 
 import de.deterministic.optimization.KMostDisjointPathsOptimization;
-import de.jgraphlib.graph.generator.GridGraphGenerator;
-import de.jgraphlib.graph.generator.GridGraphProperties;
+import de.jgraphlib.generator.GridGraphGenerator;
+import de.jgraphlib.generator.GridGraphProperties;
+import de.jgraphlib.generator.GraphProperties.EdgeStyle;
 import de.jgraphlib.gui.VisualGraphApp;
 import de.jgraphlib.gui.printer.WeightedEdgeIDPrinter;
 import de.jgraphlib.util.RandomNumbers;
@@ -54,15 +56,16 @@ public class KMostDistjointPathsTest {
 		ScalarLinkQualityEvaluator evaluator = new ScalarLinkQualityEvaluator(new DoubleScope(0d, 1d), radioModel,
 				mobilityModel);
 
+		Supplier<ScalarLinkQuality> linkPropertySupplier = new ScalarRadioMANETSupplier().getLinkPropertySupplier();
 		ScalarRadioMANET manet = new ScalarRadioMANET(new ScalarRadioMANETSupplier().getNodeSupplier(),
 				new ScalarRadioMANETSupplier().getLinkSupplier(),
-				new ScalarRadioMANETSupplier().getLinkPropertySupplier(),
+				linkPropertySupplier,
 				new ScalarRadioMANETSupplier().getFlowSupplier(), radioModel, mobilityModel, evaluator);
 
-		GridGraphProperties properties = new GridGraphProperties(200, 200, 100, 100);
+		GridGraphProperties properties = new GridGraphProperties(200, 200, 100, 100,EdgeStyle.BIDIRECTIONAL);
 
 		GridGraphGenerator<ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality> generator = new GridGraphGenerator<ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality>(
-				manet, RandomNumbers.getInstance(-1));
+				manet,linkPropertySupplier, RandomNumbers.getInstance(-1));
 
 		generator.generate(properties);
 		manet.initialize();

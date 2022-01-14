@@ -18,10 +18,10 @@ import com.opencsv.exceptions.CsvRequiredFieldEmptyException;
 
 import de.app.commander.CommandArgument;
 import de.app.commander.CommandLineReader;
-import de.jgraphlib.graph.generator.GraphProperties.DoubleRange;
-import de.jgraphlib.graph.generator.GraphProperties.IntRange;
-import de.jgraphlib.graph.generator.NetworkGraphGenerator;
-import de.jgraphlib.graph.generator.NetworkGraphProperties;
+import de.jgraphlib.generator.GraphProperties.DoubleRange;
+import de.jgraphlib.generator.GraphProperties.IntRange;
+import de.jgraphlib.generator.NetworkGraphGenerator;
+import de.jgraphlib.generator.NetworkGraphProperties;
 import de.jgraphlib.gui.VisualGraphApp;
 import de.jgraphlib.gui.printer.WeightedEdgeIDPrinter;
 import de.jgraphlib.util.RandomNumbers;
@@ -29,12 +29,14 @@ import de.manetmodel.evaluator.DoubleScope;
 import de.manetmodel.evaluator.SimpleLinkQualityEvaluator;
 import de.manetmodel.generator.OverUtilizedProblemProperties;
 import de.manetmodel.generator.OverUtilzedProblemGenerator;
+import de.manetmodel.gui.printer.LinkUtilizationPrinter;
 import de.manetmodel.mobilitymodel.PedestrianMobilityModel;
 import de.manetmodel.network.scalar.ScalarLinkQuality;
 import de.manetmodel.network.scalar.ScalarRadioFlow;
 import de.manetmodel.network.scalar.ScalarRadioLink;
 import de.manetmodel.network.scalar.ScalarRadioMANET;
 import de.manetmodel.network.scalar.ScalarRadioMANETSupplier;
+import de.manetmodel.network.scalar.ScalarRadioMANETSupplier.ScalarLinkQualitySupplier;
 import de.manetmodel.network.scalar.ScalarRadioModel;
 import de.manetmodel.network.scalar.ScalarRadioNode;
 import de.manetmodel.results.AverageRunResultParameter;
@@ -125,9 +127,10 @@ public abstract class App {
 			SimpleLinkQualityEvaluator evaluator = new SimpleLinkQualityEvaluator(new DoubleScope(0d, 1d), radioModel,
 					mobilityModel);
 			// Create MANET with scalar radio properties
+			ScalarLinkQualitySupplier scalarLinkQualitySupplier = new ScalarRadioMANETSupplier.ScalarLinkQualitySupplier();
 			ScalarRadioMANET manet = new ScalarRadioMANET(new ScalarRadioMANETSupplier.ScalarRadioNodeSupplier(),
 					new ScalarRadioMANETSupplier.ScalarRadioLinkSupplier(),
-					new ScalarRadioMANETSupplier.ScalarLinkQualitySupplier(),
+					scalarLinkQualitySupplier,
 					new ScalarRadioMANETSupplier.ScalarRadioFlowSupplier(), radioModel, mobilityModel, evaluator);
 
 			NetworkGraphProperties properties = new NetworkGraphProperties( /* playground width */ 1024,
@@ -136,10 +139,9 @@ public abstract class App {
 					/* distance between vertices */ new DoubleRange(minCommunicationRange, maxCommunicationRange),
 					/* edge distance */ new DoubleRange(100, 100));
 			NetworkGraphGenerator<ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality> networkGraphGenerator = new NetworkGraphGenerator<ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality>(
-					manet, random);
+					manet,scalarLinkQualitySupplier, random);
 			networkGraphGenerator.generate(properties);
 			manet.initialize();
-			
 			
 			
 			/* Result recording options for further evaluation */
@@ -217,7 +219,7 @@ public abstract class App {
 			// Display result with VisualGraph
 			if (visual.value==1)
 				SwingUtilities.invokeAndWait(new VisualGraphApp<ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality>(
-						scalarRadioMANET, new WeightedEdgeIDPrinter<ScalarRadioLink, ScalarLinkQuality>()));
+						scalarRadioMANET, new LinkUtilizationPrinter<ScalarRadioLink, ScalarLinkQuality>()));
 
 			// Print Utilization
 			System.out.println(String.format("Finished with Setting %d, OverUtilization=%s, ActiveUtilizedLinks=%d",

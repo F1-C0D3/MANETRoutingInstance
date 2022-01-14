@@ -6,6 +6,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 import javax.swing.SwingUtilities;
 
@@ -17,9 +18,10 @@ import de.heuristic.optimization.geneticprogramming.GraphGenome;
 import de.heuristic.optimization.geneticprogramming.PathComposition;
 import de.heuristic.optimization.geneticprogramming.SingleNodeMutation;
 import de.heuristic.optimization.geneticprogramming.UniformCrossoverPathSeperator;
+import de.jgraphlib.generator.GraphProperties.EdgeStyle;
+import de.jgraphlib.generator.GridGraphGenerator;
+import de.jgraphlib.generator.GridGraphProperties;
 import de.jgraphlib.graph.algorithms.DijkstraShortestPath;
-import de.jgraphlib.graph.generator.GridGraphGenerator;
-import de.jgraphlib.graph.generator.GridGraphProperties;
 import de.jgraphlib.gui.VisualGraphApp;
 import de.jgraphlib.gui.printer.WeightedEdgeIDPrinter;
 import de.jgraphlib.util.RandomNumbers;
@@ -57,15 +59,16 @@ public class RandomGraphGenomePathTest {
 		ScalarLinkQualityEvaluator evaluator = new ScalarLinkQualityEvaluator(new DoubleScope(0d, 1d), radioModel,
 				mobilityModel);
 
+		Supplier<ScalarLinkQuality> linkPropertySupplier = new ScalarRadioMANETSupplier().getLinkPropertySupplier();
 		ScalarRadioMANET manet = new ScalarRadioMANET(new ScalarRadioMANETSupplier().getNodeSupplier(),
 				new ScalarRadioMANETSupplier().getLinkSupplier(),
-				new ScalarRadioMANETSupplier().getLinkPropertySupplier(),
+				linkPropertySupplier,
 				new ScalarRadioMANETSupplier().getFlowSupplier(), radioModel, mobilityModel, evaluator);
 
-		GridGraphProperties properties = new GridGraphProperties(1000, 1000, 100, 100);
+		GridGraphProperties properties = new GridGraphProperties(1000, 1000, 100, 100,EdgeStyle.BIDIRECTIONAL);
 
 		GridGraphGenerator<ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality> generator = new GridGraphGenerator<ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality>(
-				manet, RandomNumbers.getInstance(-1));
+				manet,linkPropertySupplier, RandomNumbers.getInstance(-1));
 
 		generator.generate(properties);
 
@@ -126,15 +129,16 @@ public class RandomGraphGenomePathTest {
 		ScalarLinkQualityEvaluator evaluator = new ScalarLinkQualityEvaluator(new DoubleScope(0d, 1d), radioModel,
 				mobilityModel);
 
+		Supplier<ScalarLinkQuality> linkPropertySupplier = new ScalarRadioMANETSupplier().getLinkPropertySupplier();
 		ScalarRadioMANET manet = new ScalarRadioMANET(new ScalarRadioMANETSupplier().getNodeSupplier(),
 				new ScalarRadioMANETSupplier().getLinkSupplier(),
-				new ScalarRadioMANETSupplier().getLinkPropertySupplier(),
+				linkPropertySupplier,
 				new ScalarRadioMANETSupplier().getFlowSupplier(), radioModel, mobilityModel, evaluator);
 
-		GridGraphProperties properties = new GridGraphProperties(1000, 1000, 100, 100);
+		GridGraphProperties properties = new GridGraphProperties(1000, 1000, 100, 100,EdgeStyle.BIDIRECTIONAL);
 
 		GridGraphGenerator<ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality> generator = new GridGraphGenerator<ScalarRadioNode, ScalarRadioLink, ScalarLinkQuality>(
-				manet, RandomNumbers.getInstance(-1));
+				manet,linkPropertySupplier, RandomNumbers.getInstance(-1));
 
 		generator.generate(properties);
 
