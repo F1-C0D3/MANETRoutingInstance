@@ -83,7 +83,7 @@ public abstract class App {
 		this.commandLineReader = new CommandLineReader(args);
 		parseCommandLine();
 
-		this.scenario = new Scenario(flows.value, 100, runs.value, overUtilization.value,outputPrefix.value);
+		this.scenario = new Scenario(flows.value, 100, runs.value, overUtilization.value,outputPrefix.value, randomSeed.value);
 
 		this.random = RandomNumbers.getInstance(randomSeed.value);
 		this.executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
