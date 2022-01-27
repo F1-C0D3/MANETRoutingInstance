@@ -46,7 +46,7 @@ public class KMostDistjointPathsTest {
 		int numRuns=1;
 		int numFlows=2;
 		int overUtilizationPercentage = 10;
-		Scenario scenario = new Scenario("kMostDisjountPath", numFlows, 100, numRuns,overUtilizationPercentage,0);
+		Scenario scenario = new Scenario("kMostDisjountPath", numFlows, 100, numRuns,overUtilizationPercentage,0,-1);
 		RandomNumbers random = RandomNumbers.getInstance(0);
 		ScalarRadioModel radioModel = new ScalarRadioModel(new Watt(0.001d), new Watt(1e-11), 2000000d, 2412000000d,
 				35d,100);
